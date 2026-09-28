@@ -4,6 +4,10 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: '/',
+        destination: '/index.html',
+      },
+      {
         source: '/api/:path*',
         destination: 'http://162.0.214.158:8080/api/:path*',
       },

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="170 210 750 180">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#linear-gradient-4);
+      }
+
+      .cls-2 {
+        fill: url(#linear-gradient-3);
+      }
+
+      .cls-3 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-4 {
+        fill: url(#linear-gradient);
+      }
+
+      .cls-5 {
+        fill: #070502;
+      }
+
+      .cls-6 {
+        fill: #e89b00;
+      }
+
+      .cls-7 {
+        fill: #fff;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="322.86" y1="272.69" x2="322.86" y2="363.76" gradientTransform="translate(0 602) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="3719.09" y1="-8941.77" x2="3637.82" y2="-9023.04" gradientTransform="translate(3959.96 9261.4004) scale(-1 1)" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-3" x1="280.15" y1="321.63" x2="198.88" y2="240.37" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-4" x1="5814.48" y1="-576.91" x2="5912.61" y2="-576.91" gradientTransform="translate(-2618.7223 -415.3582) scale(.49 -1.24)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff" stop-opacity=".2"/>
+      <stop offset=".15" stop-color="#fff" stop-opacity=".11"/>
+      <stop offset=".31" stop-color="#fff" stop-opacity=".05"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".74" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g id="Layer_1" data-name="Layer 1">
+    <g>
+<g>
+        <g>
+          <path class="cls-5" d="M407.08,310.99c-18.32,0-25.24-8.32-20.77-24.95,4.36-16.34,15.7-24.51,34.01-24.51h35.72l-5.88,21.98h-35.72c-3.66,0-5.71.84-6.15,2.53-.55,1.98,1.01,2.97,4.67,2.97h16.48c18.32,0,25.3,8.17,20.94,24.51-4.47,16.63-15.86,24.95-34.18,24.95h-35.72l5.88-21.98h35.72c3.66,0,5.77-.99,6.32-2.97.44-1.68-1.17-2.53-4.84-2.53h-16.49Z"/>
+          <path class="cls-5" d="M469.45,327.48l-6.87,10.99h-21.98l48.08-76.93h27.48l6.87,76.93h-21.98l-.99-10.99h-30.61ZM496.26,284.61l-13.08,20.88h14.89l-1.81-20.88Z"/>
+          <path class="cls-5" d="M551.22,316.49l-5.88,21.98h-21.98l20.61-76.93h38.47c18.32,0,25.02,9.16,20.11,27.48-3.92,14.65-12.13,23.45-24.62,26.38l16.87,23.08h-27.48l-16.1-21.98ZM560.07,283.51l-2.97,10.99h16.48c3.66,0,5.99-1.83,6.98-5.5.99-3.66-.35-5.49-4.01-5.49h-16.49Z"/>
+          <path class="cls-5" d="M614.69,327.48l-6.87,10.99h-21.98l48.08-76.93h27.48l6.87,76.93h-21.98l-.99-10.99h-30.61ZM641.5,284.61l-13.08,20.88h14.89l-1.81-20.88Z"/>
+          <path class="cls-5" d="M700.21,338.47h-24.73l36.71-54.95h-32.97l5.88-21.98h65.94l-50.83,76.93Z"/>
+          <path class="cls-5" d="M769.7,338.47h-24.73l36.71-54.95h-32.97l5.88-21.98h65.94l-50.83,76.93Z"/>
+          <path class="cls-5" d="M838.7,338.47h-24.73l36.71-54.95h-32.97l5.88-21.98h65.94l-50.83,76.93Z"/>
+        </g>
+        <g>
+          <rect class="cls-6" x="178.47" y="217.96" width="164.07" height="164.07" rx="39.29" ry="39.29"/>
+          <path class="cls-4" d="M342.55,257.34v85.32c0-97.65-39.38-124.7-39.38-124.7,21.75,0,39.38,17.63,39.38,39.38h0Z"/>
+          <path class="cls-7" d="M245.36,314.9c-24.82,0-34.2-11.27-28.15-33.8,5.91-22.14,21.27-33.21,46.09-33.21h48.4l-7.97,29.78h-48.4c-4.96,0-7.74,1.14-8.34,3.43-.74,2.68,1.37,4.02,6.33,4.02h22.34c24.82,0,34.28,11.07,28.37,33.21-6.06,22.54-21.49,33.8-46.31,33.8h-48.4l7.97-29.78h48.4c4.96,0,7.82-1.34,8.56-4.02.6-2.28-1.59-3.43-6.55-3.43h-22.34Z"/>
+          <path class="cls-3" d="M217.85,217.96h85.32c21.75,0,39.38,17.63,39.38,39.38v85.32c-15.66-69.3-53.66-114.68-124.7-124.7h0Z"/>
+          <path class="cls-2" d="M303.17,382.04h-85.32c-21.75,0-39.38-17.63-39.38-39.38v-85.32s5,124.7,124.7,124.7h0Z"/>
+          <ellipse class="cls-1" cx="260.51" cy="300.01" rx="24.16" ry="90.66" transform="translate(-134.26 254.95) rotate(-42.52)"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
