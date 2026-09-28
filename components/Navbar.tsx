@@ -25,10 +25,10 @@ export default function Navbar() {
         <div className="flex lg:flex-1">
           <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-3 transition-transform hover:scale-105">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center shadow-sm">
-              <span className="text-white font-black text-lg leading-none">SM</span>
+              <span className="text-white font-black text-lg leading-none">DP</span>
             </div>
             <span className="text-xl font-bold text-slate-900 tracking-tight">
-              SM<span className="text-brand-500">Gameplay</span>
+              DP<span className="text-brand-500">Sara</span>
             </span>
           </Link>
         </div>
