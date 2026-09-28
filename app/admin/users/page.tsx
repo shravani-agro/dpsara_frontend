@@ -58,6 +58,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({ username: "", phone: "", is_active: "" });
+  const [submitting, setSubmitting] = useState(false);
 
   const [selected, setSelected] = useState<any>(null);
   const [detail, setDetail] = useState<any>(null);
