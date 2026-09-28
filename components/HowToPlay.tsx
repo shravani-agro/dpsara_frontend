@@ -68,7 +68,7 @@ export default function HowToPlay() {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mt-5 max-w-2xl mx-auto text-base leading-7 text-slate-600 sm:text-lg"
           >
-            Getting started on SMGameplay takes less than a minute. Follow these
+            Getting started on DPSara takes less than a minute. Follow these
             simple steps to begin your winning journey.
           </motion.p>
         </div>

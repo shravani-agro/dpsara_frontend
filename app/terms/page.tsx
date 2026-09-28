@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms and Conditions - SMGameplay Booking",
-  description: "Read the terms and conditions for using SMGameplay's satta matka booking platform. Understand the rules, eligibility, and user obligations before playing.",
+  title: "Terms and Conditions - DPSara Booking",
+  description: "Read the terms and conditions for using DPSara's satta matka booking platform. Understand the rules, eligibility, and user obligations before playing.",
   keywords: ["terms", "conditions", "satta matka", "booking", "rules", "eligibility", "user agreement"],
   openGraph: {
-    title: "Terms and Conditions - SMGameplay Booking",
-    description: "Read the terms and conditions for using SMGameplay's satta matka booking platform.",
+    title: "Terms and Conditions - DPSara Booking",
+    description: "Read the terms and conditions for using DPSara's satta matka booking platform.",
     type: "website",
   },
 };
@@ -19,7 +19,7 @@ const sections = [
     content: (
       <>
         <p>
-          You must be at least 18 years old to use this platform. By accessing or using SMGameplay, you
+          You must be at least 18 years old to use this platform. By accessing or using DPSara, you
           represent and warrant that you are of legal age to form a binding contract with us and meet all
           eligibility requirements. If you do not meet these requirements, you must not use the service.
         </p>
@@ -46,7 +46,7 @@ const sections = [
     content: (
       <>
         <p>
-          All bids placed on SMGameplay are final and cannot be canceled or modified once submitted. Results
+          All bids placed on DPSara are final and cannot be canceled or modified once submitted. Results
           are declared based on the official market timings. Prizes are awarded strictly according to the
           published rates. We reserve the right to disqualify any bid that appears suspicious or violates
           these terms at our sole discretion.
@@ -89,7 +89,7 @@ const sections = [
     content: (
       <>
         <p>
-          SMGameplay provides the platform "as is" and "as available." We do not warrant that the service
+          DPSara provides the platform "as is" and "as available." We do not warrant that the service
           will be uninterrupted, secure, or error-free. To the fullest extent permitted by law, we shall
           not be liable for any indirect, incidental, special, or consequential damages, including lost
           profits, data, or business opportunities.
@@ -149,7 +149,7 @@ export default function TermsPage() {
 
         <div className="mt-16 border-t border-white/10 pt-8 text-center">
           <p className="text-sm text-slate-500">
-            By using SMGameplay, you acknowledge that you have read, understood, and agree to these Terms
+            By using DPSara, you acknowledge that you have read, understood, and agree to these Terms
             and Conditions.
           </p>
           <Link

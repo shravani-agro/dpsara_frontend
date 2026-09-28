@@ -8,7 +8,7 @@ import Link from "next/link";
 export default function DownloadPage() {
   const handleDownload = () => {
     const link = document.createElement("a");
-    link.href = "https://github.com/shravani-agro/smgameplay_frontend/releases/latest/download/smgameplay.apk";
+    link.href = "https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk";
     link.download = "SM_Booking_Official.apk";
     document.body.appendChild(link);
     link.click();

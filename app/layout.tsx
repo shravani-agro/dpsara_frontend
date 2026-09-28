@@ -6,13 +6,13 @@ import VideoPopup from "@/components/VideoPopup";
 // import AgeGate from "@/components/AgeGate";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://smgameplay.in"),
+  metadataBase: new URL("https://dpsara.in"),
   title: {
-    default: "SMGameplay | Satta Matka Booking Platform",
-    template: `%s | SMGameplay Booking`,
+    default: "DPSara | Satta Matka Booking Platform",
+    template: `%s | DPSara Booking`,
   },
   description:
-    "SMGameplay is the trusted satta matka booking platform offering instant withdrawals, real-time results, and 24/7 support. Play responsibly and win big!",
+    "DPSara is the trusted satta matka booking platform offering instant withdrawals, real-time results, and 24/7 support. Play responsibly and win big!",
   keywords: [
     "satta matka",
     "satta matka booking",
@@ -28,32 +28,32 @@ export const metadata: Metadata = {
     "secure gaming",
     "win real money",
   ],
-  authors: [{ name: "SMGameplay Team" }],
-  creator: "SMGameplay",
-  publisher: "SMGameplay",
+  authors: [{ name: "DPSara Team" }],
+  creator: "DPSara",
+  publisher: "DPSara",
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://smgameplay.in",
-    siteName: "SMGameplay Booking",
-    title: "SMGameplay | Satta Matka Booking Platform",
+    url: "https://dpsara.in",
+    siteName: "DPSara Booking",
+    title: "DPSara | Satta Matka Booking Platform",
     description:
-      "SMGameplay is the trusted satta matka booking platform offering instant withdrawals, real-time results, and 24/7 support. Play responsibly and win big!",
+      "DPSara is the trusted satta matka booking platform offering instant withdrawals, real-time results, and 24/7 support. Play responsibly and win big!",
     images: [
       {
         url: "/logo.jpg",
         width: 800,
         height: 600,
-        alt: "SMGameplay Logo",
+        alt: "DPSara Logo",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SMGameplay | Satta Matka Booking Platform",
+    title: "DPSara | Satta Matka Booking Platform",
     description:
       "Instant withdrawals, real-time results, and 24/7 support. Play responsibly and win big!",
-    creator: "@SMGameplay",
+    creator: "@DPSara",
     images: ["/logo.jpg"],
   },
   robots: {
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "smgameplay-google-verification",
+    google: "dpsara-google-verification",
   },
 };
 

@@ -3,12 +3,12 @@ import Link from "next/link";
 import { Mail, Phone, Clock, MessageCircle } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Support - SMGameplay Booking",
-  description: "Contact SMGameplay support team 24/7 for help with account issues, payments, withdrawals, and technical problems.",
+  title: "Support - DPSara Booking",
+  description: "Contact DPSara support team 24/7 for help with account issues, payments, withdrawals, and technical problems.",
   keywords: ["support", "contact", "help", "satta matka", "24/7 support", "customer service"],
   openGraph: {
-    title: "Support - SMGameplay Booking",
-    description: "Contact SMGameplay support team 24/7 for help with your account.",
+    title: "Support - DPSara Booking",
+    description: "Contact DPSara support team 24/7 for help with your account.",
     type: "website",
   },
 };
@@ -17,7 +17,7 @@ const contactMethods = [
   {
     icon: Mail,
     title: "Email Support",
-    value: "support@smgameplay.in",
+    value: "support@dpsara.in",
     description: "Send us an email and we'll respond within 2 hours.",
   },
   {

@@ -34,7 +34,7 @@ const faqs = [
   {
     question: "Can I access my account on mobile?",
     answer:
-      "Yes, SMGameplay is fully optimized for mobile devices. You can also download our app for a seamless experience.",
+      "Yes, DPSara is fully optimized for mobile devices. You can also download our app for a seamless experience.",
   },
 ];
 
@@ -77,7 +77,7 @@ export default function FAQ() {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mt-5 text-base leading-7 text-slate-600 sm:text-lg"
           >
-            Everything you need to know about SMGameplay. Still have questions?
+            Everything you need to know about DPSara. Still have questions?
             Contact our{" "}
             <Link
               href="/support"

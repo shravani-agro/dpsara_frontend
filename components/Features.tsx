@@ -80,7 +80,7 @@ export default function Features() {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8"
           >
-            Join thousands of players who trust SMGameplay Booking for their
+            Join thousands of players who trust DPSara Booking for their
             daily entertainment and rewards.
           </motion.p>
         </div>

@@ -8,9 +8,9 @@ import FAQ from "@/components/FAQ";
 import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "SMGameplay | Satta Matka Booking Platform",
+  title: "DPSara | Satta Matka Booking Platform",
   description:
-    "SMGameplay is the trusted satta matka booking platform offering instant withdrawals, real-time results, and 24/7 support. Play responsibly and win big!",
+    "DPSara is the trusted satta matka booking platform offering instant withdrawals, real-time results, and 24/7 support. Play responsibly and win big!",
   keywords: [
     "satta matka",
     "satta matka booking",
@@ -24,13 +24,13 @@ export const metadata: Metadata = {
     "satta matka app",
   ],
   openGraph: {
-    title: "SMGameplay | Satta Matka Booking Platform",
+    title: "DPSara | Satta Matka Booking Platform",
     description:
-      "SMGameplay is the trusted satta matka booking platform offering instant withdrawals, real-time results, and 24/7 support.",
+      "DPSara is the trusted satta matka booking platform offering instant withdrawals, real-time results, and 24/7 support.",
     type: "website",
     locale: "en_IN",
-    siteName: "SMGameplay Booking",
-    images: [{ url: "/logo.jpg", alt: "SMGameplay Logo" }],
+    siteName: "DPSara Booking",
+    images: [{ url: "/logo.jpg", alt: "DPSara Logo" }],
   },
 };
 

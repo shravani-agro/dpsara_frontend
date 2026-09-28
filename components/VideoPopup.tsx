@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { cn } from "@/components/ui";
 
-const POPUP_STORAGE_KEY = "smgameplay_video_popup_closed";
+const POPUP_STORAGE_KEY = "dpsara_video_popup_closed";
 
 export default function VideoPopup() {
   const [open, setOpen] = useState(false);

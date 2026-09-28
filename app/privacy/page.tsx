@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - SMGameplay Booking",
-  description: "Learn how SMGameplay collects, uses, and protects your personal information. Read our privacy policy to understand your data rights.",
+  title: "Privacy Policy - DPSara Booking",
+  description: "Learn how DPSara collects, uses, and protects your personal information. Read our privacy policy to understand your data rights.",
   keywords: ["privacy policy", "data protection", "personal information", "satta matka", "user data", "GDPR"],
   openGraph: {
-    title: "Privacy Policy - SMGameplay Booking",
-    description: "Learn how SMGameplay collects, uses, and protects your personal information.",
+    title: "Privacy Policy - DPSara Booking",
+    description: "Learn how DPSara collects, uses, and protects your personal information.",
     type: "website",
   },
 };
@@ -18,7 +18,7 @@ const sections = [
     title: "1. Introduction",
     content: (
       <p>
-        At SMGameplay, we are committed to protecting your personal information. This Privacy Policy explains
+        At DPSara, we are committed to protecting your personal information. This Privacy Policy explains
         how we collect, use, disclose, and safeguard your information when you use our satta matka booking
         platform. Please read this policy carefully before using our services.
       </p>
