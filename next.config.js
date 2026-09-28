@@ -9,7 +9,7 @@ const nextConfig = {
       },
       {
         source: '/api/:path*',
-        destination: 'http://162.0.214.158:8080/api/:path*',
+        destination: 'https://backend.dpsara777.com/api/:path*',
       },
     ];
   },
