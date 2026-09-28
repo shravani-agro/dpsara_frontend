@@ -142,7 +142,7 @@ export default function DashboardLayout({
       <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white/80 lg:flex">
         <div className="flex items-center gap-2 px-5 py-5">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-md ring-1 ring-brand-500/10">
-            <img src="/logo.jpg" alt="SattaAdmin Logo" className="h-full w-full object-cover" />
+            <img src="/images/logo/sara777-logo.svg" alt="SattaAdmin Logo" className="h-full w-full object-cover" />
           </div>
           <span className="text-lg font-bold tracking-tight text-slate-900">
             Satta<span className="text-brand-400">Admin</span>
@@ -189,7 +189,7 @@ export default function DashboardLayout({
            <div className="flex items-center justify-between px-5 py-5">
             <div className="flex items-center gap-2">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-md ring-1 ring-brand-500/10">
-                <img src="/logo.jpg" alt="SattaAdmin Logo" className="h-full w-full object-cover" />
+                <img src="/images/logo/sara777-logo.svg" alt="SattaAdmin Logo" className="h-full w-full object-cover" />
               </div>
               <span className="text-lg font-bold tracking-tight text-slate-900">
                 Satta<span className="text-brand-400">Admin</span>
@@ -242,7 +242,7 @@ export default function DashboardLayout({
               </svg>
             </button>
             <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg lg:hidden shadow-sm ring-1 ring-brand-500/10">
-              <img src="/logo.jpg" alt="SattaAdmin Logo" className="h-full w-full object-cover" />
+              <img src="/images/logo/sara777-logo.svg" alt="SattaAdmin Logo" className="h-full w-full object-cover" />
             </div>
              <h1 className="text-sm font-semibold text-slate-700">
                {ALL_NAV.find((n) =>
