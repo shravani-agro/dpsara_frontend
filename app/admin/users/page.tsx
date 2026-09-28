@@ -163,7 +163,8 @@ export default function UsersPage() {
   const [deductDesc, setDeductDesc] = useState("Manual deduction");
 
   async function submitDeduct() {
-    if (!deductUser) return;
+    if (!deductUser || submitting) return;
+    setSubmitting(true);
     try {
       const { deductUserFunds } = await import("@/lib/admin");
       await deductUserFunds(deductUser.id, parseFloat(deductAmount), deductDesc);
@@ -175,11 +176,14 @@ export default function UsersPage() {
       }
     } catch (e: any) {
       toast.error(parseApiError(e, "Failed to deduct funds"));
+    } finally {
+      setSubmitting(false);
     }
   }
 
   async function submitReset() {
-    if (!resetUser) return;
+    if (!resetUser || submitting) return;
+    setSubmitting(true);
     try {
       await resetUserPassword(resetUser.id, resetPw);
       setResetUser(null);
@@ -187,6 +191,8 @@ export default function UsersPage() {
       toast.success("Password reset successfully");
     } catch (e: any) {
       toast.error(parseApiError(e, "Failed to reset password"));
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -438,7 +444,7 @@ export default function UsersPage() {
                              {b.status.toUpperCase()}
                            </Badge>
                         )},
-                        { key: "date", header: "Date", render: (b) => format(new Date(b.created_at), "dd/MM/yyyy") },
+                        { key: "date", header: "Date", render: (b) => format(new Date(b.placed_at || b.created_at), "dd/MM/yyyy") },
                       ]}
                     />
                   </Card>
@@ -452,7 +458,7 @@ export default function UsersPage() {
                         rows={userDeposits}
                         columns={[
                           { key: "amount", header: "Amount", render: (d) => <span className="text-emerald-400">+{fmtMoney(d.amount)}</span> },
-                          { key: "method", header: "Method", render: (d) => d.payment_method },
+                          { key: "method", header: "Method", render: (d) => d.method || "N/A" },
                           { key: "status", header: "Status", render: (d) => (
                             <Badge color={d.status === "completed" || d.status === "approved" || d.status === "success" ? "emerald" : d.status === "rejected" || d.status === "failed" ? "red" : "amber"}>
                               {d.status}
@@ -469,7 +475,7 @@ export default function UsersPage() {
                         rows={userWithdrawals}
                         columns={[
                           { key: "amount", header: "Amount", render: (w) => <span className="text-red-400">-{fmtMoney(w.amount)}</span> },
-                          { key: "method", header: "Method", render: (w) => w.payment_method },
+                          { key: "method", header: "Method", render: (w) => w.method || w.bank_details || "N/A" },
                           { key: "status", header: "Status", render: (w) => (
                             <Badge color={w.status === "approved" ? "emerald" : w.status === "rejected" ? "red" : "amber"}>
                               {w.status}
@@ -557,7 +563,7 @@ export default function UsersPage() {
                        </Button>
                     </Card>
 
-                    {selected.username !== "admin" && !selected.is_admin && (
+                    {selected.username !== "admin" && (
                       <Card
                         title="Delete User"
                         className="border-red-500/40"
@@ -599,7 +605,7 @@ export default function UsersPage() {
           </Field>
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setBonusUser(null)}>Cancel</Button>
-            <Button onClick={submitBonus}>Credit</Button>
+            <Button disabled={submitting} onClick={submitBonus}>Credit</Button>
           </div>
         </div>
       </Modal>
@@ -615,7 +621,7 @@ export default function UsersPage() {
           </Field>
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setDeductUser(null)}>Cancel</Button>
-            <Button variant="danger" onClick={submitDeduct}>Deduct</Button>
+            <Button disabled={submitting} variant="danger" onClick={submitDeduct}>Deduct</Button>
           </div>
         </div>
       </Modal>
@@ -628,7 +634,7 @@ export default function UsersPage() {
           </Field>
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setResetUser(null)}>Cancel</Button>
-            <Button variant="danger" onClick={submitReset}>Reset</Button>
+            <Button disabled={submitting} variant="danger" onClick={submitReset}>Reset</Button>
           </div>
         </div>
       </Modal>
