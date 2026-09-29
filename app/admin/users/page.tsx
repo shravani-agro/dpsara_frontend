@@ -338,6 +338,15 @@ export default function UsersPage() {
                       </Card>
                     </div>
 
+                    <Card title="Profile Information">
+                      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                        <Field label="First Name" value={selected.first_name || "—"} />
+                        <Field label="Last Name" value={selected.last_name || "—"} />
+                        <Field label="Language" value={selected.language || "—"} />
+                        <Field label="Postal PIN" value={selected.postal_pin || "—"} />
+                      </div>
+                    </Card>
+
                     {detail && (
                       <>
                         <Card title="Wallet Summary" bodyClassName="p-0">
