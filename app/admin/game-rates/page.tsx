@@ -19,13 +19,36 @@ const REGULAR_BET_TYPES = [
   { key: "single_patti", label: "Single Pana" },
   { key: "double_patti", label: "Double Pana" },
   { key: "triple_patti", label: "Triple Pana" },
+  { key: "panel_group", label: "Panel Group" },
+  { key: "spdptp", label: "SPDPTP" },
+  { key: "choice_panna_spdp", label: "Choice Panna SPDP" },
+  { key: "sp_motor", label: "SP Motor" },
+  { key: "dp_motor", label: "DP Motor" },
+  { key: "odd_even", label: "Odd Even" },
+  { key: "two_digit_panels", label: "Two Digit Panels" },
+  { key: "group_jodi", label: "Group Jodi" },
+  { key: "digit_based_jodi", label: "Digit Based Jodi" },
+  { key: "red_bracket", label: "Red Bracket" },
+  { key: "half_sangam", label: "Half Sangam" },
+  { key: "full_sangam", label: "Full Sangam" }
 ];
 
 const STARLINE_BET_TYPES = [
   { key: "single_ank", label: "Single Digit" },
+  { key: "odd_even", label: "Odd Even" },
   { key: "single_patti", label: "Single Pana" },
   { key: "double_patti", label: "Double Pana" },
   { key: "triple_patti", label: "Triple Pana" },
+  { key: "spdp", label: "SPDP" },
+  { key: "ptp", label: "PTP" },
+  { key: "sp_motor", label: "SP Motor" },
+  { key: "dp_motor", label: "DP Motor" }
+];
+
+const JACKPOT_BET_TYPES = [
+  { key: "three_single_digit", label: "Three Single Digit" },
+  { key: "odd_even", label: "Odd Even" },
+  { key: "jodi", label: "Jodi" }
 ];
 
 export default function GameRatesPage() {
@@ -131,32 +154,61 @@ export default function GameRatesPage() {
             </div>
           </Card>
 
-          <Card title="Starline Markets" subtitle="Applies to all starline games">
-            <div className="space-y-4">
-              {STARLINE_BET_TYPES.map((bt) => {
-                const starlineKey = `starline_${bt.key}`;
-                return (
-                  <div key={bt.key} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-slate-50">
-                    <div>
-                      <div className="font-medium text-slate-700">{bt.label} <Badge color="violet">Starline</Badge></div>
-                      <div className="text-xs text-slate-400 font-mono mt-1">Key: {starlineKey}</div>
+          <div className="space-y-6">
+            <Card title="Starline Markets" subtitle="Applies to all starline games">
+              <div className="space-y-4">
+                {STARLINE_BET_TYPES.map((bt) => {
+                  const starlineKey = `starline_${bt.key}`;
+                  return (
+                    <div key={bt.key} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-slate-50">
+                      <div>
+                        <div className="font-medium text-slate-700">{bt.label} <Badge color="violet">Starline</Badge></div>
+                        <div className="text-xs text-slate-400 font-mono mt-1">Key: {starlineKey}</div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-slate-400">1 ₹ :</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formRates[starlineKey] || ""}
+                          onChange={(e) => handleRateChange(starlineKey, e.target.value)}
+                          placeholder="e.g. 10.0"
+                          className="w-24 text-right"
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-slate-400">1 ₹ :</span>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={formRates[starlineKey] || ""}
-                        onChange={(e) => handleRateChange(starlineKey, e.target.value)}
-                        placeholder="e.g. 10.0"
-                        className="w-24 text-right"
-                      />
+                  )
+                })}
+              </div>
+            </Card>
+
+            <Card title="Jackpot Markets" subtitle="Applies to all jackpot games">
+              <div className="space-y-4">
+                {JACKPOT_BET_TYPES.map((bt) => {
+                  const jackpotKey = `jackpot_${bt.key}`;
+                  return (
+                    <div key={bt.key} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-slate-50">
+                      <div>
+                        <div className="font-medium text-slate-700">{bt.label} <Badge color="orange">Jackpot</Badge></div>
+                        <div className="text-xs text-slate-400 font-mono mt-1">Key: {jackpotKey}</div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-slate-400">1 ₹ :</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formRates[jackpotKey] || ""}
+                          onChange={(e) => handleRateChange(jackpotKey, e.target.value)}
+                          placeholder="e.g. 10.0"
+                          className="w-24 text-right"
+                        />
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          </Card>
+                  )
+                })}
+              </div>
+            </Card>
+          </div>
         </div>
       )}
     </div>
