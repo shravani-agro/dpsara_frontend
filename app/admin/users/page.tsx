@@ -344,6 +344,8 @@ export default function UsersPage() {
                         <Field label="Last Name" value={selected.last_name || "—"} />
                         <Field label="Language" value={selected.language || "—"} />
                         <Field label="Postal PIN" value={selected.postal_pin || "—"} />
+                        <Field label="State" value={selected.state || "—"} />
+                        <Field label="City" value={selected.city || "—"} />
                       </div>
                     </Card>
 
