@@ -100,7 +100,7 @@ export function Badge({
   className = "",
 }: {
   children: React.ReactNode;
-  color?: "slate" | "green" | "red" | "amber" | "blue" | "emerald" | "brand" | "violet";
+  color?: "slate" | "green" | "red" | "amber" | "orange" | "blue" | "emerald" | "brand" | "violet";
   className?: string;
 }) {
   const colors: Record<string, string> = {
@@ -108,6 +108,7 @@ export function Badge({
     green: "bg-emerald-500/10 text-emerald-700 ring-1 ring-inset ring-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]",
     red: "bg-red-500/10 text-red-700 ring-1 ring-inset ring-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
     amber: "bg-amber-500/10 text-amber-700 ring-1 ring-inset ring-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.2)]",
+    orange: "bg-orange-500/10 text-orange-700 ring-1 ring-inset ring-orange-500/20 shadow-[0_0_10px_rgba(249,115,22,0.2)]",
     blue: "bg-sky-500/10 text-sky-700 ring-1 ring-inset ring-sky-500/20 shadow-[0_0_10px_rgba(14,165,233,0.2)]",
     emerald: "bg-emerald-500/10 text-emerald-700 ring-1 ring-inset ring-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]",
     brand: "bg-brand-500/10 text-brand-700 ring-1 ring-inset ring-brand-500/20 shadow-[0_0_10px_rgba(139,92,246,0.2)]",
