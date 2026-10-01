@@ -273,6 +273,55 @@ export async function updateSetting(key: string, value: string, description?: st
   return res.data;
 }
 
+/* ---------------- Admin: Jackpot ---------------- */
+
+export async function listJackpotMarkets(params: any = {}) {
+  const res = await client.get("/admin/jackpot/markets", { params });
+  return res.data;
+}
+
+export async function createJackpotMarket(data: any) {
+  const res = await client.post("/admin/jackpot/markets", data);
+  return res.data;
+}
+
+export async function updateJackpotMarket(marketId: number, data: any) {
+  const res = await client.put(`/admin/jackpot/markets/${marketId}`, data);
+  return res.data;
+}
+
+export async function softDeleteJackpotMarket(marketId: number) {
+  const res = await client.delete(`/admin/jackpot/markets/${marketId}`);
+  return res.data;
+}
+
+export async function reorderJackpotMarkets(markets: { id: number; sequence_number: number }[]) {
+  const res = await client.post("/admin/jackpot/markets/reorder", { markets });
+  return res.data;
+}
+
+/* ---------------- Admin: Jackpot: Results ---------------- */
+
+export async function listJackpotResults(params: any = {}) {
+  const res = await client.get("/admin/jackpot/results", { params });
+  return res.data;
+}
+
+export async function previewJackpotResult(marketId: number) {
+  const res = await client.get(`/admin/jackpot/results/${marketId}/preview`);
+  return res.data;
+}
+
+export async function bulkDeclareJackpotResults(results: any[]) {
+  const res = await client.post("/admin/jackpot/results/bulk-declare", { results });
+  return res.data;
+}
+
+export async function deleteJackpotResult(resultId: number) {
+  const res = await client.delete(`/admin/jackpot/results/${resultId}`);
+  return res.data;
+}
+
 /* ---------------- Admin: Notifications ---------------- */
 
 export async function broadcastNotification(title: string, message: string) {

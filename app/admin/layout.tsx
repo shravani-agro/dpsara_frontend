@@ -22,6 +22,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/users", label: "Users", icon: "👤" },
       { href: "/admin/markets", label: "Markets", icon: "📈" },
       { href: "/admin/starline", label: "Starline", icon: "⭐" },
+      { href: "/admin/jackpot", label: "Jackpot", icon: "💰" },
       { href: "/admin/results", label: "Results", icon: "🎯" },
     ],
   },
