@@ -41,7 +41,7 @@ export const metadata: Metadata = {
       "DPSara is the trusted satta matka booking platform offering instant withdrawals, real-time results, and 24/7 support. Play responsibly and win big!",
     images: [
       {
-        url: "/logo.jpg",
+        url: "/logo.svg",
         width: 800,
         height: 600,
         alt: "DPSara Logo",
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     description:
       "Instant withdrawals, real-time results, and 24/7 support. Play responsibly and win big!",
     creator: "@DPSara",
-    images: ["/logo.jpg"],
+    images: ["/logo.svg"],
   },
   robots: {
     index: true,

@@ -51,7 +51,7 @@ export default function LoginPage() {
       >
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-5 flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl shadow-[0_0_40px_rgba(244,63,94,0.3)] ring-2 ring-brand-500/40 bg-ink-900 backdrop-blur-xl">
-            <img src="/logo.jpg" alt="SattaAdmin Logo" className="h-full w-full object-cover opacity-90 hover:opacity-100 transition-opacity" />
+            <img src="/logo.svg" alt="SattaAdmin Logo" className="h-full w-full object-cover opacity-90 hover:opacity-100 transition-opacity" />
           </div>
           <h1 className="text-3xl font-black tracking-tight text-white">
             Satta<span className="text-brand-400">Admin</span>
