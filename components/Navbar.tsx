@@ -23,13 +23,8 @@ export default function Navbar() {
     )}>
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 lg:px-8" aria-label="Global">
         <div className="flex lg:flex-1">
-          <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-3 transition-transform hover:scale-105">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center shadow-sm">
-              <span className="text-white font-black text-lg leading-none">DP</span>
-            </div>
-            <span className="text-xl font-bold text-slate-900 tracking-tight">
-              DP<span className="text-brand-500">Sara</span>
-            </span>
+          <Link href="/" className="-m-1.5 p-1.5 flex items-center transition-transform hover:scale-105">
+            <img src="/dpsara.svg" alt="DPSara Logo" className="h-12 w-auto object-contain drop-shadow-sm" />
           </Link>
         </div>
 
