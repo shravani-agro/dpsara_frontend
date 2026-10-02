@@ -75,9 +75,9 @@ function sanitizeMessage(text: string): string {
   // Strip ALL HTML tags
   let result = text.replace(/<[^>]+>/g, "");
   // Strip javascript: and data: URLs
-  result = result.replace(/(?i)\b(?:javascript|data):\S+/g, "[link removed]");
+  result = result.replace(/\b(?:javascript|data):\S+/gi, "[link removed]");
   // Strip all http/https/ww URLs
-  result = result.replace(/(?i)\b(?:https?:\/\/|www\.)\S+\b/g, "[link removed]");
+  result = result.replace(/\b(?:https?:\/\/|www\.)\S+\b/gi, "[link removed]");
   // Remove remaining < or > characters
   result = result.replace(/[<>]/g, "");
   // Remove on* event handlers
