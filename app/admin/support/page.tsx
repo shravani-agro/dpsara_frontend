@@ -52,22 +52,39 @@ import { API_BASE } from "@/lib/config";
 function attachmentSrc(url?: string) {
   if (!url) return "";
   if (url.startsWith("http")) return url;
-  
+
   let base = API_BASE || "";
   if (base.endsWith("/api")) {
     base = base.substring(0, base.length - 4);
   } else if (base.endsWith("/api/")) {
     base = base.substring(0, base.length - 5);
   }
-  
+
   if (base && !base.startsWith("/")) {
     return base + url;
   }
-  
+
   if (typeof window !== "undefined") {
     return window.location.origin + base + url;
   }
   return url;
+}
+
+// Client-side message sanitization - strips HTML, URLs, and event handlers
+function sanitizeMessage(text: string): string {
+  // Strip ALL HTML tags
+  let result = text.replace(/<[^>]+>/g, "");
+  // Strip javascript: and data: URLs
+  result = result.replace(/(?i)\b(?:javascript|data):\S+/g, "[link removed]");
+  // Strip all http/https/ww URLs
+  result = result.replace(/(?i)\b(?:https?:\/\/|www\.)\S+\b/g, "[link removed]");
+  // Remove remaining < or > characters
+  result = result.replace(/[<>]/g, "");
+  // Remove on* event handlers
+  result = result.replace(/\bon\w+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/g, "");
+  // Normalize whitespace
+  result = result.replace(/\s+/g, " ").trim();
+  return result;
 }
 
 export default function SupportPage() {
@@ -156,10 +173,14 @@ export default function SupportPage() {
   async function handleSend() {
     if (selectedId == null) return;
     if (!reply.trim() && !file) return;
+    
+    // Sanitize the message client-side before sending
+    const sanitizedReply = sanitizeMessage(reply);
+    
     setSending(true);
     setError(null);
     try {
-      await sendSupportMessage(selectedId, reply.trim(), file);
+      await sendSupportMessage(selectedId, sanitizedReply, file);
       setReply("");
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";

@@ -37,6 +37,9 @@ export default function Navbar() {
 
           <a
             href="https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk"
+            target="_blank"
+            rel="noopener noreferrer"
+            download
             className="group flex items-center gap-2 rounded-full bg-white/80 px-5 py-2 text-sm font-semibold text-slate-900 backdrop-blur transition-all hover:bg-white hover:scale-105 ring-1 ring-slate-200/60 hover:ring-slate-300/80 shadow-sm"
           >
             <Download className="h-4 w-4 text-brand-500 transition-transform group-hover:-translate-y-0.5" />

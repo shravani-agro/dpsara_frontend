@@ -77,6 +77,9 @@ export default function Hero() {
         >
           <a
             href="https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk"
+            target="_blank"
+            rel="noopener noreferrer"
+            download
             className="group relative flex items-center justify-center gap-2 rounded-full bg-[#E42247] px-8 py-4 text-[15px] font-bold text-white shadow-[0_0_30px_rgba(228,34,71,0.4)] transition-all hover:bg-[#c91d3e] hover:scale-[1.02] active:scale-95 w-[90%] max-w-[320px]"
           >
             <Download className="h-5 w-5" />
