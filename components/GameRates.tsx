@@ -2,16 +2,54 @@
 
 import { motion } from "framer-motion";
 import { TrendingUp, Coins, Crown, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
 
-const rates = [
-  { name: "Single Ank", rate: "10 ka 100", multiplier: "10x", icon: TrendingUp },
-  { name: "Jodi", rate: "10 ka 1000", multiplier: "100x", icon: Coins },
-  { name: "Single Panna", rate: "10 ka 1600", multiplier: "160x", icon: Crown },
-  { name: "Double Panna", rate: "10 ka 3200", multiplier: "320x", icon: Sparkles },
-  { name: "Triple Panna", rate: "10 ka 10000", multiplier: "1000x", icon: Crown },
-];
+function fetcher(url: string) {
+  return fetch(url).then((res) => res.json());
+}
+
+export function useGameRates() {
+  const [rates, setRates] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/mobile/game-rates");
+        const data = await res.json();
+        setRates(data?.rates || []);
+        setIsLoading(false);
+      } catch (e) {
+        setIsError(true);
+        setIsLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  return { rates, isLoading, isError };
+}
 
 export default function GameRates() {
+  const { rates, isLoading, isError } = useGameRates();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center">
+        <span className="text-slate-600">Loading rates...</span>
+      </div>
+    );
+  }
+
+  if (isError || !rates || rates.length === 0) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center text-slate-600">
+        <span>Failed to load rates. Please try again.</span>
+      </div>
+    );
+  }
+
   return (
     <section className="py-20 relative overflow-hidden bg-[#fdfbf7]">
       {/* Background decoration */}
@@ -31,7 +69,6 @@ export default function GameRates() {
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight"
           >
