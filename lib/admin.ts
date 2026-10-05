@@ -173,7 +173,9 @@ export async function listMarkets(params: any = {}) {
 }
 
 export async function softDeleteMarket(marketId: number) {
-  const res = await client.delete(`/admin/markets/${marketId}`);
+  const res = await client.delete(`/admin/markets/${marketId}`, {
+    data: { is_active: false },
+  });
   return res.data;
 }
 
@@ -291,7 +293,9 @@ export async function updateJackpotMarket(marketId: number, data: any) {
 }
 
 export async function softDeleteJackpotMarket(marketId: number) {
-  const res = await client.delete(`/admin/jackpot/markets/${marketId}`);
+  const res = await client.delete(`/admin/jackpot/markets/${marketId}`, {
+    data: { is_active: false },
+  });
   return res.data;
 }
 
@@ -384,7 +388,9 @@ export async function updateStarlineMarket(marketId: number, data: any) {
 }
 
 export async function softDeleteStarlineMarket(marketId: number) {
-  const res = await client.delete(`/admin/starline/markets/${marketId}`);
+  const res = await client.delete(`/admin/starline/markets/${marketId}`, {
+    data: { is_active: false },
+  });
   return res.data;
 }
 

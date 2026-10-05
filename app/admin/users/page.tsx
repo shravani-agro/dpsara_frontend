@@ -57,7 +57,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState({ username: "", phone: "", is_active: "" });
+  const [filters, setFilters] = useState({ username: "", is_active: "" });
   const [submitting, setSubmitting] = useState(false);
 
   const [selected, setSelected] = useState<any>(null);
@@ -87,7 +87,6 @@ export default function UsersPage() {
     try {
       const params: any = {};
       if (filters.username) params.username = filters.username;
-      if (filters.phone) params.phone = filters.phone;
       if (filters.is_active !== "") params.is_active = filters.is_active === "true";
       const data = await listUsers(params);
       setUsers(data);
@@ -236,12 +235,7 @@ export default function UsersPage() {
             value={filters.username}
             onChange={(e) => setFilters({ ...filters, username: e.target.value })}
           />
-          <Input
-            placeholder="Phone"
-            value={filters.phone}
-            onChange={(e) => setFilters({ ...filters, phone: e.target.value })}
-          />
-          <Select
+<Select
             value={filters.is_active}
             onChange={(e) => setFilters({ ...filters, is_active: e.target.value })}
           >
@@ -277,7 +271,7 @@ export default function UsersPage() {
                   </span>
                 ),
               },
-              { key: "phone", header: "Phone" },
+              
               { key: "balance", header: "Balance", render: (u) => <BalanceChip balance={u.wallet_balance} /> },
               {
                 key: "status",
@@ -306,7 +300,7 @@ export default function UsersPage() {
         open={!!selected}
         onClose={() => setSelected(null)}
         title={selected?.full_name || selected?.username}
-        description={`ID: ${selected?.id} • ${selected?.phone}`}
+        description={`ID: ${selected?.id}`}
       >
         {selected && (
           <div className="space-y-6">
@@ -334,7 +328,7 @@ export default function UsersPage() {
                       <Card bodyClassName="p-4 flex flex-col items-center text-center">
                         <span className="text-xs text-slate-400 uppercase">Role</span>
                         <Badge color={selected.username === "admin" ? "brand" : "slate"} className="mt-2">{selected.username === "admin" ? "Owner" : "User"}</Badge>
-                        <span className="mt-1 text-[11px] text-slate-400">{selected.phone}</span>
+                        
                       </Card>
                     </div>
 
