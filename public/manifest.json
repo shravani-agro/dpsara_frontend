@@ -1,0 +1,27 @@
+{
+  "name": "SattaAdmin",
+  "short_name": "SattaAdmin",
+  "description": "Satta Administrator Panel",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#brand-600",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/logo.svg",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

@@ -19,8 +19,60 @@ export async function login(username: string, password: string): Promise<LoginRe
   return res.data;
 }
 
-export function logout() {
-  clearToken();
+export async function setUserFcmToken(token: string) {
+  const res = await client.post("/admin/notices/fcm-token", { token });
+  return res.data;
+}
+
+export async function getUserFcmToken() {
+  const res = await client.get("/admin/notices/fcm-token");
+  return res.data;
+}
+
+export interface Campaign {
+  id: number;
+  name: string;
+  description: string;
+  message: string;
+  start_date: string;
+  end_date: string;
+  status: "draft" | "active" | "paused" | "completed";
+  target: "all" | "registered" | "vip" | "segment";
+  target_value?: string;
+  sends?: number;
+  impressions?: number;
+  clicks?: number;
+  opens?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getCampaigns(): Promise<Campaign[]> {
+  const res = await client.get("/admin/campaigns");
+  return res.data;
+}
+
+export async function createCampaign(data: {
+  name: string;
+  description: string;
+  message: string;
+  start_date: string;
+  end_date: string;
+  status: "draft" | "active" | "paused" | "completed";
+  target: "all" | "registered" | "vip" | "segment";
+  target_value?: string;
+}): Promise<Campaign> {
+  const res = await client.post("/admin/campaigns", data);
+  return res.data;
+}
+
+export async function updateCampaign(id: number, data: Partial<Campaign>): Promise<Campaign> {
+  const res = await client.put(`/admin/campaigns/${id}`, data);
+  return res.data;
+}
+
+export async function deleteCampaign(id: number): Promise<void> {
+  await client.delete(`/admin/campaigns/${id}`);
 }
 
 export function isAuthenticated(): boolean {

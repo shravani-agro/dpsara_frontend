@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [showForgot, setShowForgot] = useState(false);
+  const [showEye, setShowEye] = useState(false);
 
   useEffect(() => {
     if (authenticated) router.replace("/admin");
@@ -73,15 +74,26 @@ export default function LoginPage() {
             <div>
               <label className="mb-2 block text-xs font-semibold tracking-wide text-slate-400 uppercase">MPIN</label>
               <Input
-                type="password"
+                type={showEye ? "text" : "password"}
                 value={mpin}
                 onChange={(e) => setMpin(e.target.value)}
-                placeholder="••••"
+                placeholder={showEye ? "1234" : "••••"}
                 autoComplete="current-password"
                 required
-                className="bg-black/50 border-white/10 focus:border-brand-500 focus:ring-brand-500/30 transition-all text-white h-12"
+                className="bg-black/50 border-white/10 focus:border-brand-500 focus:ring-brand-500/30 transition-all text-white h-12 rounded-xl"
                 inputMode="decimal"
               />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer select-none transition-colors hover:text-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/50">
+                {showEye ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 21a10.07 10.07 0 0 1-5.94-2.06M9 10h.5m7 0h.5m-7-7h.5M7 7h.5m7 0h.5m-7-7h.5" strokeLinecap="round" />
+                  </svg>
+                )}
+              </div>
             </div>
             
             {error && <ErrorMsg msg={error} />}

@@ -79,13 +79,19 @@ export default function StarlinePage() {
   async function initMarket() {
     try {
       setLoading(true);
+      // Create market with default time slots for Satta Matka
       await createStarlineMarket({ 
         name: "Starline Market", 
         market_type: "starline",
         game_days: "Mon-Sun",
         sequence_number: 0,
         holiday_status: false,
-        schedules: []
+        schedules: [
+          { session_label: "Morning", result_time: "10:00" },
+          { session_label: "Day", result_time: "12:00" },
+          { session_label: "Afternoon", result_time: "04:00" },
+          { session_label: "Evening", result_time: "06:00" },
+        ]
       });
       load();
     } catch (err: any) {
@@ -206,8 +212,15 @@ export default function StarlinePage() {
              <Card title="Time Slots (Sessions)" subtitle="Add direct time slots for Starline">
                <div className="mb-6 p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-wrap gap-4 items-end">
                  <div className="w-48">
-                   <label className="mb-1 block text-xs font-medium text-slate-400">Result Time</label>
-                   <TimePicker value={newTime} onChange={setNewTime} />
+<label className="mb-1 block text-xs font-medium text-slate-400">Result Time</label>
+                    <div className="relative">
+                      <TimePicker value={newTime} onChange={setNewTime} className="pl-10"/>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer select-none transition-colors hover:text-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/50">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" id="eye-icon">
+                          <path d="M1 12s4-8 11-8 11 8 11 8" strokeLinecap="round" />
+                        </svg>
+                      </div>
+                    </div>
                  </div>
                  <Button onClick={handleAddSlot} disabled={!newTime || isAddingSlot} className="mb-0.5">
                    {isAddingSlot ? "Adding..." : "+ Add Slot"}

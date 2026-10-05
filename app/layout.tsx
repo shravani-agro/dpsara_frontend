@@ -5,6 +5,63 @@ import Footer from "@/components/Footer";
 import VideoPopup from "@/components/VideoPopup";
 // import AgeGate from "@/components/AgeGate";
 
+// Service Worker registration for background notifications
+const isLocalhost = Boolean(
+  window.location.hostname === "localhost" ||
+    window.location.hostname === "[::1]" ||
+    window.location.hostname.match(
+      /^127\.(0\.)?(\d{1,3}\.)?(\d{1,3})$/
+    )
+);
+
+// Firebase Messaging initialization for background notifications
+if ("serviceWorker" in navigator && "firebase" in window) {
+  // Initialize Firebase Messaging when service worker is available
+  import("@/lib/firebase-config").then(() => {
+    // Firebase is initialized in the config file
+  }).catch((err) => {
+    console.error("Failed to import Firebase config:", err);
+  });
+}
+
+if (!("serviceWorker" in navigator)) {
+  // Service Worker not supported
+} else if (isLocalhost) {
+  // This is running on localhost - for development only
+  navigator.serviceWorker
+    .register("/sw.js", { scope: "/sattaadmin/" })
+    .then((registration) => {
+      registration.onupdatefound = () => {
+        const installingWorker = registration.installing;
+        installingWorker.onstatechange = () => {
+          if (installingWorker.state === "installed") {
+            if (navigator.serviceWorker.controller) {
+              // At this point the newly updated content is activated
+              console.log("New content is available and will be used. Reloading...");
+              // window.location.reload();
+            } else {
+              // Content is cached for offline use
+              console.log("Content cached for offline use.");
+            }
+          }
+        };
+      };
+    })
+    .catch((error) => {
+      console.error("Service worker registration failed:", error);
+    });
+} else {
+  // Running on production domain - register with scope
+  navigator.serviceWorker
+    .register("/sw.js", { scope: "/sattaadmin/" })
+    .then((registration) => {
+      console.log("Service Worker registered with scope:", registration.scope);
+    })
+    .catch((error) => {
+      console.error("Service worker registration failed:", error);
+    });
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://dpsara.in"),
   title: {
