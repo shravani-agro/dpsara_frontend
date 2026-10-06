@@ -229,11 +229,11 @@ export async function listMarkets(params: any = {}) {
 }
 
 export async function softDeleteMarket(marketId: number) {
-  const res = await client.delete(`/admin/markets/${marketId}`, {
-    data: { is_active: false },
-  });
+  const res = await client.delete(`/admin/markets/${marketId}`);
   return res.data;
 }
+
+export const deleteMarket = softDeleteMarket;
 
 export async function createMarket(data: any) {
   const res = await client.post("/admin/markets", data);
