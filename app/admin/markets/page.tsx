@@ -60,7 +60,7 @@ const isBettingEnabled = (marketOpenTime: string, marketCloseTime: string): bool
 
   // Betting enabled only if we are NOT in the 5-min buffer AND not past close time
   return !isPastClose && !isWithinFiveMinBeforeOpen && !isWithinFiveMinBeforeClose
-};
+}
 
 export default function MarketsPage() {
   const [markets, setMarkets] = useState<any[]>([]);
