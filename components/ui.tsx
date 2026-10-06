@@ -13,6 +13,7 @@ export function Card({
   icon,
   children,
   actions,
+  headerRight,
   className = "",
   bodyClassName = "",
 }: {
@@ -21,12 +22,14 @@ export function Card({
   icon?: React.ReactNode;
   children: React.ReactNode;
   actions?: React.ReactNode;
+  headerRight?: React.ReactNode;
   className?: string;
   bodyClassName?: string;
 }) {
+  const headerActions = actions || headerRight;
   return (
     <div className={cn("card animate-fade-in group hover:border-slate-300 transition-all duration-300", className)}>
-      {(title || actions) && (
+      {(title || headerActions) && (
         <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between bg-slate-50">
           <div className="flex min-w-0 items-center gap-3">
             {icon && (
@@ -39,7 +42,7 @@ export function Card({
               {subtitle && <p className="mt-0.5 truncate text-xs text-slate-9000">{subtitle}</p>}
             </div>
           </div>
-          {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+          {headerActions && <div className="flex flex-wrap items-center gap-2">{headerActions}</div>}
         </div>
       )}
       <div className={cn("p-5", bodyClassName)}>{children}</div>
