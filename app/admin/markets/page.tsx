@@ -41,8 +41,8 @@ const isBettingEnabled = (marketOpenTime: string, marketCloseTime: string): bool
     const [h, m] = timeStr.split(":").map(Number);
     const date = new Date();
     date.setHours(h, m, 0, 0);
-    return date;
-  };
+    return date
+  }
 
   const openTime = parseTime(marketOpenTime);
   const closeTime = parseTime(marketCloseTime);
@@ -59,7 +59,7 @@ const isBettingEnabled = (marketOpenTime: string, marketCloseTime: string): bool
   const isWithinFiveMinBeforeClose = now >= fiveMinBeforeClose && now < closeTime;
 
   // Betting enabled only if we are NOT in the 5-min buffer AND not past close time
-  return !isPastClose && !isWithinFiveMinBeforeOpen && !isWithinFiveMinBeforeClose;
+  return !isPastClose && !isWithinFiveMinBeforeOpen && !isWithinFiveMinBeforeClose
 };
 
 export default function MarketsPage() {

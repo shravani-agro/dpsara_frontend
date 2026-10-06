@@ -41,7 +41,7 @@ export default function MpinLoginPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   if (showForgot) {
     return <ForgotMpinPage router={router} />;
