@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Input, ErrorMsg } from "@/components/ui";
+import { motion } from "framer-motion";
 
 export default function MpinChangePage() {
   const router = useRouter();
@@ -79,7 +80,7 @@ export default function MpinChangePage() {
                   type="password"
                   value={mpin}
                   onChange={(e) => setMpin(e.target.value)}
-                  placeholder "••••"
+                  placeholder="••••"
                   autoComplete="current-password"
                   required
                   className="bg-black/50 border-white/10 focus:border-brand-500 focus:ring-brand-500/30 transition-all text-white h-12"
@@ -92,7 +93,7 @@ export default function MpinChangePage() {
                   type="password"
                   value={confirmMpin}
                   onChange={(e) => setConfirmMpin(e.target.value)}
-                  placeholder "••••"
+                  placeholder="••••"
                   autoComplete="current-password"
                   required
                   className="bg-black/50 border-white/10 focus:border-brand-500 focus:ring-brand-500/30 transition-all text-white h-12"

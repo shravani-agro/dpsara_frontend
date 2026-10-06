@@ -120,7 +120,7 @@ export default function MpinLoginPage() {
   );
 }
 
-export function ForgotMpinPage({ router }: { router: typeof useRouter }) {
+export function ForgotMpinPage({ router }: { router: ReturnType<typeof useRouter> }) {
   const [mobile, setMobile] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -132,7 +132,7 @@ export function ForgotMpinPage({ router }: { router: typeof useRouter }) {
     // TODO: Implement forgot MPIN flow - send OTP to mobile
     setLoading(false);
     setError("OTP sent to your registered mobile number. Please check your phone.");
-  }
+  };
 
   return (
     <div className="mesh-bg flex min-h-screen items-center justify-center p-4 relative overflow-hidden">
@@ -164,7 +164,7 @@ export function ForgotMpinPage({ router }: { router: typeof useRouter }) {
               <Input
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
-                placeholder "+91 98765 12345"
+                placeholder="+91 98765 12345"
                 autoComplete="tel"
                 required
                 className="bg-black/50 border-white/10 focus:border-brand-500 focus:ring-brand-500/30 transition-all text-white h-12"

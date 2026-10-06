@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Input, ErrorMsg } from "@/components/ui";
+import { motion } from "framer-motion";
 
 export default function MobileNumberPage() {
   const router = useRouter();
@@ -54,7 +55,7 @@ export default function MobileNumberPage() {
               <Input
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
-                placeholder "+91 98765 12345"
+                placeholder="+91 98765 12345"
                 autoComplete="tel"
                 required
                 className="bg-black/50 border-white/10 focus:border-brand-500 focus:ring-brand-500/30 transition-all text-white h-12"

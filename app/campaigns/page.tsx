@@ -146,9 +146,10 @@ export default function CampaignsPage() {
       await deleteCampaign(id);
       toast.success("Campaign deleted successfully");
       load();
-} catch (err: any) {
-  toast.error(err?.response?.data?.detail || "Failed to delete campaign");
-  }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || "Failed to delete campaign");
+    }
+  };
 
   if (loading) {
     return (
@@ -188,7 +189,7 @@ export default function CampaignsPage() {
               <Input
                 value={newCampaign.name}
                 onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })}
-                placeholder "e.g. Festival Bonus"
+                placeholder="e.g. Festival Bonus"
                 required
               />
             </div>
@@ -198,7 +199,7 @@ export default function CampaignsPage() {
               <Input
                 value={newCampaign.message}
                 onChange={(e) => setNewCampaign({ ...newCampaign, message: e.target.value })}
-                placeholder "Your notification message"
+                placeholder="Your notification message"
                 required
               />
             </div>
@@ -249,7 +250,7 @@ export default function CampaignsPage() {
               <Input
                 value={newCampaign.target_value}
                 onChange={(e) => setNewCampaign({ ...newCampaign, target_value: e.target.value })}
-                placeholder "e.g. user_id_1,user_id_2"
+                placeholder="e.g. user_id_1,user_id_2"
               />
             </div>
 
