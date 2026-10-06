@@ -41,10 +41,6 @@ export default function MarketsPage() {
     game_days: "Mon-Sat",
     open_time: "",
     close_time: "",
-    open_start_time: "",
-    open_stop_time: "",
-    close_start_time: "",
-    close_stop_time: "",
     sequence_number: 0,
     holiday_status: false,
     schedules: [] as { result_time: string; session_label: string }[],
@@ -80,10 +76,6 @@ export default function MarketsPage() {
       game_days: "Mon-Sat",
       open_time: "",
       close_time: "",
-      open_start_time: "",
-      open_stop_time: "",
-      close_start_time: "",
-      close_stop_time: "",
       sequence_number: markets.length + 1,
       holiday_status: false,
       schedules: [],
@@ -98,10 +90,6 @@ export default function MarketsPage() {
       game_days: m.game_days || "Mon-Sat",
       open_time: (m.open_time || "").substring(0, 5),
       close_time: (m.close_time || "").substring(0, 5),
-      open_start_time: (m.open_start_time || "").substring(0, 5),
-      open_stop_time: (m.open_stop_time || "").substring(0, 5),
-      close_start_time: (m.close_start_time || "").substring(0, 5),
-      close_stop_time: (m.close_stop_time || "").substring(0, 5),
       sequence_number: m.sequence_number || 0,
       holiday_status: m.holiday_status || false,
       schedules: m.schedules || [],
@@ -118,10 +106,6 @@ export default function MarketsPage() {
         game_days: formData.game_days,
         open_time: formData.open_time || null,
         close_time: formData.close_time || null,
-        open_start_time: formData.open_start_time || null,
-        open_stop_time: formData.open_stop_time || null,
-        close_start_time: formData.close_start_time || null,
-        close_stop_time: formData.close_stop_time || null,
         sequence_number: Number(formData.sequence_number),
         holiday_status: formData.holiday_status,
       };
@@ -408,40 +392,6 @@ export default function MarketsPage() {
                       <TimePicker
                         value={formData.close_time}
                         onChange={(val) => setFormData({ ...formData, close_time: val })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-400">Open Start Time</label>
-                      <TimePicker
-                        value={formData.open_start_time}
-                        onChange={(val) => setFormData({ ...formData, open_start_time: val })}
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-400">Open Stop Time</label>
-                      <TimePicker
-                        value={formData.open_stop_time}
-                        onChange={(val) => setFormData({ ...formData, open_stop_time: val })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-400">Close Start Time</label>
-                      <TimePicker
-                        value={formData.close_start_time}
-                        onChange={(val) => setFormData({ ...formData, close_start_time: val })}
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-400">Close Stop Time</label>
-                      <TimePicker
-                        value={formData.close_stop_time}
-                        onChange={(val) => setFormData({ ...formData, close_stop_time: val })}
                       />
                     </div>
                   </div>
