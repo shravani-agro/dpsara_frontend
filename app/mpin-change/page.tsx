@@ -32,7 +32,7 @@ export default function MpinChangePage() {
     // TODO: Implement MPIN change API call
     setLoading(false);
     setSuccess(true);
-  };
+  }
 
   return (
     <div className="mesh-bg flex min-h-screen items-center justify-center p-4 relative overflow-hidden">

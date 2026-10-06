@@ -22,7 +22,7 @@ export default function MobileNumberPage() {
     
     // Navigate to MPIN change screen after OTP verification
     router.push("/mpin-change");
-  };
+  }
 
   return (
     <div className="mesh-bg flex min-h-screen items-center justify-center p-4 relative overflow-hidden">

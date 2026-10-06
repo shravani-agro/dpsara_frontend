@@ -132,7 +132,7 @@ export function ForgotMpinPage({ router }: { router: typeof useRouter }) {
     // TODO: Implement forgot MPIN flow - send OTP to mobile
     setLoading(false);
     setError("OTP sent to your registered mobile number. Please check your phone.");
-  };
+  }
 
   return (
     <div className="mesh-bg flex min-h-screen items-center justify-center p-4 relative overflow-hidden">
