@@ -1,117 +1,142 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        const API_BASE = 'https://backend.dpsara777.com/api';
-        
-        // 1. Fetch Regular & Jackpot Markets
-        const marketsRes = await fetch(`${API_BASE}/markets`);
-        let markets = [];
-        if (marketsRes.ok) {
-            markets = await marketsRes.json();
-        }
-        
-        // 2. Fetch Starline Markets
-        const starlineRes = await fetch(`${API_BASE}/starline/markets`);
-        let starlineMarkets = [];
-        if (starlineRes.ok) {
-            starlineMarkets = await starlineRes.json();
-        }
+document.addEventListener('DOMContentLoaded', () => {
+    const API_BASE = 'https://backend.dpsara777.com/api';
 
-        const allMarkets = [...markets, ...starlineMarkets];
-
-        // 3. Update DOM
-        allMarkets.forEach(market => {
-            if (!market.name) return;
-            
-            // The HTML IDs are formatted like "game-card-jodi-market-name"
-            const slug = market.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            
-            // Try to find regular or starline card
-            let cardId = `game-card-jodi-${slug}`;
-            
-            // Starline often uses the format "game-card-[time]"
-            if (market.type === 'starline' || market.name.includes(':')) {
-                // Formatting time like "10:30 AM" -> "10-30-am"
-                const timeSlug = market.name.toLowerCase().replace(':', '-').replace(' ', '-');
-                cardId = `game-card-starline-${timeSlug}`;
-            }
-
-            // Jackpot
-            if (market.type === 'jackpot') {
-                const timeSlug = market.name.toLowerCase().replace(':', '-').replace(' ', '-');
-                cardId = `game-card-jackpot-${timeSlug}`;
-            }
-
-            const card = document.getElementById(cardId) || document.getElementById(`game-card-jodi-${slug}`);
-            
-            if (card) {
-                // Update Result
-                const resultSpan = card.querySelector('span.text-\\[20px\\]');
-                if (resultSpan) {
-                    resultSpan.innerText = market.result || '***-**-***';
-                }
-                
-                // Update Status (Running for open, Closed, etc)
-                // The status is typically in a span with text-successGreen or text-danger
-                const statusSpan = card.querySelector('span.text-\\[12px\\], span.text-\\[11px\\]');
-                if (statusSpan && statusSpan.innerText.toLowerCase().includes('running') || statusSpan.innerText.toLowerCase().includes('close')) {
-                    statusSpan.innerText = market.status || 'Running for open';
-                    if ((market.status || '').toLowerCase().includes('close')) {
-                        statusSpan.className = statusSpan.className.replace('text-successGreen', 'text-danger');
-                    } else {
-                        statusSpan.className = statusSpan.className.replace('text-danger', 'text-successGreen');
-                    }
-                }
+    // Remove starline and jackpot charts from DOM
+    function removeStarlineAndJackpotCharts() {
+        document.querySelectorAll('a[href*="starline-pana"], a[href*="jackpot-jodi"], a[href*="jackpot-chart"], a[href*="starline_daily"], a[href*="jackpot_daily"]').forEach(el => el.remove());
+        document.querySelectorAll('a').forEach(a => {
+            const text = (a.innerText || '').toLowerCase();
+            if (text.includes('starline chart') || text.includes('jackpot chart')) {
+                const li = a.closest('li');
+                if (li) li.remove();
+                else a.remove();
             }
         });
+    }
 
-        // 4. Update Game Rates
+    // 1. Fetch & Update Markets (Live Results)
+    async function updateMarkets() {
         try {
-            const ratesRes = await fetch(`${API_BASE}/markets/global/game-rates`);
-            if (ratesRes.ok) {
-                const gameRates = await ratesRes.json();
-                
-                // Map API names to HTML display names
-                const rateMap = {};
-                gameRates.forEach(r => {
-                    const typeStr = r.bet_type.toLowerCase().replace(/_/g, ' ');
-                    rateMap[typeStr] = r.rate;
-                });
+            const [marketsRes, starlineRes] = await Promise.all([
+                fetch(`${API_BASE}/markets`),
+                fetch(`${API_BASE}/starline/markets`)
+            ]);
 
-                // Find all Game Rate rows
-                const rateRows = document.querySelectorAll('td.font-display.text-\\[12px\\], td.font-display.text-\\[11px\\]');
-                rateRows.forEach(row => {
-                    const gameName = row.innerText.toLowerCase().trim();
-                    // Match with our rateMap
-                    let matchingRate = null;
-                    if (gameName.includes('single digit') || gameName.includes('single ank')) matchingRate = rateMap['single digit'];
-                    if (gameName.includes('jodi')) matchingRate = rateMap['jodi digit'];
-                    if (gameName.includes('single panna')) matchingRate = rateMap['single pana'];
-                    if (gameName.includes('double panna')) matchingRate = rateMap['double pana'];
-                    if (gameName.includes('triple panna')) matchingRate = rateMap['triple pana'];
-                    if (gameName.includes('half sangam')) matchingRate = rateMap['half sangam'];
-                    if (gameName.includes('full sangam')) matchingRate = rateMap['full sangam'];
+            let markets = [];
+            if (marketsRes.ok) markets = await marketsRes.json();
+            let starlineMarkets = [];
+            if (starlineRes.ok) starlineMarkets = await starlineRes.json();
 
-                    if (matchingRate) {
-                        const nextTd = row.nextElementSibling;
-                        if (nextTd) {
-                            // The rate value is usually inside a span with the number
-                            const rateSpan = nextTd.querySelectorAll('span');
-                            // Usually the structure is: <span>1</span> <span>KA</span> <span>9.5</span> (or 95, etc)
-                            // We find the last span that has a number
-                            if (rateSpan.length >= 3) {
-                                rateSpan[rateSpan.length - 1].innerText = matchingRate;
-                            }
+            const allMarkets = [...markets, ...starlineMarkets];
+
+            allMarkets.forEach(market => {
+                if (!market.name) return;
+
+                const slug = market.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                let cardId = `game-card-jodi-${slug}`;
+
+                if (market.type === 'starline' || market.name.includes(':')) {
+                    const timeSlug = market.name.toLowerCase().replace(':', '-').replace(' ', '-');
+                    cardId = `game-card-starline-${timeSlug}`;
+                } else if (market.type === 'jackpot') {
+                    const timeSlug = market.name.toLowerCase().replace(':', '-').replace(' ', '-');
+                    cardId = `game-card-jackpot-${timeSlug}`;
+                }
+
+                const card = document.getElementById(cardId) || document.getElementById(`game-card-jodi-${slug}`);
+                if (card) {
+                    // Update Result
+                    const resultSpan = card.querySelector('span.text-\\[20px\\], span.text-\\[18px\\]');
+                    if (resultSpan && market.result) {
+                        resultSpan.innerText = market.result;
+                    }
+
+                    // Update Status
+                    const statusSpan = card.querySelector('span.text-\\[12px\\], span.text-\\[11px\\]');
+                    if (statusSpan && market.status) {
+                        statusSpan.innerText = market.status;
+                        if (market.status.toLowerCase().includes('close')) {
+                            statusSpan.className = statusSpan.className.replace('text-successGreen', 'text-danger');
+                        } else {
+                            statusSpan.className = statusSpan.className.replace('text-danger', 'text-successGreen');
                         }
                     }
-                });
-            }
-        } catch(e) {
-            console.error('Error fetching game rates', e);
+                }
+            });
+        } catch (e) {
+            console.error('Error fetching live markets:', e);
         }
-
-        console.log('Successfully updated homepage markets and rates with live data from backend.');
-            
-    } catch (e) {
-        console.error('Error in dynamic homepage script', e);
     }
+
+    // 2. Fetch & Update Game Rates
+    async function updateGameRates() {
+        try {
+            const ratesRes = await fetch(`${API_BASE}/markets/global/game-rates`);
+            if (!ratesRes.ok) return;
+
+            const gameRates = await ratesRes.json();
+            const rateMap = {};
+            gameRates.forEach(r => {
+                const k = r.bet_type.toLowerCase().replace(/[^a-z0-9]/g, '');
+                rateMap[k] = r.rate;
+            });
+
+            const getRate = (name) => {
+                const clean = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (clean.includes('singledigit') || clean.includes('singleank')) return rateMap['singleank'] ?? rateMap['singledigit'] ?? 9.5;
+                if (clean.includes('jodidigit') || clean.includes('jodi')) return rateMap['jodi'] ?? rateMap['jodidigit'] ?? 95;
+                if (clean.includes('singlepana') || clean.includes('singlepanna')) return rateMap['singlepatti'] ?? rateMap['singlepana'] ?? 150;
+                if (clean.includes('doublepana') || clean.includes('doublepanna')) return rateMap['doublepatti'] ?? rateMap['doublepana'] ?? 300;
+                if (clean.includes('triplepana') || clean.includes('triplepanna')) return rateMap['triplepatti'] ?? rateMap['triplepana'] ?? 900;
+                if (clean.includes('redbracket')) return rateMap['redbracket'] ?? 95;
+                if (clean.includes('halfsangam')) return rateMap['halfsangam'] ?? 1000;
+                if (clean.includes('fullsangam')) return rateMap['fullsangam'] ?? 10000;
+                return null;
+            };
+
+            // Update Mobile Game Rates Table
+            const rateRows = document.querySelectorAll('table tbody tr');
+            rateRows.forEach(row => {
+                const labelTd = row.querySelector('td');
+                if (labelTd) {
+                    const rate = getRate(labelTd.innerText.trim());
+                    if (rate !== null) {
+                        const allSpans = row.querySelectorAll('td:last-child span');
+                        if (allSpans.length > 0) {
+                            allSpans[allSpans.length - 1].innerText = rate;
+                        }
+                    }
+                }
+            });
+
+            // Update Desktop Game Rates Cards
+            const rateCards = document.querySelectorAll('h5');
+            rateCards.forEach(h5 => {
+                const rate = getRate(h5.innerText.trim());
+                if (rate !== null) {
+                    const cardParent = h5.closest('div');
+                    if (cardParent) {
+                        const spans = cardParent.querySelectorAll('span span');
+                        if (spans.length > 0) {
+                            spans[spans.length - 1].innerText = rate;
+                        }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('Error fetching game rates:', e);
+        }
+    }
+
+    // Initial Execution
+    removeStarlineAndJackpotCharts();
+    updateMarkets();
+    updateGameRates();
+
+    // Auto Refresh every 10 seconds for real-time live results
+    setInterval(() => {
+        updateMarkets();
+        updateGameRates();
+        removeStarlineAndJackpotCharts();
+    }, 10000);
 });
