@@ -20,6 +20,9 @@ const BET_TYPES = [
   { key: "single_patti", label: "Single Pana" },
   { key: "double_patti", label: "Double Pana" },
   { key: "triple_patti", label: "Triple Pana" },
+  { key: "half_sangam_a", label: "Half Sangam A" },
+  { key: "half_sangam_b", label: "Half Sangam B" },
+  { key: "full_sangam", label: "Full Sangam" },
 ];
 
 export default function RegularBidDataPage() {
@@ -58,7 +61,20 @@ export default function RegularBidDataPage() {
         bid_date: bidDate,
         session: session,
       });
-      setSummaryData(data);
+      const processed = data.map((d: any) => {
+        if (d.bet_type === "half_sangam") {
+          const parts = (d.selected_number || "").split("-");
+          if (parts.length === 2) {
+            if (parts[0].length === 3 && parts[1].length === 1) {
+              return { ...d, bet_type: "half_sangam_a" };
+            } else if (parts[0].length === 1 && parts[1].length === 3) {
+              return { ...d, bet_type: "half_sangam_b" };
+            }
+          }
+        }
+        return d;
+      });
+      setSummaryData(processed);
     } catch (e: any) {
       setError(parseApiError(e, "Failed to load bid summary"));
     } finally {

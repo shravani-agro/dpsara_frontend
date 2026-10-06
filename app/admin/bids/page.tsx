@@ -48,7 +48,26 @@ export default function BidsPage() {
       const params: any = { market_type: "regular" };
       if (status) params.status = status;
       if (marketId) params.market_id = Number(marketId);
-      setItems(await listBids(params));
+      const data = await listBids(params);
+      const processed = data.map((b: any) => {
+        let type = b.bet_type;
+        if (type === "half_sangam") {
+          const parts = b.selected_number.split("-");
+          if (parts.length === 2) {
+            if (parts[0].length === 3 && parts[1].length === 1) type = "half_sangam_a";
+            else if (parts[0].length === 1 && parts[1].length === 3) type = "half_sangam_b";
+          }
+        }
+        
+        // Friendly formatting
+        const formattedType = type
+          .split("_")
+          .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" ");
+
+        return { ...b, formatted_bet_type: formattedType };
+      });
+      setItems(processed);
     } catch (e: any) {
       setError(parseApiError(e, "Failed to load bids"));
     } finally {
@@ -128,7 +147,7 @@ export default function BidsPage() {
                     <td>{b.market_name}</td>
                     <td>{b.session || "-"}</td>
                     <td>{b.bid_date ? format(new Date(b.bid_date), "dd/MM/yyyy") : "-"}</td>
-                    <td className="text-slate-400">{b.bet_type}</td>
+                    <td className="text-slate-400">{(b as any).formatted_bet_type || b.bet_type}</td>
                     <td>{b.selected_number}</td>
                     <td>{Number(b.amount).toFixed(2)}</td>
                     <td>{Number(b.potential_win).toFixed(2)}</td>
