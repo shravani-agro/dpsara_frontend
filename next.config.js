@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  transpileOnly: true,
   swcMinify: false,
   async rewrites() {
     return [
