@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { getToken, onMessage } from "firebase/messaging";
 import { messaging, firebaseConfig } from "@/lib/firebase-config";
 import { setUserFcmToken, getUserFcmToken } from "@/lib/admin";
 import { useNotification } from "./useNotification";
@@ -16,10 +17,15 @@ export function useFirebaseMessaging() {
       // Request browser notification permission
       await requestPermission();
 
+      if (!messaging) {
+        console.warn("Firebase Messaging is not supported or not initialized");
+        return;
+      }
+
       // Get FCM token
       setIsTokenFetching(true);
-      const currentToken = await messaging.getToken({
-        vapidKey: firebaseConfig.vapidKey || "",
+      const currentToken = await getToken(messaging, {
+        vapidKey: firebaseConfig.vapidKey || undefined,
       });
 
       if (currentToken) {
@@ -41,7 +47,8 @@ export function useFirebaseMessaging() {
 
   // Listen for foreground messages
   useEffect(() => {
-    const unsubscribe = messaging.onMessage((payload) => {
+    if (!messaging) return;
+    const unsubscribe = onMessage(messaging, (payload: any) => {
       console.log("Foreground message received:", payload);
       sendNotification(payload.notification?.title || "New Notification", {
         body: payload.notification?.body || "",
@@ -50,27 +57,6 @@ export function useFirebaseMessaging() {
     });
 
     return () => unsubscribe();
-  }, []);
-
-  // Listen for permission changes
-  useEffect(() => {
-    const unsub = messaging.onTokenRefresh(() => {
-      messaging
-        .getToken({ vapidKey: firebaseConfig.vapidKey || "" })
-        .then((refreshedToken) => {
-          setFcmToken(refreshedToken);
-          // Send refreshed token to backend
-          setUserFcmToken(refreshedToken).catch((err) =>
-            console.error("Error sending refreshed token:", err)
-          );
-          console.log("FCM token refreshed:", refreshedToken);
-        })
-        .catch((err) => {
-          console.error("Error getting refreshed token:", err);
-        });
-    });
-
-    return () => unsub();
   }, []);
 
   return {

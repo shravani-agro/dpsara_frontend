@@ -2,7 +2,7 @@
 
 import { useFirebaseMessaging } from "./useFirebaseMessaging";
 import { useNotification } from "./useNotification";
-import { Button, Badge } from "@/components/ui";
+import { Button, Badge, Input } from "@/components/ui";
 
 export function NotificationCenter() {
   const { permission, requestPermission, sendNotification } = useNotification();
@@ -59,7 +59,8 @@ export function NotificationCenter() {
           variant="ghost"
           size="sm"
           onClick={requestPermission}
-          disabled={permission.permission !== "default">
+          disabled={permission.permission !== "default"}
+        >
           {permission.permission === "default" ? "Request Permission" : "Re-check"}
         </Button>
         <Button
@@ -87,7 +88,6 @@ export function NotificationCenter() {
           className="mb-2"
         />
         <Button
-          variant="primary"
           size="sm"
           onClick={() => {
             // This would need the full FCM setup

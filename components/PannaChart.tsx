@@ -1,7 +1,7 @@
 "use client";
 
 import { usePannaChart } from "./usePannaChart";
-import { Card, Table, TableBody, TableHeader, TableRow, TableCell, Badge } from "@/components/ui";
+import { Card, Table, TableBody, TableHeader, TableRow, TableCell, Badge, Button } from "@/components/ui";
 
 export function PannaChart() {
   const { pannaData, isLoading, isError } = usePannaChart();

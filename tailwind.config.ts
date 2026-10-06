@@ -74,7 +74,7 @@ const config: Config = {
   },
   plugins: [
     require('@tailwindcss/typography'),
-    function ({ addUtilities, addComponents, matchUtilities }) {
+    function ({ addUtilities, addComponents, matchUtilities }: any) {
       // Dark mode toggle component utilities will be added here
     }
   ],

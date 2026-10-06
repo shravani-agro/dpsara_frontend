@@ -1,7 +1,7 @@
 "use client";
 
 import { useStarlineResults } from "./useStarlineResults";
-import { Card, Table, TableBody, TableHeader, TableRow, TableCell, Badge } from "@/components/ui";
+import { Card, Table, TableBody, TableHeader, TableRow, TableCell, Badge, Button } from "@/components/ui";
 
 export function StarlineResults() {
   const { results, isLoading, isError } = useStarlineResults();

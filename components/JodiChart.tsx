@@ -1,7 +1,7 @@
 "use client";
 
 import { useJodiChart } from "./useJodiChart";
-import { Card, Table, TableBody, TableHeader, TableRow, TableCell, Badge } from "@/components/ui";
+import { Card, Table, TableBody, TableHeader, TableRow, TableCell, Badge, Button } from "@/components/ui";
 
 export function JodiChart() {
   const { jodiData, isLoading, isError } = useJodiChart();

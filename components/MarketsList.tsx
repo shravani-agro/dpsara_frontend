@@ -1,7 +1,7 @@
 "use client";
 
 import { useMarkets } from "./useMarkets";
-import { Card, Table, TableBody, TableHeader, TableRow, TableCell, Badge } from "@/components/ui";
+import { Card, Table, TableBody, TableHeader, TableRow, TableCell, Badge, Button } from "@/components/ui";
 
 export function MarketsList() {
   const { markets, isLoading, isError } = useMarkets();
