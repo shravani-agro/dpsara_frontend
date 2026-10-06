@@ -4,6 +4,8 @@ A full admin dashboard for the Satta Matka platform, built with **Next.js 14 (Ap
 Router, TypeScript, Tailwind CSS)** and backed by the existing **FastAPI** API
 which uses **MySQL** (async, via `aiomysql`) as its database.
 
+*Last updated: 2026*
+
 ## Features
 
 - Admin login (JWT bearer, stored in `localStorage`)
