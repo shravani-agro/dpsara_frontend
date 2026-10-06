@@ -52,7 +52,7 @@ export default function BidsPage() {
       const processed = data.map((b: any) => {
         let type = b.bet_type;
         if (type === "half_sangam") {
-          const parts = b.selected_number.split("-");
+          const parts = (b.selected_number || "").split("-");
           if (parts.length === 2) {
             if (parts[0].length === 3 && parts[1].length === 1) type = "half_sangam_a";
             else if (parts[0].length === 1 && parts[1].length === 3) type = "half_sangam_b";
