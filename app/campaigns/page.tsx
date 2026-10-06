@@ -123,7 +123,7 @@ export default function CampaignsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const handleEdit = (campaign: any) => {
     setEditing(campaign);
@@ -138,7 +138,7 @@ export default function CampaignsPage() {
       target_value: campaign.target_value || "",
     });
     setShowEdit(true);
-  };
+  }
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this campaign?")) return;
@@ -146,10 +146,9 @@ export default function CampaignsPage() {
       await deleteCampaign(id);
       toast.success("Campaign deleted successfully");
       load();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.detail || "Failed to delete campaign");
-    }
-  };
+} catch (err: any) {
+  toast.error(err?.response?.data?.detail || "Failed to delete campaign");
+  }
 
   if (loading) {
     return (
