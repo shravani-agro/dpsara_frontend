@@ -35,14 +35,23 @@ export default function CampaignsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<any | null>(null);
-  const [newCampaign, setNewCampaign] = useState({
+  const [newCampaign, setNewCampaign] = useState<{
+    name: string;
+    description: string;
+    message: string;
+    start_date: string;
+    end_date: string;
+    status: "draft" | "active" | "paused" | "completed";
+    target: "all" | "registered" | "vip" | "segment";
+    target_value: string;
+  }>({
     name: "",
     description: "",
     message: "",
     start_date: "",
     end_date: "",
-    status: "draft" as const,
-    target: "all" as const,
+    status: "draft",
+    target: "all",
     target_value: "",
   });
   const [showNew, setShowNew] = useState(false);
@@ -296,7 +305,7 @@ export default function CampaignsPage() {
           <tbody>
             {campaigns.length === 0 && (
               <tr>
-                <td colSpan="7" className="py-8 text-center text-slate-500">
+                <td colSpan={7} className="py-8 text-center text-slate-500">
                   No campaigns found. Create your first campaign above.
                 </td>
               </tr>
