@@ -27,7 +27,28 @@ export async function GET(request: Request, { params }: { params: { slug: string
       return new NextResponse('File not found', { status: 404 });
     }
 
-    const html = fs.readFileSync(fullPath, 'utf8');
+    const htmlFile = fs.readFileSync(fullPath, 'utf8');
+    let html = htmlFile;
+    
+    // Fetch global settings
+    try {
+      const settingsRes = await fetch(`${API_BASE}/mobile/settings`, { next: { revalidate: 60 } });
+      if (settingsRes.ok) {
+        const settingsJson = await settingsRes.json();
+        const settingsData = settingsJson.data || {};
+        const whatsappNumber = settingsData.admin_whatsapp_number || "+91 8377 999 777";
+        const callUsNumber = settingsData.admin_call_us_number || "+91 8377 999 777";
+        
+        const cleanWhatsapp = whatsappNumber.replace(/[^0-9]/g, '');
+        
+        // Replace hardcoded numbers
+        html = html.replace(/\+91 8377 999 777/g, whatsappNumber);
+        html = html.replace(/918377999777/g, cleanWhatsapp);
+      }
+    } catch (e) {
+      console.error("Failed to fetch settings for templates", e);
+    }
+
     const $ = cheerio.load(html);
 
     // Strip out Next.js hydration scripts to prevent them from overwriting our injected HTML

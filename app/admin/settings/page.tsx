@@ -114,6 +114,13 @@ export default function SettingsPage() {
     setError(null);
   }
 
+  function openCreate() {
+    setEditSetting({ key: "", isNew: true });
+    setEditValue("");
+    setEditDesc("");
+    setError(null);
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader title="Settings" description="System configuration and notifications" />
@@ -125,7 +132,11 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <Card title={`${settings.length} settings`} bodyClassName="p-0">
+      <Card 
+        title={`${settings.length} settings`} 
+        bodyClassName="p-0" 
+        headerRight={<Button size="sm" onClick={openCreate}>Create Setting</Button>}
+      >
         {loading ? (
           <div className="p-4"><Spinner /></div>
         ) : (
@@ -191,7 +202,13 @@ export default function SettingsPage() {
         {editSetting && (
           <form onSubmit={submitEdit} className="space-y-4">
             <Field label="Key">
-              <Input value={editSetting.key} disabled className="opacity-60" />
+              <Input 
+                value={editSetting.key} 
+                onChange={(e) => setEditSetting({ ...editSetting, key: e.target.value })}
+                disabled={!editSetting.isNew} 
+                className={!editSetting.isNew ? "opacity-60" : ""}
+                required
+              />
             </Field>
             <Field label="Value">
               <Input required value={editValue} onChange={(e) => setEditValue(e.target.value)} placeholder="Setting value" />
