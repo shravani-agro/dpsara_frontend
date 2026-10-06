@@ -19,6 +19,10 @@ export async function login(username: string, password: string): Promise<LoginRe
   return res.data;
 }
 
+export function logout() {
+  clearToken();
+}
+
 export async function setUserFcmToken(token: string) {
   const res = await client.post("/admin/notices/fcm-token", { token });
   return res.data;

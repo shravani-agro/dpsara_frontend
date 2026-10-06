@@ -120,7 +120,7 @@ export default function MpinLoginPage() {
   );
 }
 
-export function ForgotMpinPage({ router }: { router: ReturnType<typeof useRouter> }) {
+function ForgotMpinPage({ router }: { router: ReturnType<typeof useRouter> }) {
   const [mobile, setMobile] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

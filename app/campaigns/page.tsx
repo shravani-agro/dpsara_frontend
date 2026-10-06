@@ -10,8 +10,6 @@ import {
   Modal,
   Spinner,
   ErrorMsg,
-  TimePicker,
-  DatePicker,
 } from "@/components/ui";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/Toast";
@@ -176,12 +174,16 @@ export default function CampaignsPage() {
         + Create New Campaign
       </Button>
 
-      {showNew && (
+      {(showNew || showEdit) && (
         <Modal
-          open={showNew}
-          onClose={() => setShowNew(false)}
-          title="Create Campaign"
-          description="Set up a new notification campaign"
+          open={showNew || showEdit}
+          onClose={() => {
+            setShowNew(false);
+            setShowEdit(false);
+            setEditing(null);
+          }}
+          title={editing ? "Edit Campaign" : "Create Campaign"}
+          description={editing ? "Update notification campaign details" : "Set up a new notification campaign"}
         >
           <form onSubmit={handleSave} className="space-y-4">
             <div>
@@ -207,14 +209,16 @@ export default function CampaignsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-400">Start Date</label>
-                <DatePicker
+                <Input
+                  type="date"
                   value={newCampaign.start_date}
                   onChange={(e) => setNewCampaign({ ...newCampaign, start_date: e.target.value })}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-400">End Date</label>
-                <DatePicker
+                <Input
+                  type="date"
                   value={newCampaign.end_date}
                   onChange={(e) => setNewCampaign({ ...newCampaign, end_date: e.target.value })}
                 />
@@ -261,7 +265,11 @@ export default function CampaignsPage() {
               <Button 
                 variant="outline" 
                 type="button" 
-                onClick={() => setShowNew(false)}
+                onClick={() => {
+                  setShowNew(false);
+                  setShowEdit(false);
+                  setEditing(null);
+                }}
                 className="flex-1"
               >
                 Cancel

@@ -26,5 +26,5 @@ export function useTheme() {
     document.documentElement.classList.add(mode);
   };
 
-  return { theme, setThemeMode };
+  return { theme, setTheme: setThemeMode, setThemeMode };
 }

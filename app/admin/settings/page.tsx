@@ -135,7 +135,7 @@ export default function SettingsPage() {
       <Card 
         title={`${settings.length} settings`} 
         bodyClassName="p-0" 
-        headerRight={<Button size="sm" onClick={openCreate}>Create Setting</Button>}
+        actions={<Button size="sm" onClick={openCreate}>Create Setting</Button>}
       >
         {loading ? (
           <div className="p-4"><Spinner /></div>
