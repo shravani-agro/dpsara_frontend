@@ -11,7 +11,8 @@ const MAX_ATTEMPTS = 3;
 export default function LoginPage() {
   const router = useRouter();
   const { login, authenticated } = useAuth();
-  const [mpin, setMpin] = useState("");
+  const [username, setUsername] = useState("admin");
+  const [password, setPassword] = useState("admin123");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
@@ -28,7 +29,7 @@ export default function LoginPage() {
     setLoading(true);
     
     try {
-      await login(mpin, "");
+      await login(username, password);
       router.replace("/admin");
     } catch (err: any) {
       setAttempts(prev => {
@@ -38,7 +39,7 @@ export default function LoginPage() {
         }
         return next;
       });
-      setError("Invalid MPIN number. Try again.");
+      setError("Invalid credentials. Try again.");
     } finally {
       setLoading(false);
     }
@@ -71,17 +72,29 @@ export default function LoginPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
           
           <form onSubmit={handleSubmit} className="relative z-10 space-y-5">
+<div>
+              <label className="mb-2 block text-xs font-semibold tracking-wide text-slate-400 uppercase">Username</label>
+              <Input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="admin"
+                autoComplete="username"
+                required
+                className="bg-black/50 border-white/10 focus:border-brand-500 focus:ring-brand-500/30 transition-all text-white h-12 rounded-xl"
+              />
+            </div>
+            
             <div>
-              <label className="mb-2 block text-xs font-semibold tracking-wide text-slate-400 uppercase">MPIN</label>
+              <label className="mb-2 block text-xs font-semibold tracking-wide text-slate-400 uppercase">Password</label>
               <Input
                 type={showEye ? "text" : "password"}
-                value={mpin}
-                onChange={(e) => setMpin(e.target.value)}
-                placeholder={showEye ? "1234" : "••••"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="admin123"
                 autoComplete="current-password"
                 required
                 className="bg-black/50 border-white/10 focus:border-brand-500 focus:ring-brand-500/30 transition-all text-white h-12 rounded-xl"
-                inputMode="decimal"
+                inputMode="text"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer select-none transition-colors hover:text-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/50">
                 {showEye ? (
@@ -90,7 +103,7 @@ export default function LoginPage() {
                   </svg>
                 ) : (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 21a10.07 10.07 0 0 1-5.94-2.06M9 10h.5m7 0h.5m-7-7h.5M7 7h.5m7 0h.5m-7-7h.5" strokeLinecap="round" />
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 21a10.07 10.07 0 0 1-5.94-2.06M9 10h.5m7 0h.5m-7-7h.5M7 7h.5m7 0h.5M7 7h.5m7 0h.5" strokeLinecap="round" />
                   </svg>
                 )}
               </div>
@@ -108,7 +121,7 @@ export default function LoginPage() {
                   size="sm"
                   onClick={() => setShowForgot(true)}
                 >
-                  Forgot MPIN
+                  Forgot password
                 </Button>
               )}
             </div>
@@ -118,7 +131,7 @@ export default function LoginPage() {
               className="w-full h-12 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-xl shadow-[0_0_20px_rgba(225,29,72,0.3)] hover:shadow-[0_0_30px_rgba(225,29,72,0.5)] transition-all mt-4"
               disabled={loading}
             >
-              {loading ? "Authenticating..." : "Secure Sign In"}
+              {loading ? "Authenticating..." : "Sign In"}
             </Button>
           </form>
         </div>
