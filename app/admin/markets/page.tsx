@@ -166,5 +166,5 @@ export default function MarketsPage() {
       toast.error(err?.response?.data?.detail || "Error removing market");
     }
   }
-
-  // ... rest of the file unchanged
+}
+// ... rest of the file unchanged
