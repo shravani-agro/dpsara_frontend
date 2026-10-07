@@ -46,10 +46,26 @@ function parseStarlineResult(val: string | null | undefined): { pana: string; an
   return { pana: "", ank: "" };
 }
 
+const OFFICIAL_STARLINE_SLOTS = [
+  { session_label: "10:30 AM", result_time: "10:30" },
+  { session_label: "11:30 AM", result_time: "11:30" },
+  { session_label: "12:30 PM", result_time: "12:30" },
+  { session_label: "01:30 PM", result_time: "13:30" },
+  { session_label: "02:30 PM", result_time: "14:30" },
+  { session_label: "03:30 PM", result_time: "15:30" },
+  { session_label: "04:30 PM", result_time: "16:30" },
+  { session_label: "05:30 PM", result_time: "17:30" },
+  { session_label: "06:30 PM", result_time: "18:30" },
+  { session_label: "07:30 PM", result_time: "19:30" },
+  { session_label: "08:30 PM", result_time: "20:30" },
+  { session_label: "09:30 PM", result_time: "21:30" },
+];
+
 export default function StarlinePage() {
   const [market, setMarket] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Results Management State (Starline = Open Result Only)
   const [declaredResults, setDeclaredResults] = useState<any[]>([]);
@@ -104,22 +120,37 @@ export default function StarlinePage() {
     try {
       setLoading(true);
       await createStarlineMarket({
-        name: "Starline Market",
+        name: "Starline",
         market_type: "starline",
         game_days: "Mon-Sun",
         sequence_number: 0,
         holiday_status: false,
-        schedules: [
-          { session_label: "Morning", result_time: "10:00" },
-          { session_label: "Day", result_time: "12:00" },
-          { session_label: "Afternoon", result_time: "04:00" },
-          { session_label: "Evening", result_time: "06:00" },
-        ],
+        schedules: OFFICIAL_STARLINE_SLOTS,
       });
       load();
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || "Error initializing starline market");
       setLoading(false);
+    }
+  }
+
+  async function handleSyncOfficialSlots() {
+    if (!market) return;
+    if (!confirm("Reset and sync Starline to official 12 time slots (10:30 AM to 09:30 PM)?")) return;
+    setIsSyncing(true);
+    try {
+      const payload = {
+        ...market,
+        name: "Starline",
+        schedules: OFFICIAL_STARLINE_SLOTS,
+      };
+      await updateStarlineMarket(market.id, payload);
+      await load();
+      toast.success("Synchronized to official 12 time slots (10:30 AM to 09:30 PM)");
+    } catch (err: any) {
+      toast.error(parseApiError(err, "Failed to sync time slots"));
+    } finally {
+      setIsSyncing(false);
     }
   }
 
@@ -265,7 +296,21 @@ export default function StarlinePage() {
           {/* Left Column: Time Slots & Results Table */}
           <div className="lg:col-span-2 space-y-6">
             {/* Time Slots */}
-            <Card title="Starline Time Slots (Sessions)" subtitle="Configure time slots for hourly Starline draws">
+            <Card
+              title="Starline Time Slots (Sessions)"
+              subtitle="12 Official Time Slots (10:30 AM to 09:30 PM) — Starline has time only, no names"
+              actions={
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSyncOfficialSlots}
+                  disabled={isSyncing}
+                  className="border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
+                >
+                  {isSyncing ? "Syncing..." : "⚡ Sync 12 Official Slots (10:30 AM - 09:30 PM)"}
+                </Button>
+              }
+            >
               <div className="mb-6 p-4 rounded-xl border border-slate-700 bg-slate-800/40 flex flex-wrap gap-4 items-end">
                 <div className="w-48">
                   <label className="mb-1 block text-xs font-semibold text-slate-300">Result Time</label>
