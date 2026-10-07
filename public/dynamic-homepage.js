@@ -124,24 +124,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Fetch & Update Game Rates
     async function updateGameRates() {
         try {
-            const ratesRes = await fetch(`${API_BASE}/markets/global/game-rates`);
-            if (!ratesRes.ok) return;
+            let ratesRes = await fetch('/api/markets/global/game-rates').catch(() => null);
+            if (!ratesRes || !ratesRes.ok) {
+                ratesRes = await fetch(`${API_BASE}/markets/global/game-rates`).catch(() => null);
+            }
+            if (!ratesRes || !ratesRes.ok) return;
 
             const gameRates = await ratesRes.json();
             const rateMap = {};
-            gameRates.forEach(r => {
-                const k = r.bet_type.toLowerCase().replace(/[^a-z0-9]/g, '');
-                rateMap[k] = r.rate;
-            });
+            if (Array.isArray(gameRates)) {
+                gameRates.forEach(r => {
+                    const k = (r.bet_type || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                    rateMap[k] = r.rate;
+                });
+            }
 
             const getRate = (name) => {
                 const clean = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-                if (clean.includes('singledigit') || clean.includes('singleank')) return rateMap['singleank'] ?? rateMap['singledigit'] ?? 9.5;
-                if (clean.includes('jodidigit') || clean.includes('jodi')) return rateMap['jodi'] ?? rateMap['jodidigit'] ?? 95;
-                if (clean.includes('singlepana') || clean.includes('singlepanna')) return rateMap['singlepatti'] ?? rateMap['singlepana'] ?? 150;
-                if (clean.includes('doublepana') || clean.includes('doublepanna')) return rateMap['doublepatti'] ?? rateMap['doublepana'] ?? 300;
-                if (clean.includes('triplepana') || clean.includes('triplepanna')) return rateMap['triplepatti'] ?? rateMap['triplepana'] ?? 900;
-                if (clean.includes('redbracket')) return rateMap['redbracket'] ?? 95;
+                if (clean.includes('singledigit') || clean.includes('singleank')) return rateMap['singleank'] ?? rateMap['singledigit'] ?? 10;
+                if (clean.includes('jodidigit') || clean.includes('jodi')) return rateMap['jodi'] ?? rateMap['jodidigit'] ?? 100;
+                if (clean.includes('singlepana') || clean.includes('singlepanna')) return rateMap['singlepatti'] ?? rateMap['singlepana'] ?? 160;
+                if (clean.includes('doublepana') || clean.includes('doublepanna')) return rateMap['doublepatti'] ?? rateMap['doublepana'] ?? 320;
+                if (clean.includes('triplepana') || clean.includes('triplepanna')) return rateMap['triplepatti'] ?? rateMap['triplepana'] ?? 1000;
+                if (clean.includes('redbracket')) return rateMap['redbracket'] ?? 100;
                 if (clean.includes('halfsangam')) return rateMap['halfsangam'] ?? 1000;
                 if (clean.includes('fullsangam')) return rateMap['fullsangam'] ?? 10000;
                 return null;

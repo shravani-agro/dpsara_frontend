@@ -175,20 +175,33 @@ export async function GET(request: Request, { params }: { params: { slug: string
     // Remove starline and jackpot sections in footer
     $('#footer-charts h3:contains("Starline Charts"), #footer-charts h3:contains("Jackpot Charts")').closest('div.border').remove();
 
-    // 4. DYNAMIC CHARTS RENDERING (from rsboss_db)
+    // 4. DYNAMIC CHARTS RENDERING (from database / rsboss)
     if (filePath.includes('_jodi') || filePath.includes('_pana')) {
-      const marketSlug = filePath.replace('.html', '').split('_')[0];
-      const isJodi = filePath.includes('_jodi');
+      const cleanPath = filePath.replace('.html', '');
+      const isJodi = cleanPath.includes('_jodi') || cleanPath.includes('jodi');
+      // Extract market slug whether path is charts_jodi_kalyan or kalyan_jodi
+      const marketSlug = cleanPath
+        .replace(/^charts_(jodi|pana)_/i, '')
+        .replace(/_(jodi|pana)$/i, '');
 
       // Find market display name
-      const matchedMarket = regularMarkets.find(m => m.slug === marketSlug);
-      const marketDisplayName = matchedMarket ? matchedMarket.name : marketSlug.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+      const matchedMarket = regularMarkets.find(
+        (m) =>
+          m.slug === marketSlug ||
+          m.name.toLowerCase() === marketSlug.replace(/-/g, ' ').toLowerCase()
+      );
+      const marketDisplayName = matchedMarket
+        ? matchedMarket.name
+        : marketSlug
+            .split('-')
+            .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+            .join(' ');
 
-      if (isVirtualChart) {
-        $('title').text(`${marketDisplayName} ${isJodi ? 'Jodi' : 'Pana'} Chart | DPSara777`);
-        $('h1').text(`${marketDisplayName} Chart`);
-        $('strong:contains("Chart Records")').text(`${marketDisplayName} ${isJodi ? 'Jodi' : 'Pana'} Chart Records.`);
-      }
+      $('title').text(`${marketDisplayName} ${isJodi ? 'Jodi' : 'Pana'} Chart | DPSara777`);
+      $('h1').text(`${marketDisplayName} Chart`);
+      $('strong:contains("Chart Records")').text(
+        `${marketDisplayName} ${isJodi ? 'Jodi' : 'Pana'} Chart Records.`
+      );
 
       // Fetch historical data from rsboss_db via backend
       let history: { result_date: string; result: string }[] = [];
