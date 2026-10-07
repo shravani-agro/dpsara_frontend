@@ -87,25 +87,31 @@ export default function ResultsPage() {
   }, [marketId]);
 
   async function declare() {
-    if (!marketId || !openResult) return;
+    if (!marketId) return;
     setLoading(true);
     setError(null);
     setMsg(null);
     try {
-      let openRes = openResult;
-      let closeRes = closeResult;
+      const payload: any = { market_id: marketId };
 
-      if (selectedMarket?.market_type === "regular" && openResult.includes("-")) {
-        const parts = openResult.split("-");
-        if (parts.length === 3 && parts[1].length === 2) {
-          openRes = `${parts[0]}-${parts[1][0]}`;
-          closeRes = `${parts[1][1]}-${parts[2]}`;
+      // For regular markets, use separate open/close results
+      const marketType = selectedMarket?.market_type || "regular";
+      if (marketType === "regular") {
+        if (!openResult) {
+          setError("Open result is required");
+          setLoading(false);
+          return;
         }
+        payload.open_result = openResult;
+        if (closeResult) {
+          payload.close_result = closeResult;
+        }
+      } else {
+        // For starline/jackpot, use combined result
+        payload.open_result = openResult;
       }
 
-      const payload: any = { market_id: marketId, open_result: openRes };
       if (resultDate) payload.result_date = resultDate;
-      if (closeRes) payload.close_result = closeRes;
       if (sessionLabel) payload.session_label = sessionLabel;
       const res = await bulkDeclareResults([payload]);
       const first = res.results?.[0];
@@ -134,11 +140,7 @@ export default function ResultsPage() {
          : r.declared_at ? format(new Date(r.declared_at), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
     setResultDate(dateStr);
     
-    let combinedResult = r.open_result || "";
-    if (r.market_type !== 'starline' && r.open_result && r.close_result) {
-        combinedResult = r.open_result + r.close_result;
-    }
-    setOpenResult(combinedResult);
+    setOpenResult(r.open_result || "");
     setCloseResult(r.close_result || "");
     setSessionLabel(r.session_label || "");
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -169,6 +171,7 @@ export default function ResultsPage() {
   }
 
   const selectedMarket = markets.find((m: any) => m.id === marketId);
+  const marketType = selectedMarket?.market_type || "regular";
 
   return (
     <div className="space-y-6">
@@ -206,7 +209,7 @@ export default function ResultsPage() {
             </Select>
           </div>
 
-          {!selectedMarket || selectedMarket.market_type === "regular" ? (
+{!selectedMarket || selectedMarket.market_type === "regular" ? (
             <>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-400">Result Date</label>
@@ -219,19 +222,32 @@ export default function ResultsPage() {
               <div className="sm:col-span-2">
                 <label className="mb-1 block text-xs font-medium text-slate-400">Result Number</label>
                 <div className="flex gap-2">
-                   <Input
-                     placeholder="e.g. 123-45-678"
-                     value={openResult}
-                     onChange={(e) => {
-                       // Format automatically based on input length?
-                       setOpenResult(e.target.value);
-                     }}
-                     className="flex-1"
-                   />
+                  <Input
+                    placeholder="e.g. 123-4"
+                    value={openResult}
+                    onChange={(e) => {
+                      setOpenResult(e.target.value);
+                      // Intelligent auto-split: if input has format XXX-XX, extract open part
+                      const val = e.target.value;
+                      if (val && val.match(/^\d{3}-\d{2}$/)) {
+                        const parts = val.split("-");
+                        setCloseResult(parts[1]);
+                      } else if (val && val.match(/^\d{3}-\d{1,2}$/)) {
+                        // Keep as open, close might be filled separately
+                        setCloseResult("");
+                      }
+                    }}
+                    className="flex-1"
+                  />
+                  <Input
+                    placeholder="e.g. 4-678"
+                    value={closeResult}
+                    onChange={(e) => setCloseResult(e.target.value)}
+                  />
                 </div>
               </div>
             </>
-          ) : (
+           ) : (
             <>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-400">Date</label>
