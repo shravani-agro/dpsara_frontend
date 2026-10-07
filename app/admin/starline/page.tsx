@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { format } from "date-fns";
 import {
   Card,
@@ -12,6 +12,7 @@ import {
   PageHeader,
   EmptyState,
   TimePicker,
+  Badge,
 } from "@/components/ui";
 import { toast } from "@/components/Toast";
 import { parseApiError } from "@/lib/error-parser";
@@ -24,17 +25,40 @@ import {
   deleteStarlineResult,
 } from "@/lib/admin";
 
+function calculateAnk(panna: string): string {
+  const clean = panna.replace(/\D/g, "");
+  if (clean.length !== 3) return "";
+  const sum = clean.split("").reduce((acc, digit) => acc + parseInt(digit, 10), 0);
+  return String(sum % 10);
+}
+
+function parseStarlineResult(val: string | null | undefined): { pana: string; ank: string } {
+  if (!val) return { pana: "", ank: "" };
+  const parts = val.trim().split("-");
+  if (parts.length === 2) {
+    if (parts[0].length === 3) return { pana: parts[0], ank: parts[1] };
+    return { pana: parts[1], ank: parts[0] };
+  } else if (parts.length === 1 && parts[0].length === 3) {
+    return { pana: parts[0], ank: calculateAnk(parts[0]) };
+  } else if (parts.length === 1 && parts[0].length === 4) {
+    return { pana: parts[0].slice(0, 3), ank: parts[0].slice(3, 4) };
+  }
+  return { pana: "", ank: "" };
+}
+
 export default function StarlinePage() {
   const [market, setMarket] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Results Management State
+  // Results Management State (Starline = Open Result Only)
   const [declaredResults, setDeclaredResults] = useState<any[]>([]);
   const [loadingResults, setLoadingResults] = useState(true);
   const [resultDate, setResultDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [openResult, setOpenResult] = useState("");
   const [sessionLabel, setSessionLabel] = useState("");
+  const [openPana, setOpenPana] = useState("");
+  const [openAnk, setOpenAnk] = useState("");
+  const [quickPaste, setQuickPaste] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [isDeclaring, setIsDeclaring] = useState(false);
 
@@ -79,9 +103,8 @@ export default function StarlinePage() {
   async function initMarket() {
     try {
       setLoading(true);
-      // Create market with default time slots for Satta Matka
-      await createStarlineMarket({ 
-        name: "Starline Market", 
+      await createStarlineMarket({
+        name: "Starline Market",
         market_type: "starline",
         game_days: "Mon-Sun",
         sequence_number: 0,
@@ -91,7 +114,7 @@ export default function StarlinePage() {
           { session_label: "Day", result_time: "12:00" },
           { session_label: "Afternoon", result_time: "04:00" },
           { session_label: "Evening", result_time: "06:00" },
-        ]
+        ],
       });
       load();
     } catch (err: any) {
@@ -106,7 +129,7 @@ export default function StarlinePage() {
     try {
       let formattedLabel = newTime;
       try {
-        const [h, m] = newTime.split(':');
+        const [h, m] = newTime.split(":");
         const d = new Date();
         d.setHours(parseInt(h, 10));
         d.setMinutes(parseInt(m, 10));
@@ -141,25 +164,53 @@ export default function StarlinePage() {
     }
   }
 
+  // Handle Pana input with automatic Single Ank calculation
+  const handlePanaChange = (val: string) => {
+    const clean = val.replace(/\D/g, "").slice(0, 3);
+    setOpenPana(clean);
+    if (clean.length === 3) {
+      setOpenAnk(calculateAnk(clean));
+    }
+  };
+
+  // Quick paste parser for Starline (e.g. 178-6 or 1786)
+  const handleQuickPaste = (val: string) => {
+    setQuickPaste(val);
+    const parsed = parseStarlineResult(val);
+    if (parsed.pana) {
+      setOpenPana(parsed.pana);
+      setOpenAnk(parsed.ank);
+    }
+  };
+
+  const formattedStarlineResult = useMemo(() => {
+    if (!openPana && !openAnk) return "";
+    if (openPana && openAnk) return `${openPana}-${openAnk}`;
+    if (openPana) return openPana;
+    return openAnk;
+  }, [openPana, openAnk]);
+
   async function declareResult() {
-    if (!market || !openResult || !sessionLabel) return;
+    if (!market || !formattedStarlineResult || !sessionLabel) return;
     setIsDeclaring(true);
     setError(null);
     setMsg(null);
     try {
-      const payload: any = { 
-        market_id: market.id, 
-        open_result: openResult,
+      const payload: any = {
+        market_id: market.id,
+        open_result: formattedStarlineResult,
         result_date: resultDate,
-        session_label: sessionLabel
+        session_label: sessionLabel,
       };
       const res = await bulkDeclareStarlineResults([payload]);
       const first = res.results?.[0];
       if (first?.status === "error") {
         setError(first.detail || "Failed to declare result");
       } else {
-        setMsg(first?.status === "updated" ? "Result updated successfully." : "Result declared successfully.");
-        setOpenResult("");
+        setMsg(first?.status === "updated" ? "Starline Result updated successfully." : "Starline Result declared successfully.");
+        setOpenPana("");
+        setOpenAnk("");
+        setQuickPaste("");
         setSessionLabel("");
         loadResults();
       }
@@ -184,169 +235,254 @@ export default function StarlinePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Starline Settings"
-        description="Manage Starline time slots and declare results directly"
+        title="Starline Settings & Results"
+        description="Manage Starline time slots and declare Open Results (Pana - Single Ank)"
       />
       <ErrorMsg msg={error} />
       {msg && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-300">
-          {msg}
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300 flex items-center justify-between">
+          <span>{msg}</span>
+          <button onClick={() => setMsg(null)} className="text-emerald-400 hover:text-white text-xs">✕</button>
         </div>
       )}
 
       {loading ? (
-        <div className="p-8 text-center"><Spinner /></div>
+        <div className="p-8 text-center">
+          <Spinner />
+        </div>
       ) : !market ? (
         <Card title="Starline System Setup" className="text-center py-8">
-           <EmptyState 
-             title="No Starline Market Found" 
-             hint="Initialize the Starline system to start adding time slots."
-           />
-           <Button onClick={initMarket} className="mt-4">Initialize Starline System</Button>
+          <EmptyState
+            title="No Starline Market Found"
+            hint="Initialize the Starline system to start adding time slots."
+          />
+          <Button onClick={initMarket} className="mt-4">
+            Initialize Starline System
+          </Button>
         </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-           
-           {/* Left Column: Time Slots & Results */}
-           <div className="lg:col-span-2 space-y-6">
-             <Card title="Time Slots (Sessions)" subtitle="Add direct time slots for Starline">
-               <div className="mb-6 p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-wrap gap-4 items-end">
-                 <div className="w-48">
-<label className="mb-1 block text-xs font-medium text-slate-400">Result Time</label>
-                    <div className="relative">
-                      <TimePicker value={newTime} onChange={setNewTime} className="pl-10"/>
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer select-none transition-colors hover:text-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/50">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" id="eye-icon">
-                          <path d="M1 12s4-8 11-8 11 8 11 8" strokeLinecap="round" />
-                        </svg>
-                      </div>
-                    </div>
-                 </div>
-                 <Button onClick={handleAddSlot} disabled={!newTime || isAddingSlot} className="mb-0.5">
-                   {isAddingSlot ? "Adding..." : "+ Add Slot"}
-                 </Button>
-               </div>
-
-               {market.schedules && market.schedules.length > 0 ? (
-                 <div className="table-wrap">
-                   <table className="w-full text-sm">
-                     <thead>
-                       <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-200">
-                         <th className="py-2.5 px-4">Time Slot</th>
-                         <th className="text-right px-4">Action</th>
-                       </tr>
-                     </thead>
-                     <tbody>
-                       {market.schedules.map((s: any, idx: number) => (
-                         <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
-                           <td className="py-3 px-4 font-medium text-slate-700">{s.session_label}</td>
-                           <td className="px-4 text-right">
-                             <Button size="sm" variant="danger" onClick={() => handleRemoveSlot(idx)}>Delete</Button>
-                           </td>
-                         </tr>
-                       ))}
-                     </tbody>
-                   </table>
-                 </div>
-               ) : (
-                 <EmptyState title="No Time Slots added yet" />
-               )}
-             </Card>
-
-             <Card title="Recent Starline Results">
-               {loadingResults ? (
-                 <Spinner />
-               ) : declaredResults.length === 0 ? (
-                 <EmptyState title="No results declared yet" />
-               ) : (
-                 <div className="table-wrap">
-                   <table className="w-full text-sm">
-                     <thead>
-                       <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-200">
-                         <th className="py-2.5 px-4">Date</th>
-                         <th className="px-4">Time Slot</th>
-                         <th className="px-4">Result</th>
-                         <th className="px-4 text-right">Actions</th>
-                       </tr>
-                     </thead>
-                     <tbody>
-                       {declaredResults.map((r: any) => {
-                         const dateStr = r.result_date 
-                            ? format(new Date(r.result_date), "dd/MM/yyyy")
-                            : r.declared_at ? format(new Date(r.declared_at), "dd/MM/yyyy") : "—";
-                         
-                         return (
-                           <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50">
-                             <td className="py-3 px-4 text-slate-600">{dateStr}</td>
-                             <td className="px-4 text-slate-400">{r.session_label}</td>
-                             <td className="px-4 font-mono text-emerald-400 font-semibold">
-                                {r.total_result || r.open_result || "—"}
-                             </td>
-                             <td className="px-4 text-right space-x-2">
-                               <Button 
-                                 size="sm" 
-                                 variant="outline" 
-                                 onClick={() => {
-                                   if (r.result_date) setResultDate(r.result_date);
-                                   setSessionLabel(r.session_label);
-                                   setOpenResult(r.open_result || "");
-                                 }}
-                               >
-                                 Edit
-                               </Button>
-                               <Button size="sm" variant="danger" onClick={() => handleDeleteResult(r.id)}>Delete</Button>
-                             </td>
-                           </tr>
-                         )
-                       })}
-                     </tbody>
-                   </table>
-                 </div>
-               )}
-             </Card>
-           </div>
-           
-           {/* Right Column: Upload Result */}
-           <div className="space-y-6">
-             <Card title="Upload Result" subtitle="Declare result for a time slot">
-                <div className="space-y-4">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-400">Date</label>
-                    <Input
-                      type="date"
-                      value={resultDate}
-                      onChange={(e) => setResultDate(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-400">Time Slot</label>
-                    <Select
-                      value={sessionLabel}
-                      onChange={(e) => setSessionLabel(e.target.value)}
-                    >
-                      <option value="">-- Select Slot --</option>
-                      {market.schedules?.map((s: any) => (
-                        <option key={s.id || s.session_label} value={s.session_label}>
-                          {s.session_label} ({s.result_time?.slice(0, 5)})
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-400">Result Value (e.g. 178-6)</label>
-                    <Input
-                      placeholder="e.g. 178-6"
-                      value={openResult}
-                      onChange={(e) => setOpenResult(e.target.value)}
-                    />
-                  </div>
-
-                  <Button onClick={declareResult} disabled={!openResult || !sessionLabel || isDeclaring} className="w-full">
-                    {isDeclaring ? "Processing..." : "Upload Result"}
-                  </Button>
+          {/* Left Column: Time Slots & Results Table */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Time Slots */}
+            <Card title="Starline Time Slots (Sessions)" subtitle="Configure time slots for hourly Starline draws">
+              <div className="mb-6 p-4 rounded-xl border border-slate-700 bg-slate-800/40 flex flex-wrap gap-4 items-end">
+                <div className="w-48">
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Result Time</label>
+                  <TimePicker value={newTime} onChange={setNewTime} />
                 </div>
-             </Card>
-           </div>
+                <Button onClick={handleAddSlot} disabled={!newTime || isAddingSlot} className="mb-0.5">
+                  {isAddingSlot ? "Adding..." : "+ Add Slot"}
+                </Button>
+              </div>
+
+              {market.schedules && market.schedules.length > 0 ? (
+                <div className="table-wrap">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700">
+                        <th className="py-2.5 px-4">Time Slot</th>
+                        <th className="py-2.5 px-4">Schedule Time</th>
+                        <th className="text-right px-4">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {market.schedules.map((s: any, idx: number) => (
+                        <tr key={idx} className="border-b border-slate-800 hover:bg-slate-800/30">
+                          <td className="py-3 px-4 font-semibold text-white">{s.session_label}</td>
+                          <td className="px-4 text-slate-400 font-mono">{s.result_time || "—"}</td>
+                          <td className="px-4 text-right">
+                            <Button size="sm" variant="danger" onClick={() => handleRemoveSlot(idx)}>
+                              Delete
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <EmptyState title="No Time Slots added yet" />
+              )}
+            </Card>
+
+            {/* Recent Starline Results */}
+            <Card title="Recent Starline Results" subtitle="Open Results history for Starline slots">
+              {loadingResults ? (
+                <Spinner />
+              ) : declaredResults.length === 0 ? (
+                <EmptyState title="No Starline results declared yet" />
+              ) : (
+                <div className="table-wrap">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700">
+                        <th className="py-2.5 px-3">Date</th>
+                        <th className="px-3">Time Slot</th>
+                        <th className="px-3 text-center">Pana</th>
+                        <th className="px-3 text-center">Single Ank</th>
+                        <th className="px-3 text-center">Result (Open Only)</th>
+                        <th className="px-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {declaredResults.map((r: any) => {
+                        const dateStr = r.result_date
+                          ? format(new Date(r.result_date), "dd/MM/yyyy")
+                          : r.declared_at
+                          ? format(new Date(r.declared_at), "dd/MM/yyyy")
+                          : "—";
+
+                        const parsed = parseStarlineResult(r.open_result || r.total_result);
+
+                        return (
+                          <tr key={r.id} className="border-b border-slate-800 hover:bg-slate-800/30">
+                            <td className="py-3 px-3 text-slate-300 font-medium">{dateStr}</td>
+                            <td className="px-3 font-semibold text-white">{r.session_label}</td>
+                            <td className="px-3 text-center font-mono font-bold text-emerald-400">
+                              {parsed.pana || "—"}
+                            </td>
+                            <td className="px-3 text-center font-mono font-bold text-amber-300">
+                              {parsed.ank || "—"}
+                            </td>
+                            <td className="px-3 text-center">
+                              <span className="inline-block rounded-md bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 font-mono font-black text-emerald-300 text-sm">
+                                {r.open_result || r.total_result || "—"}
+                              </span>
+                            </td>
+                            <td className="px-3 text-right space-x-2 whitespace-nowrap">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  if (r.result_date) setResultDate(r.result_date.substring(0, 10));
+                                  setSessionLabel(r.session_label);
+                                  const p = parseStarlineResult(r.open_result);
+                                  setOpenPana(p.pana);
+                                  setOpenAnk(p.ank);
+                                  window.scrollTo({ top: 0, behavior: "smooth" });
+                                }}
+                              >
+                                Edit
+                              </Button>
+                              <Button size="sm" variant="danger" onClick={() => handleDeleteResult(r.id)}>
+                                Delete
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
+          </div>
+
+          {/* Right Column: Upload Result (Open Result Only) */}
+          <div className="space-y-6">
+            <Card
+              title="Upload Starline Result"
+              subtitle="Starline has Open Result only (Pana - Single Ank)"
+            >
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Result Date *</label>
+                  <Input type="date" value={resultDate} onChange={(e) => setResultDate(e.target.value)} />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Select Time Slot *</label>
+                  <Select value={sessionLabel} onChange={(e) => setSessionLabel(e.target.value)}>
+                    <option value="">-- Choose Slot --</option>
+                    {market.schedules?.map((s: any) => (
+                      <option key={s.id || s.session_label} value={s.session_label}>
+                        {s.session_label} ({s.result_time?.slice(0, 5)})
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">
+                    Quick Paste (e.g. 178-6)
+                  </label>
+                  <Input
+                    placeholder="e.g. 178-6 or 1786"
+                    value={quickPaste}
+                    onChange={(e) => handleQuickPaste(e.target.value)}
+                  />
+                </div>
+
+                {/* Starline Dedicated Open Result Inputs */}
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/20 p-3.5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                      Open Result Format
+                    </span>
+                    <Badge color={openPana && openAnk ? "emerald" : "slate"}>
+                      {openPana && openAnk ? `${openPana}-${openAnk}` : "Required"}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-300">Pana (3 Digits)</label>
+                      <Input
+                        placeholder="e.g. 178"
+                        maxLength={3}
+                        value={openPana}
+                        onChange={(e) => handlePanaChange(e.target.value)}
+                        className="font-mono text-center text-lg font-bold tracking-widest"
+                      />
+                      <span className="text-[10px] text-slate-400">Auto-fills Ank</span>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-300">Single Ank (1 Digit)</label>
+                      <Input
+                        placeholder="e.g. 6"
+                        maxLength={1}
+                        value={openAnk}
+                        onChange={(e) => setOpenAnk(e.target.value.replace(/\D/g, "").slice(0, 1))}
+                        className="font-mono text-center text-lg font-bold text-amber-400"
+                      />
+                      <span className="text-[10px] text-slate-400">Sum % 10</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Starline Result Visual Preview Box */}
+                <div className="rounded-xl border border-slate-700 bg-slate-900 p-4 text-center">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold block mb-2">
+                    Starline Result Card Preview
+                  </span>
+                  <div className="flex items-center justify-center gap-2 font-mono">
+                    <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-2xl font-black text-emerald-300 tracking-wider">
+                      {openPana || "***"}
+                    </div>
+                    <span className="text-2xl text-slate-600 font-bold">-</span>
+                    <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-2xl font-black text-amber-300">
+                      {openAnk || "*"}
+                    </div>
+                  </div>
+                  <span className="text-xs text-slate-400 block mt-2">
+                    Open Result Only: <strong className="font-mono text-emerald-300">{formattedStarlineResult || "Pending"}</strong>
+                  </span>
+                </div>
+
+                <Button
+                  onClick={declareResult}
+                  disabled={!openPana || !openAnk || !sessionLabel || isDeclaring}
+                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-2.5"
+                >
+                  {isDeclaring
+                    ? "Processing..."
+                    : `Upload Starline Result ${formattedStarlineResult ? `(${formattedStarlineResult})` : ""}`}
+                </Button>
+              </div>
+            </Card>
+          </div>
         </div>
       )}
     </div>
