@@ -34,14 +34,34 @@ function calculateAnk(panna: string): string {
 
 function parseStarlineResult(val: string | null | undefined): { pana: string; ank: string } {
   if (!val) return { pana: "", ank: "" };
-  const parts = val.trim().split("-");
+  const clean = val.trim();
+  // Standard format: 128-1, 128 1, 128/1, 128:1
+  const delimMatch = clean.match(/^(\d{3})[\s\-\/:,](\d)$/);
+  if (delimMatch) {
+    return { pana: delimMatch[1], ank: delimMatch[2] };
+  }
+  // 4 continuous digits: e.g. 1281 -> 128 - 1
+  const fourDigitMatch = clean.match(/^(\d{3})(\d)$/);
+  if (fourDigitMatch) {
+    return { pana: fourDigitMatch[1], ank: fourDigitMatch[2] };
+  }
+  // 3 digits only: e.g. 128 -> auto-calculate ank
+  const threeDigitMatch = clean.match(/^(\d{3})$/);
+  if (threeDigitMatch) {
+    return { pana: threeDigitMatch[1], ank: calculateAnk(threeDigitMatch[1]) };
+  }
+  // Reverse format: e.g. 1-128
+  const revMatch = clean.match(/^(\d)[\s\-\/:](\d{3})$/);
+  if (revMatch) {
+    return { pana: revMatch[2], ank: revMatch[1] };
+  }
+  // Fallback splitting by hyphen
+  const parts = clean.split("-");
   if (parts.length === 2) {
-    if (parts[0].length === 3) return { pana: parts[0], ank: parts[1] };
-    return { pana: parts[1], ank: parts[0] };
-  } else if (parts.length === 1 && parts[0].length === 3) {
-    return { pana: parts[0], ank: calculateAnk(parts[0]) };
-  } else if (parts.length === 1 && parts[0].length === 4) {
-    return { pana: parts[0].slice(0, 3), ank: parts[0].slice(3, 4) };
+    const p1 = parts[0].replace(/\D/g, "");
+    const p2 = parts[1].replace(/\D/g, "");
+    if (p1.length === 3 && p2.length === 1) return { pana: p1, ank: p2 };
+    if (p2.length === 3 && p1.length === 1) return { pana: p2, ank: p1 };
   }
   return { pana: "", ank: "" };
 }
@@ -221,15 +241,38 @@ export default function StarlinePage() {
     return openAnk;
   }, [openPana, openAnk]);
 
+  const existingSlotResult = useMemo(() => {
+    if (!sessionLabel || !resultDate || !declaredResults) return null;
+    return declaredResults.find(
+      (r: any) =>
+        r.session_label === sessionLabel &&
+        r.result_date &&
+        r.result_date.startsWith(resultDate)
+    );
+  }, [sessionLabel, resultDate, declaredResults]);
+
   async function declareResult() {
-    if (!market || !formattedStarlineResult || !sessionLabel) return;
+    if (!market || !sessionLabel) {
+      setError("Please select a time slot.");
+      return;
+    }
+    if (!openPana || openPana.length !== 3 || !/^\d{3}$/.test(openPana)) {
+      setError("Open Pana must be exactly 3 numeric digits (e.g. 178).");
+      return;
+    }
+    if (!openAnk || openAnk.length !== 1 || !/^\d$/.test(openAnk)) {
+      setError("Single Ank must be exactly 1 numeric digit (0-9).");
+      return;
+    }
+
+    const payloadResult = `${openPana}-${openAnk}`;
     setIsDeclaring(true);
     setError(null);
     setMsg(null);
     try {
       const payload: any = {
         market_id: market.id,
-        open_result: formattedStarlineResult,
+        open_result: payloadResult,
         result_date: resultDate,
         session_label: sessionLabel,
       };
@@ -463,28 +506,28 @@ export default function StarlinePage() {
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/20 p-3.5 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                      Open Result Format
+                      Open Result Format (Pana - Single Ank)
                     </span>
-                    <Badge color={openPana && openAnk ? "emerald" : "slate"}>
+                    <Badge color={openPana.length === 3 && openAnk.length === 1 ? "emerald" : "slate"}>
                       {openPana && openAnk ? `${openPana}-${openAnk}` : "Required"}
                     </Badge>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-300">Pana (3 Digits)</label>
+                      <label className="mb-1 block text-xs font-medium text-slate-300">Open Pana (3 Digits) *</label>
                       <Input
                         placeholder="e.g. 178"
                         maxLength={3}
                         value={openPana}
                         onChange={(e) => handlePanaChange(e.target.value)}
-                        className="font-mono text-center text-lg font-bold tracking-widest"
+                        className="font-mono text-center text-lg font-bold tracking-widest text-emerald-300"
                       />
-                      <span className="text-[10px] text-slate-400">Auto-fills Ank</span>
+                      <span className="text-[10px] text-slate-400">Auto-calculates Single Ank</span>
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-300">Single Ank (1 Digit)</label>
+                      <label className="mb-1 block text-xs font-medium text-slate-300">Single Ank (1 Digit) *</label>
                       <Input
                         placeholder="e.g. 6"
                         maxLength={1}
@@ -495,7 +538,51 @@ export default function StarlinePage() {
                       <span className="text-[10px] text-slate-400">Sum % 10</span>
                     </div>
                   </div>
+
+                  {/* Intelligent Live Sum Calculation Breakdown */}
+                  {openPana.length === 3 && (
+                    <div className="rounded-lg bg-slate-900/80 border border-slate-700/60 p-2.5 space-y-1.5 text-xs">
+                      <div className="flex items-center justify-between text-slate-300">
+                        <span>
+                          Pana Digit Sum:{" "}
+                          <strong className="font-mono text-emerald-400 font-bold">
+                            {openPana[0]} + {openPana[1]} + {openPana[2]} ={" "}
+                            {parseInt(openPana[0], 10) + parseInt(openPana[1], 10) + parseInt(openPana[2], 10)}
+                          </strong>
+                        </span>
+                        <span>
+                          Standard Ank:{" "}
+                          <strong className="font-mono text-amber-400 font-bold text-sm">
+                            {calculateAnk(openPana)}
+                          </strong>
+                        </span>
+                      </div>
+                      {openAnk && openAnk !== calculateAnk(openPana) && (
+                        <div className="flex items-center justify-between text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1 text-[11px]">
+                          <span>⚠️ Custom Ank: {openAnk} (Expected from sum: {calculateAnk(openPana)})</span>
+                          <button
+                            type="button"
+                            onClick={() => setOpenAnk(calculateAnk(openPana))}
+                            className="underline font-bold hover:text-white"
+                          >
+                            Use Standard {calculateAnk(openPana)}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
+
+                {/* Existing Result Notice for the Chosen Slot & Date */}
+                {existingSlotResult && (
+                  <div className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 p-2.5 text-xs text-cyan-300 flex items-center justify-between">
+                    <span>
+                      ℹ️ Slot <strong>{sessionLabel}</strong> already has result:{" "}
+                      <strong className="font-mono">{existingSlotResult.open_result || existingSlotResult.total_result}</strong>
+                    </span>
+                    <Badge color="blue">Update Mode</Badge>
+                  </div>
+                )}
 
                 {/* Starline Result Visual Preview Box */}
                 <div className="rounded-xl border border-slate-700 bg-slate-900 p-4 text-center">
@@ -518,12 +605,14 @@ export default function StarlinePage() {
 
                 <Button
                   onClick={declareResult}
-                  disabled={!openPana || !openAnk || !sessionLabel || isDeclaring}
-                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-2.5"
+                  disabled={openPana.length !== 3 || openAnk.length !== 1 || !sessionLabel || isDeclaring}
+                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2.5 shadow-lg shadow-emerald-950/40"
                 >
                   {isDeclaring
                     ? "Processing..."
-                    : `Upload Starline Result ${formattedStarlineResult ? `(${formattedStarlineResult})` : ""}`}
+                    : existingSlotResult
+                    ? `Update Starline Result (${openPana || "***"}-${openAnk || "*"})`
+                    : `Upload Starline Result (${openPana || "***"}-${openAnk || "*"})`}
                 </Button>
               </div>
             </Card>

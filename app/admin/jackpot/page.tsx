@@ -25,6 +25,19 @@ import {
   deleteJackpotResult,
 } from "@/lib/admin";
 
+const OFFICIAL_JACKPOT_NUMBERS = [
+  "000",
+  "111",
+  "222",
+  "333",
+  "444",
+  "555",
+  "666",
+  "777",
+  "888",
+  "999",
+];
+
 const OFFICIAL_JACKPOT_SLOTS = [
   { session_label: "10:00 AM", result_time: "10:00" },
   { session_label: "11:00 AM", result_time: "11:00" },
@@ -180,8 +193,8 @@ export default function JackpotPage() {
 
   async function declareResult() {
     if (!market || !pannaNumber || !sessionLabel) return;
-    if (pannaNumber.length !== 3) {
-      setError("Jackpot result must be a 3-digit Panna number (e.g. 128)");
+    if (!OFFICIAL_JACKPOT_NUMBERS.includes(pannaNumber)) {
+      setError("Invalid Jackpot number! Jackpot result must be one of the 10 official numbers: 000, 111, 222, 333, 444, 555, 666, 777, 888, 999");
       return;
     }
 
@@ -235,7 +248,7 @@ export default function JackpotPage() {
     <div className="space-y-6">
       <PageHeader
         title="Jackpot Settings & Results"
-        description="Manage Jackpot time slots and declare 3-digit Panna numbers"
+        description="Manage Jackpot time slots and declare winning results (Only 10 official numbers: 000 - 999)"
       />
       <ErrorMsg msg={error} />
       {msg && (
@@ -380,11 +393,11 @@ export default function JackpotPage() {
             </Card>
           </div>
 
-          {/* Right Column: Upload Result (Panna Numbers Only) */}
+          {/* Right Column: Upload Result (10 Official Jackpot Numbers Only) */}
           <div className="space-y-6">
             <Card
               title="Upload Jackpot Result"
-              subtitle="Jackpot has 3-digit Panna numbers only"
+              subtitle="Only 10 official winning numbers allowed (000, 111, 222, 333, 444, 555, 666, 777, 888, 999)"
             >
               <div className="space-y-4">
                 <div>
@@ -404,25 +417,65 @@ export default function JackpotPage() {
                   </Select>
                 </div>
 
-                {/* Dedicated Jackpot 3-digit Panna input */}
-                <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4 space-y-2">
+                {/* 10 Official Numbers Selector (000 - 999) */}
+                <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="block text-xs font-bold uppercase tracking-wider text-amber-300">
-                      Panna Number (3 Digits Only) *
+                      Select Winning Number *
                     </label>
-                    <Badge color={pannaNumber.length === 3 ? "emerald" : "slate"}>
-                      {pannaNumber.length === 3 ? "Valid Panna" : `${pannaNumber.length}/3 Digits`}
+                    <Badge color={OFFICIAL_JACKPOT_NUMBERS.includes(pannaNumber) ? "emerald" : "slate"}>
+                      {OFFICIAL_JACKPOT_NUMBERS.includes(pannaNumber)
+                        ? `Selected: ♠ ${pannaNumber} ♠`
+                        : "Select from below"}
                     </Badge>
                   </div>
-                  <Input
-                    placeholder="e.g. 128"
-                    maxLength={3}
-                    value={pannaNumber}
-                    onChange={(e) => handlePannaChange(e.target.value)}
-                    className="font-mono text-center text-2xl font-black tracking-widest text-amber-300"
-                  />
+
+                  {/* 10 Interactive Number Chips */}
+                  <div className="grid grid-cols-5 gap-2">
+                    {OFFICIAL_JACKPOT_NUMBERS.map((num) => {
+                      const isSelected = pannaNumber === num;
+                      return (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => {
+                            setError(null);
+                            setPannaNumber(num);
+                          }}
+                          className={`py-2 px-1 text-center font-mono font-black text-sm rounded-lg border transition-all ${
+                            isSelected
+                              ? "bg-amber-400 text-slate-950 border-amber-300 shadow-md shadow-amber-500/40 scale-105"
+                              : "bg-slate-800/80 text-amber-300 border-slate-700 hover:border-amber-500/50 hover:bg-slate-800"
+                          }`}
+                        >
+                          {num}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-[11px] font-semibold text-slate-400">
+                      Or Choose from Dropdown:
+                    </label>
+                    <Select
+                      value={pannaNumber}
+                      onChange={(e) => {
+                        setError(null);
+                        setPannaNumber(e.target.value);
+                      }}
+                    >
+                      <option value="">-- Choose from 10 Official Numbers --</option>
+                      {OFFICIAL_JACKPOT_NUMBERS.map((num) => (
+                        <option key={num} value={num}>
+                          ♠ {num} ♠
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+
                   <span className="text-[11px] text-slate-400 block text-center">
-                    Enter any 3-digit winning Panna (e.g. 128, 356, 777)
+                    Jackpot numbers are strictly triplets: 000, 111, 222, 333, 444, 555, 666, 777, 888, 999.
                   </span>
                 </div>
 
@@ -431,8 +484,8 @@ export default function JackpotPage() {
                   <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold block mb-2">
                     Jackpot Winning Card Preview
                   </span>
-                  <div className="inline-block rounded-xl border border-amber-500/50 bg-amber-500/10 px-6 py-3 font-mono text-3xl font-black text-amber-300 tracking-widest shadow-inner">
-                    {pannaNumber || "***"}
+                  <div className="inline-block rounded-xl border border-amber-500/50 bg-amber-500/10 px-8 py-3 font-mono text-3xl font-black text-amber-300 tracking-widest shadow-inner">
+                    ♠ {pannaNumber || "***"} ♠
                   </div>
                   <span className="text-xs text-slate-400 block mt-2">
                     Slot: <strong className="text-white">{sessionLabel || "Not Selected"}</strong>
@@ -441,12 +494,12 @@ export default function JackpotPage() {
 
                 <Button
                   onClick={declareResult}
-                  disabled={pannaNumber.length !== 3 || !sessionLabel || isDeclaring}
+                  disabled={!OFFICIAL_JACKPOT_NUMBERS.includes(pannaNumber) || !sessionLabel || isDeclaring}
                   className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-black py-2.5 text-sm"
                 >
                   {isDeclaring
                     ? "Processing..."
-                    : `Upload Jackpot Panna ${pannaNumber ? `(${pannaNumber})` : ""}`}
+                    : `Upload Jackpot Result ${pannaNumber ? `(♠ ${pannaNumber} ♠)` : ""}`}
                 </Button>
               </div>
             </Card>
