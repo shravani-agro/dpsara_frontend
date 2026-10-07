@@ -63,8 +63,61 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             });
+
+            // Update Header dropdowns and Footer chart links dynamically
+            updateNavAndFooterCharts(allMarkets);
         } catch (e) {
             console.error('Error fetching live markets:', e);
+        }
+    }
+
+    function updateNavAndFooterCharts(markets) {
+        if (!markets || !markets.length) return;
+        const regular = markets.filter(m => {
+            const isStarline = m.is_starline === true || m.is_starline === 1 || m.is_starline === '1' || (m.market_type || '').toLowerCase() === 'starline';
+            const isJackpot = m.is_jackpot === true || m.is_jackpot === 1 || m.is_jackpot === '1' || (m.market_type || '').toLowerCase() === 'jackpot';
+            if (isStarline || isJackpot) return false;
+            const mType = (m.market_type || '').toLowerCase();
+            return mType === 'regular' || mType === 'main' || mType === '' || !mType;
+        });
+        if (!regular.length) return;
+
+        const jodiLinks = regular.map(m => {
+            const slug = (m.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            return `<li class="break-inside-avoid leading-tight border-b border-[rgba(22,16,14,0.08)]"><a class="block rounded-lg px-2.5 py-1.5 text-[13px] font-semibold uppercase text-black no-underline transition-colors hover:bg-timeBg hover:text-primary" href="/${slug}_jodi.html">${m.name.toUpperCase()}</a></li>`;
+        }).join('');
+
+        const panaLinks = regular.map(m => {
+            const slug = (m.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            return `<li class="break-inside-avoid leading-tight border-b border-[rgba(22,16,14,0.08)]"><a class="block rounded-lg px-2.5 py-1.5 text-[13px] font-semibold uppercase text-black no-underline transition-colors hover:bg-timeBg hover:text-primary" href="/${slug}_pana.html">${m.name.toUpperCase()}</a></li>`;
+        }).join('');
+
+        document.querySelectorAll('p').forEach(p => {
+            const text = (p.innerText || '').toLowerCase().trim();
+            if (text === 'jodi charts') {
+                const ul = p.parentElement ? p.parentElement.querySelector('ul') : null;
+                if (ul) ul.innerHTML = jodiLinks;
+            } else if (text === 'pana charts') {
+                const ul = p.parentElement ? p.parentElement.querySelector('ul') : null;
+                if (ul) ul.innerHTML = panaLinks;
+            }
+        });
+
+        const footerCharts = document.getElementById('footer-charts');
+        if (footerCharts) {
+            footerCharts.querySelectorAll('h3').forEach(h3 => {
+                const text = (h3.innerText || '').toLowerCase().trim();
+                if (text === 'jodi charts') {
+                    const ul = h3.parentElement ? h3.parentElement.querySelector('ul') : null;
+                    if (ul) ul.innerHTML = jodiLinks;
+                } else if (text === 'pana charts') {
+                    const ul = h3.parentElement ? h3.parentElement.querySelector('ul') : null;
+                    if (ul) ul.innerHTML = panaLinks;
+                } else if (text.includes('starline') || text.includes('jackpot')) {
+                    const col = h3.closest('div.border');
+                    if (col) col.remove();
+                }
+            });
         }
     }
 

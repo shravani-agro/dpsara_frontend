@@ -40,18 +40,32 @@ export async function GET(request: Request, { params }: { params: { slug: string
     }
 
     const templatesDir = path.join(process.cwd(), 'templates');
-    const fullPath = path.join(templatesDir, filePath);
+    let fullPath = path.join(templatesDir, filePath);
+    let isVirtualChart = false;
 
     if (!fs.existsSync(fullPath)) {
-      return new NextResponse('File not found', { status: 404 });
+      if (filePath.includes('_jodi.html')) {
+        fullPath = path.join(templatesDir, 'charts_jodi_time-bazar.html');
+        isVirtualChart = true;
+      } else if (filePath.includes('_pana.html')) {
+        fullPath = path.join(templatesDir, 'charts_pana_kalyan.html');
+        isVirtualChart = true;
+      } else {
+        return new NextResponse('File not found', { status: 404 });
+      }
     }
 
     const htmlFile = fs.readFileSync(fullPath, 'utf8');
     let html = htmlFile;
 
-    // 1. Fetch system settings for contact numbers
+    // 1. Fetch system settings for contact numbers and regular markets
+    let regularMarkets: { id: any; name: string; slug: string; result: string; status: string }[] = [];
     try {
-      const settingsRes = await fetch(`${API_BASE}/mobile/settings`, { next: { revalidate: 60 } });
+      const [settingsRes, homeRes] = await Promise.all([
+        fetch(`${API_BASE}/mobile/settings`, { next: { revalidate: 60 } }),
+        fetch(`${API_BASE}/mobile/homepage`, { next: { revalidate: 15 } }),
+      ]);
+
       if (settingsRes.ok) {
         const settingsJson = await settingsRes.json();
         const settingsData = settingsJson.data || {};
@@ -61,8 +75,37 @@ export async function GET(request: Request, { params }: { params: { slug: string
         html = html.replace(/\+91 8377 999 777/g, whatsappNumber);
         html = html.replace(/918377999777/g, cleanWhatsapp);
       }
+
+      if (homeRes.ok) {
+        const homeJson = await homeRes.json();
+        if (homeJson.status === 'success' && Array.isArray(homeJson.data)) {
+          regularMarkets = homeJson.data
+            .filter((m: any) => {
+              const isStarline = m.is_starline === true || m.is_starline === 1 || m.is_starline === '1' || (m.market_type || '').toLowerCase() === 'starline';
+              const isJackpot = m.is_jackpot === true || m.is_jackpot === 1 || m.is_jackpot === '1' || (m.market_type || '').toLowerCase() === 'jackpot';
+              if (isStarline || isJackpot) return false;
+              const mType = (m.market_type || '').toLowerCase();
+              return mType === 'regular' || mType === 'main' || mType === '' || !mType;
+            })
+            .map((m: any) => {
+              const name = (m.name || m.market_name || '').trim();
+              const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+              let statusText = 'Running for open';
+              if (m.is_closed === true || m.status?.toLowerCase().includes('close')) {
+                statusText = 'Closed';
+              }
+              return {
+                id: m.id,
+                name: name,
+                slug: slug,
+                result: m.result || '***-**-***',
+                status: statusText,
+              };
+            });
+        }
+      }
     } catch (e) {
-      console.error("Failed to fetch settings for templates", e);
+      console.error("Failed to fetch initial settings/markets", e);
     }
 
     const $ = cheerio.load(html);
@@ -85,12 +128,67 @@ export async function GET(request: Request, { params }: { params: { slug: string
     $('a[href*="jackpot-chart"]').remove();
     $('a[href*="starline_daily"]').remove();
     $('a[href*="jackpot_daily"]').remove();
-    $('a:contains("Starline Charts"), a:contains("Jackpot Charts")').closest('li').remove();
+    $('a:contains("Starline Charts"), a:contains("Jackpot Charts"), a:contains("King Starline Charts"), a:contains("King Jackpot Charts")').closest('li').remove();
 
-    // 2. Dynamic Charts Rendering (from rsboss_db)
+    // 2. DYNAMIC NAVIGATION DROPDOWNS (Header)
+    if (regularMarkets.length > 0) {
+      // Update Jodi Charts dropdown
+      $('p:contains("Jodi Charts"), p:contains("Jodi charts")').siblings('ul').each((_, ul) => {
+        $(ul).empty().append(
+          regularMarkets.map(m =>
+            `<li class="break-inside-avoid"><a class="block rounded-lg px-2.5 py-1.5 text-[13px] font-semibold uppercase text-black no-underline transition-colors hover:bg-timeBg hover:text-primary" href="/${m.slug}_jodi.html">${m.name.toUpperCase()}</a></li>`
+          ).join('')
+        );
+      });
+
+      // Update Pana Charts dropdown
+      $('p:contains("Pana Charts"), p:contains("Pana charts")').siblings('ul').each((_, ul) => {
+        $(ul).empty().append(
+          regularMarkets.map(m =>
+            `<li class="break-inside-avoid"><a class="block rounded-lg px-2.5 py-1.5 text-[13px] font-semibold uppercase text-black no-underline transition-colors hover:bg-timeBg hover:text-primary" href="/${m.slug}_pana.html">${m.name.toUpperCase()}</a></li>`
+          ).join('')
+        );
+      });
+    }
+
+    // 3. DYNAMIC FOOTER CHARTS (#footer-charts)
+    if (regularMarkets.length > 0) {
+      // Footer Jodi Charts
+      $('#footer-charts h3:contains("Jodi Charts")').siblings('ul').each((_, ul) => {
+        $(ul).empty().append(
+          regularMarkets.map(m =>
+            `<li class="leading-tight border-b border-[rgba(22,16,14,0.08)]"><a class="block px-3 py-1.5 sm:px-3 sm:py-2 text-center text-[11px] sm:text-[14px] font-semibold text-black transition-colors hover:text-primary scroll-mt-24" href="/${m.slug}_jodi.html" id="footer-chart-jodi-${m.slug}">${m.name.toUpperCase()}</a></li>`
+          ).join('')
+        );
+      });
+
+      // Footer Pana Charts
+      $('#footer-charts h3:contains("Pana Charts")').siblings('ul').each((_, ul) => {
+        $(ul).empty().append(
+          regularMarkets.map(m =>
+            `<li class="leading-tight border-b border-[rgba(22,16,14,0.08)]"><a class="block px-3 py-1.5 sm:px-3 sm:py-2 text-center text-[11px] sm:text-[14px] font-semibold text-black transition-colors hover:text-primary scroll-mt-24" href="/${m.slug}_pana.html" id="footer-chart-pana-${m.slug}">${m.name.toUpperCase()}</a></li>`
+          ).join('')
+        );
+      });
+    }
+
+    // Remove starline and jackpot sections in footer
+    $('#footer-charts h3:contains("Starline Charts"), #footer-charts h3:contains("Jackpot Charts")').closest('div.border').remove();
+
+    // 4. DYNAMIC CHARTS RENDERING (from rsboss_db)
     if (filePath.includes('_jodi') || filePath.includes('_pana')) {
       const marketSlug = filePath.replace('.html', '').split('_')[0];
       const isJodi = filePath.includes('_jodi');
+
+      // Find market display name
+      const matchedMarket = regularMarkets.find(m => m.slug === marketSlug);
+      const marketDisplayName = matchedMarket ? matchedMarket.name : marketSlug.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+
+      if (isVirtualChart) {
+        $('title').text(`${marketDisplayName} ${isJodi ? 'Jodi' : 'Pana'} Chart | DPSara777`);
+        $('h1').text(`${marketDisplayName} Chart`);
+        $('strong:contains("Chart Records")').text(`${marketDisplayName} ${isJodi ? 'Jodi' : 'Pana'} Chart Records.`);
+      }
 
       // Fetch historical data from rsboss_db via backend
       let history: { result_date: string; result: string }[] = [];
@@ -121,7 +219,6 @@ export async function GET(request: Request, { params }: { params: { slug: string
 
       let rowsHtml = '';
       if (dates.length > 0) {
-        // Detect table header columns (e.g. Date, MON, TUE, WED, THU, FRI, SAT, SUN)
         const thTexts = $('table thead tr th')
           .toArray()
           .map((el) => $(el).text().trim().toUpperCase());
@@ -136,7 +233,6 @@ export async function GET(request: Request, { params }: { params: { slug: string
         if (thTexts.includes('SAT')) dayCols.push({ name: 'SAT', dayIndex: 5 });
         if (thTexts.includes('SUN')) dayCols.push({ name: 'SUN', dayIndex: 6 });
 
-        // If no day headers found, default to Mon-Sat
         if (dayCols.length === 0) {
           dayCols.push(
             { name: 'MON', dayIndex: 0 },
@@ -148,7 +244,6 @@ export async function GET(request: Request, { params }: { params: { slug: string
           );
         }
 
-        // Calculate start Monday
         const [sy, sm, sd] = dates[0].split('-').map(Number);
         const firstDate = new Date(sy, sm - 1, sd);
         const dayOfWeek = firstDate.getDay();
@@ -156,7 +251,6 @@ export async function GET(request: Request, { params }: { params: { slug: string
         const currentMonday = new Date(firstDate);
         currentMonday.setDate(firstDate.getDate() + mondayOffset);
 
-        // Calculate end date
         const [ey, em, ed] = dates[dates.length - 1].split('-').map(Number);
         const lastDate = new Date(ey, em - 1, ed);
 
@@ -245,19 +339,68 @@ export async function GET(request: Request, { params }: { params: { slug: string
           .first()
           .empty()
           .append(
-            `<tr><td colspan="8" class="py-8 text-center text-dark">No records found for ${marketSlug}</td></tr>`
+            `<tr><td colspan="8" class="py-8 text-center text-dark font-medium">No historical records available for ${marketDisplayName} yet</td></tr>`
           );
       }
     }
 
-    // 3. Dynamic Homepage (index.html)
+    // 5. DYNAMIC ALL CHARTS PAGE (all-satta-matka-chart.html)
+    if (filePath === 'all-satta-matka-chart.html') {
+      const chartSection = $('section:has(div[aria-live="polite"])');
+      if (chartSection.length > 0) {
+        const cardsGrid = `
+          <div class="container mx-auto px-4 max-sm:px-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-6">
+              ${regularMarkets.map(m => `
+                <div class="border border-borderColor bg-surfaceBg rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between mb-4">
+                      <h3 class="text-xl font-extrabold text-black uppercase tracking-tight">${m.name}</h3>
+                      <span class="text-xs px-3 py-1 rounded-full font-bold ${m.status && m.status.toLowerCase().includes('close') ? 'bg-danger/10 text-danger' : 'bg-successGreen/10 text-successGreen'}">
+                        ${m.status || 'ACTIVE'}
+                      </span>
+                    </div>
+                    <div class="text-center py-4 bg-timeBg rounded-xl mb-6">
+                      <span class="text-xs font-semibold text-dark block mb-1 uppercase tracking-wider">Live Result</span>
+                      <span class="text-2xl font-black font-display text-primary tracking-widest">${m.result}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <a href="/${m.slug}_jodi.html" class="flex-1 text-center py-3 px-4 bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-black font-bold text-sm rounded-xl hover:opacity-90 transition-opacity no-underline shadow-sm">
+                      Jodi Chart
+                    </a>
+                    <a href="/${m.slug}_pana.html" class="flex-1 text-center py-3 px-4 border-2 border-primary text-black font-bold text-sm rounded-xl hover:bg-primary/10 transition-colors no-underline">
+                      Pana Chart
+                    </a>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        chartSection.html(cardsGrid);
+      }
+
+      // Update text in all-satta-matka-chart.html to only mention active added markets
+      if (regularMarkets.length > 0) {
+        const activeListHtml = `<p class="text-base md:text-lg text-dark leading-relaxed mb-4"><strong>Active Markets:</strong> ${regularMarkets.map(m => `<a href="/${m.slug}_jodi.html" class="text-[#1155cc] underline">${m.name}</a>`).join(', ')}</p>`;
+        $('p:contains("Markets Covered in Our All Satta Matka Chart:")').nextUntil('div.mt-8').remove();
+        $('p:contains("Markets Covered in Our All Satta Matka Chart:")').replaceWith(activeListHtml);
+
+        $('p:contains("Track Every Jodi Pair Across All Markets")').parent().find('p:contains("Morning Markets:")').remove();
+        $('p:contains("Track Every Jodi Pair Across All Markets")').parent().find('p:contains("Day Markets:")').remove();
+        $('p:contains("Track Every Jodi Pair Across All Markets")').parent().find('p:contains("Night Markets:")').remove();
+
+        $('p:contains("Complete Three-Digit Panel Records")').parent().find('p:contains("Morning Pana Charts:")').remove();
+        $('p:contains("Complete Three-Digit Panel Records")').parent().find('p:contains("Day Pana Charts:")').remove();
+        $('p:contains("Complete Three-Digit Panel Records")').parent().find('p:contains("Night Pana Charts:")').remove();
+      }
+    }
+
+    // 6. DYNAMIC HOMEPAGE (index.html)
     if (filePath === 'index.html') {
-      // Fetch dynamic Game Rates and Markets for Server-Side Rendering
       try {
-        const [ratesRes, marketsRes] = await Promise.all([
-          fetch(`${API_BASE}/markets/global/game-rates`, { next: { revalidate: 30 } }),
-          fetch(`${API_BASE}/markets`, { next: { revalidate: 15 } }),
-        ]);
+        const ratesRes = await fetch(`${API_BASE}/markets/global/game-rates`, { next: { revalidate: 30 } });
 
         // A. Inject Dynamic Game Rates
         if (ratesRes.ok) {
@@ -285,7 +428,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
             if (clean.includes('triplepana') || clean.includes('triplepanna')) {
               return String(rateMap['triplepatti'] ?? rateMap['triplepana'] ?? 900);
             }
-            if (clean.includes('redbracket') || clean.includes('redbracket')) {
+            if (clean.includes('redbracket')) {
               return String(rateMap['redbracket'] ?? 95);
             }
             if (clean.includes('halfsangam')) {
@@ -323,36 +466,48 @@ export async function GET(request: Request, { params }: { params: { slug: string
           });
         }
 
-        // B. Inject Live Market Results and Statuses
-        if (marketsRes.ok) {
-          const markets: any[] = await marketsRes.json();
-          markets.forEach((m) => {
-            if (!m.name) return;
-            const slug = m.name
-              .toLowerCase()
-              .replace(/[^a-z0-9]+/g, '-')
-              .replace(/(^-|-$)/g, '');
-
-            const card = $(`#game-card-jodi-${slug}`);
-            if (card.length > 0) {
-              // Update Result
-              const resultSpan = card.find('span.text-\\[20px\\], span.text-\\[18px\\]').first();
-              if (resultSpan.length > 0 && m.result) {
-                resultSpan.text(m.result);
-              }
-
-              // Update Status
-              const statusSpan = card.find('span.text-\\[12px\\], span.text-\\[11px\\]').first();
-              if (statusSpan.length > 0 && m.status) {
-                statusSpan.text(m.status);
-                if (m.status.toLowerCase().includes('close')) {
-                  statusSpan.removeClass('text-successGreen').addClass('text-danger');
-                } else {
-                  statusSpan.removeClass('text-danger').addClass('text-successGreen');
-                }
-              }
-            }
-          });
+        // B. Replace Static Markets Grid with ONLY Added Markets
+        if (regularMarkets.length > 0) {
+          const gamesSection = $('section:has(span:contains("Games")) div.grid.grid-cols-1');
+          if (gamesSection.length > 0) {
+            const dynamicCardsHtml = regularMarkets.map(m => `
+              <div class="scroll-mt-24" id="game-card-jodi-${m.slug}">
+                <div class="bg-surfaceBg border border-borderColor rounded-2xl p-4 max-sm:p-3.5 md:p-[18px_20px] h-full shadow-[0_10px_30px_rgba(27,19,10,0.04)] transition-all duration-300 hover:border-goldLight hover:shadow-[0_16px_34px_rgba(224,130,10,0.12)]">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-1">
+                        <h5 class="not-italic uppercase mb-0 font-display font-bold text-black leading-tight text-[18px] max-sm:text-[17px] tracking-wider truncate">
+                          ${m.name.toUpperCase()}
+                        </h5>
+                      </div>
+                      <span class="block text-left text-[20px] max-sm:text-[18px] font-bold text-black leading-none mt-1">
+                        ${m.result}
+                      </span>
+                    </div>
+                    <div class="shrink-0 flex flex-col items-end justify-start gap-2">
+                      <span class="block text-[12px] max-sm:text-[11px] font-semibold leading-none whitespace-nowrap ${m.status.toLowerCase().includes('close') ? 'text-danger' : 'text-successGreen'}">
+                        ${m.status}
+                      </span>
+                      <a aria-label="Play now" class="shrink-0 h-9 max-sm:h-8 px-3.5 max-sm:px-3 rounded-full inline-flex items-center justify-center gap-1.5 text-[13px] max-sm:text-[12px] font-display font-bold transition-all bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-white shadow-[0_6px_14px_rgba(120,82,13,0.28)] hover:brightness-105 hover:!text-white cursor-pointer" href="https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk">
+                        <svg aria-hidden="true" class="lucide lucide-play w-3.5 h-3.5 fill-current !text-white" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path>
+                        </svg>Play
+                      </a>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between gap-2.5 mt-3 pt-3 max-sm:mt-2.5 max-sm:pt-2.5 border-t border-borderColor">
+                    <a class="inline-flex items-center justify-center min-w-[118px] max-sm:min-w-0 h-[36px] max-sm:h-[32px] px-4 border-[1.5px] border-goldLight rounded-full bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-white font-display text-[13px] max-sm:text-[12px] font-bold whitespace-nowrap transition-all duration-300 hover:brightness-105 hover:text-white focus-visible:brightness-105 focus-visible:text-white" data-return-card="game-card-jodi-${m.slug}" href="/${m.slug}_jodi.html">
+                      Jodi Chart
+                    </a>
+                    <a class="inline-flex items-center justify-center min-w-[118px] max-sm:min-w-0 h-[36px] max-sm:h-[32px] px-4 border-[1.5px] border-goldLight rounded-full bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-white font-display text-[13px] max-sm:text-[12px] font-bold whitespace-nowrap transition-all duration-300 hover:brightness-105 hover:text-white focus-visible:brightness-105 focus-visible:text-white" data-return-card="game-card-jodi-${m.slug}" href="/${m.slug}_pana.html">
+                      Pana Chart
+                    </a>
+                  </div>
+                </div>
+              </div>
+            `).join('');
+            gamesSection.html(dynamicCardsHtml);
+          }
         }
       } catch (err) {
         console.error('SSR Live Data Fetch Error:', err);
