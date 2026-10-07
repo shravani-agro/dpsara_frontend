@@ -25,10 +25,26 @@ import {
   deleteJackpotResult,
 } from "@/lib/admin";
 
+const OFFICIAL_JACKPOT_SLOTS = [
+  { session_label: "10:00 AM", result_time: "10:00" },
+  { session_label: "11:00 AM", result_time: "11:00" },
+  { session_label: "12:00 PM", result_time: "12:00" },
+  { session_label: "01:00 PM", result_time: "13:00" },
+  { session_label: "02:00 PM", result_time: "14:00" },
+  { session_label: "03:00 PM", result_time: "15:00" },
+  { session_label: "04:00 PM", result_time: "16:00" },
+  { session_label: "05:00 PM", result_time: "17:00" },
+  { session_label: "06:00 PM", result_time: "18:00" },
+  { session_label: "07:00 PM", result_time: "19:00" },
+  { session_label: "08:00 PM", result_time: "20:00" },
+  { session_label: "09:00 PM", result_time: "21:00" },
+];
+
 export default function JackpotPage() {
   const [market, setMarket] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Results Management State (Jackpot = Panna Numbers Only)
   const [declaredResults, setDeclaredResults] = useState<any[]>([]);
@@ -81,17 +97,37 @@ export default function JackpotPage() {
     try {
       setLoading(true);
       await createJackpotMarket({
-        name: "Jackpot Market",
+        name: "Jackpot",
         market_type: "jackpot",
-        game_days: "Daily",
+        game_days: "Mon-Sun",
         sequence_number: 0,
         holiday_status: false,
-        schedules: [],
+        schedules: OFFICIAL_JACKPOT_SLOTS,
       });
       load();
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || "Error initializing jackpot market");
       setLoading(false);
+    }
+  }
+
+  async function handleSyncOfficialSlots() {
+    if (!market) return;
+    if (!confirm("Reset and sync Jackpot to official 12 time slots (10:00 AM - 09:00 PM)?")) return;
+    setIsSyncing(true);
+    try {
+      const payload = {
+        ...market,
+        name: "Jackpot",
+        schedules: OFFICIAL_JACKPOT_SLOTS,
+      };
+      await updateJackpotMarket(market.id, payload);
+      await load();
+      toast.success("Synchronized to official 12 time slots (10:00 AM - 09:00 PM)");
+    } catch (err: any) {
+      toast.error(parseApiError(err, "Failed to sync time slots"));
+    } finally {
+      setIsSyncing(false);
     }
   }
 
@@ -227,7 +263,21 @@ export default function JackpotPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: Time Slots & Results */}
           <div className="lg:col-span-2 space-y-6">
-            <Card title="Jackpot Time Slots (Sessions)" subtitle="Configure time slots for hourly Jackpot draws">
+            <Card
+              title="Jackpot Time Slots (Sessions)"
+              subtitle="12 Official Time Slots (10:00 AM to 09:00 PM) — Jackpot has time only, no names"
+              actions={
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSyncOfficialSlots}
+                  disabled={isSyncing}
+                  className="border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
+                >
+                  {isSyncing ? "Syncing..." : "⚡ Sync 12 Official Slots (10:00 AM - 09:00 PM)"}
+                </Button>
+              }
+            >
               <div className="mb-6 p-4 rounded-xl border border-slate-700 bg-slate-800/40 flex flex-wrap gap-4 items-end">
                 <div className="w-48">
                   <label className="mb-1 block text-xs font-semibold text-slate-300">Result Time</label>
