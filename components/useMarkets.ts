@@ -18,7 +18,7 @@ export function useMarkets() {
         const data = await res.json();
         // Normalize: data could be {status, data} or just the list
         const markets = (data?.data || data || []).filter(
-          (m: any) => m.is_active !== false && m.market_type !== "starline"
+          (m: any) => m.is_active !== false
         );
         setMarkets(
           markets.sort((a: any, b: any) => (a.sequence_number || 0) - (b.sequence_number || 0))
