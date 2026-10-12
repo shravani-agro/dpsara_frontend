@@ -27,6 +27,10 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
+  const [whatsapp, setWhatsapp] = useState("");
+  const [callUs, setCallUs] = useState("");
+  const [contactSaving, setContactSaving] = useState(false);
+
   const [editSetting, setEditSetting] = useState<any>(null);
   const [editValue, setEditValue] = useState("");
   const [editDesc, setEditDesc] = useState("");
@@ -46,6 +50,10 @@ export default function SettingsPage() {
     try {
       const data = await getSettings();
       setSettings(data);
+      const wa = data.find((s: any) => s.key === "admin_whatsapp_number");
+      const ca = data.find((s: any) => s.key === "admin_call_us_number");
+      if (wa?.value) setWhatsapp(wa.value);
+      if (ca?.value) setCallUs(ca.value);
     } catch (e: any) {
       setError(parseApiError(e, "Failed to load settings"));
     } finally {
@@ -56,6 +64,23 @@ export default function SettingsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function submitContactNumbers(e: React.FormEvent) {
+    e.preventDefault();
+    setContactSaving(true);
+    setError(null);
+    setMsg(null);
+    try {
+      await updateSetting("admin_whatsapp_number", whatsapp, "Admin WhatsApp Number");
+      await updateSetting("admin_call_us_number", callUs, "Admin Call Us Number");
+      setMsg("Support contact numbers updated successfully!");
+      load();
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || "Failed to update contact numbers");
+    } finally {
+      setContactSaving(false);
+    }
+  }
 
   async function submitEdit(e: React.FormEvent) {
     e.preventDefault();
@@ -131,6 +156,35 @@ export default function SettingsPage() {
           {msg}
         </div>
       )}
+
+      <Card title="Support Contact Numbers (App Homepage)">
+        <form onSubmit={submitContactNumbers} className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="WhatsApp Number">
+              <Input
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                placeholder="e.g. +91 8377 999 777"
+                required
+              />
+            </Field>
+            <Field label="Call Us Number">
+              <Input
+                value={callUs}
+                onChange={(e) => setCallUs(e.target.value)}
+                placeholder="e.g. +91 8377 999 777"
+                required
+              />
+            </Field>
+          </div>
+          <p className="text-xs text-slate-500">
+            These numbers are dynamically used on the mobile app home screen for the &quot;WhatsApp&quot; and &quot;Call Us&quot; buttons.
+          </p>
+          <Button type="submit" disabled={contactSaving} className="w-full sm:w-auto">
+            {contactSaving ? "Saving..." : "Save Support Numbers"}
+          </Button>
+        </form>
+      </Card>
 
       <Card 
         title={`${settings.length} settings`} 
