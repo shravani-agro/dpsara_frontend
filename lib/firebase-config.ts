@@ -1,4 +1,6 @@
+// @ts-ignore
 import { initializeApp, getApps } from "firebase/app";
+// @ts-ignore
 import { getMessaging, Messaging } from "firebase/messaging";
 
 // Firebase configuration - use environment variables for security

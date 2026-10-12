@@ -41,8 +41,7 @@ export function MarketsList() {
                 {m.name}{m.holiday_status && <Badge color="amber" className="ml-2">Holiday</Badge>}
               </TableCell>
               <TableCell>
-                const marketBadgeColor = m.market_type === "starline" ? "violet" : m.market_type === "jackpot" ? "amber" : "slate";
-<Badge color={marketBadgeColor}>
+                <Badge color={m.market_type === "starline" ? "violet" : m.market_type === "jackpot" ? "amber" : "slate"}>
                   {m.market_type}
                 </Badge>
               </TableCell>

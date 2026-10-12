@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+// @ts-ignore
 import { getToken, onMessage } from "firebase/messaging";
 import { messaging, firebaseConfig } from "@/lib/firebase-config";
 import { setUserFcmToken, getUserFcmToken } from "@/lib/admin";
