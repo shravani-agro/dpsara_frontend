@@ -12,9 +12,11 @@ const LABEL_MAP: Record<string, string> = {
   double_pana: 'Double Pana',
   triple_patti: 'Triple Pana',
   triple_pana: 'Triple Pana',
-  red_bracket: 'Red Bracket',
-  half_sangam: 'Half Sangam',
-  full_sangam: 'Full Sangam',
+  red_bracket: 'Red Brackets',
+  half_sangam: 'Half Sangam A',
+  half_sangam_a: 'Half Sangam A',
+  half_sangam_b: 'Half Sangam B',
+  full_sangam: 'Full Sangam Digits',
 };
 
 export async function GET() {
@@ -31,19 +33,22 @@ export async function GET() {
           name: LABEL_MAP[item.bet_type] || item.bet_type,
           price: item.rate,
           rate: `₹1 Ka ₹${item.rate}`,
+          multiplier: `${item.rate}x`,
           type: item.bet_type,
         }))
       : [];
     return NextResponse.json({ status: 'success', rates });
   } catch (error) {
     const fallback = [
-      { name: 'Single Digit', price: 10, rate: '₹1 Ka ₹10', type: 'single_ank' },
-      { name: 'Jodi Digit', price: 100, rate: '₹1 Ka ₹100', type: 'jodi' },
-      { name: 'Single Pana', price: 160, rate: '₹1 Ka ₹160', type: 'single_patti' },
-      { name: 'Double Pana', price: 320, rate: '₹1 Ka ₹320', type: 'double_patti' },
-      { name: 'Triple Pana', price: 1000, rate: '₹1 Ka ₹1000', type: 'triple_patti' },
-      { name: 'Half Sangam', price: 1000, rate: '₹1 Ka ₹1000', type: 'half_sangam' },
-      { name: 'Full Sangam', price: 10000, rate: '₹1 Ka ₹10000', type: 'full_sangam' },
+      { name: 'Single Digit', price: 9.5, rate: '₹1 Ka ₹9.5', multiplier: '9.5x', type: 'single_ank' },
+      { name: 'Jodi Digit', price: 95, rate: '₹1 Ka ₹95', multiplier: '95x', type: 'jodi' },
+      { name: 'Single Pana', price: 150, rate: '₹1 Ka ₹150', multiplier: '150x', type: 'single_patti' },
+      { name: 'Double Pana', price: 300, rate: '₹1 Ka ₹300', multiplier: '300x', type: 'double_patti' },
+      { name: 'Triple Pana', price: 900, rate: '₹1 Ka ₹900', multiplier: '900x', type: 'triple_patti' },
+      { name: 'Red Brackets', price: 95, rate: '₹1 Ka ₹95', multiplier: '95x', type: 'red_bracket' },
+      { name: 'Half Sangam A', price: 1000, rate: '₹1 Ka ₹1000', multiplier: '1000x', type: 'half_sangam_a' },
+      { name: 'Half Sangam B', price: 1000, rate: '₹1 Ka ₹1000', multiplier: '1000x', type: 'half_sangam_b' },
+      { name: 'Full Sangam Digits', price: 10000, rate: '₹1 Ka ₹10000', multiplier: '10000x', type: 'full_sangam' },
     ];
     return NextResponse.json({ status: 'success', rates: fallback });
   }

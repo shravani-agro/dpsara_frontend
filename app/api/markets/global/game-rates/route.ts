@@ -15,13 +15,15 @@ export async function GET() {
   } catch (error) {
     // Return sensible fallback rates if backend is momentarily unreachable
     return NextResponse.json([
-      { bet_type: 'single_ank', rate: 10 },
-      { bet_type: 'jodi', rate: 100 },
-      { bet_type: 'single_patti', rate: 160 },
-      { bet_type: 'double_patti', rate: 320 },
-      { bet_type: 'triple_patti', rate: 1000 },
-      { bet_type: 'red_bracket', rate: 100 },
+      { bet_type: 'single_ank', rate: 9.5 },
+      { bet_type: 'jodi', rate: 95 },
+      { bet_type: 'single_patti', rate: 150 },
+      { bet_type: 'double_patti', rate: 300 },
+      { bet_type: 'triple_patti', rate: 900 },
+      { bet_type: 'red_bracket', rate: 95 },
       { bet_type: 'half_sangam', rate: 1000 },
+      { bet_type: 'half_sangam_a', rate: 1000 },
+      { bet_type: 'half_sangam_b', rate: 1000 },
       { bet_type: 'full_sangam', rate: 10000 },
     ]);
   }
