@@ -39,6 +39,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Finance",
     items: [
+      { href: "/admin/transactions", label: "Transactions", icon: "💳" },
       { href: "/admin/deposits", label: "Deposits", icon: "➕" },
       { href: "/admin/withdrawals", label: "Withdrawals", icon: "💸" },
       { href: "/admin/game-rates", label: "Game Rates", icon: "💰" },

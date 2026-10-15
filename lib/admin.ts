@@ -298,6 +298,13 @@ export async function listDeposits(params: any = {}) {
   return res.data;
 }
 
+/* ---------------- Admin: Transactions ---------------- */
+
+export async function listTransactions(params: any = {}) {
+  const res = await client.get("/admin/transactions", { params });
+  return res.data;
+}
+
 /* ---------------- Admin: Bids ---------------- */
 
 export async function listBids(params: any = {}) {
