@@ -121,6 +121,12 @@ export default function UsersPage() {
         getUserLocations(user.id),
       ]);
       setDetail(d);
+      if (d) {
+        setSelected((prev: any) => ({ ...prev, ...d, wallet_balance: d.wallet_balance }));
+        setUsers((prev) =>
+          prev.map((u) => (u.id === user.id ? { ...u, ...d, wallet_balance: d.wallet_balance } : u))
+        );
+      }
       setUserBids(b);
       setUserDeposits(dep);
       setUserWithdrawals(w);
@@ -315,14 +321,14 @@ export default function UsersPage() {
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                       <Card bodyClassName="p-4 flex flex-col items-center text-center">
                         <span className="text-xs text-slate-400 uppercase">Wallet Balance</span>
-                        <span className={`mt-1 text-2xl font-bold ${selected.wallet_balance >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                          {fmtMoney(selected.wallet_balance)}
+                        <span className={`mt-1 text-2xl font-bold ${(detail?.wallet_balance ?? selected.wallet_balance ?? 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                          {fmtMoney(detail?.wallet_balance ?? selected.wallet_balance ?? 0)}
                         </span>
                         <span className="mt-1 text-[11px] text-slate-400">Joined {fmtDate(selected.created_at)}</span>
                       </Card>
                       <Card bodyClassName="p-4 flex flex-col items-center text-center">
                         <span className="text-xs text-slate-400 uppercase">Status</span>
-                        <Badge color={selected.is_active ? "emerald" : "red"} className="mt-2">{selected.is_active ? "Active" : "Inactive"}</Badge>
+                        <Badge color={(detail?.is_active ?? selected.is_active) ? "emerald" : "red"} className="mt-2">{(detail?.is_active ?? selected.is_active) ? "Active" : "Inactive"}</Badge>
                         <span className="mt-1 text-[11px] text-slate-400">ID #{selected.id}</span>
                       </Card>
                       <Card bodyClassName="p-4 flex flex-col items-center text-center">
@@ -334,12 +340,12 @@ export default function UsersPage() {
 
                     <Card title="Profile Information">
                       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                        <Field label="First Name" value={selected.first_name || "—"} />
-                        <Field label="Last Name" value={selected.last_name || "—"} />
-                        <Field label="Language" value={selected.language || "—"} />
-                        <Field label="Postal PIN" value={selected.postal_pin || "—"} />
-                        <Field label="State" value={selected.state || "—"} />
-                        <Field label="City" value={selected.city || "—"} />
+                        <Field label="First Name" value={detail?.first_name || selected.first_name || "—"} />
+                        <Field label="Last Name" value={detail?.last_name || selected.last_name || "—"} />
+                        <Field label="Language" value={detail?.language || selected.language || "—"} />
+                        <Field label="Postal PIN" value={detail?.postal_pin || selected.postal_pin || "—"} />
+                        <Field label="State" value={detail?.state || selected.state || "—"} />
+                        <Field label="City" value={detail?.city || selected.city || "—"} />
                       </div>
                     </Card>
 
