@@ -53,11 +53,64 @@ function BalanceChip({ balance }: { balance: number }) {
   );
 }
 
+function PinEyeButton({
+  pin,
+  pinHash,
+  userId,
+  isVisible,
+  onToggle,
+}: {
+  pin?: string | null;
+  pinHash?: string | null;
+  userId: number;
+  isVisible: boolean;
+  onToggle: () => void;
+}) {
+  if (pin) {
+    return (
+      <div className="inline-flex items-center gap-1.5 font-mono text-xs">
+        <span className="font-semibold tracking-widest px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700">
+          {isVisible ? pin : "••••"}
+        </span>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle();
+          }}
+          className="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+          title={isVisible ? "Hide PIN" : "Show PIN"}
+        >
+          {isVisible ? (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          )}
+        </button>
+      </div>
+    );
+  }
+  if (pinHash) {
+    return (
+      <span className="inline-flex items-center gap-1 font-mono text-xs text-amber-500 font-medium bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20" title="Security PIN is encrypted in database">
+        🔒 Encrypted
+      </span>
+    );
+  }
+  return <span className="text-xs text-slate-400 font-mono">—</span>;
+}
+
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({ username: "", is_active: "" });
+  const [visiblePins, setVisiblePins] = useState<Record<number, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const [selected, setSelected] = useState<any>(null);
@@ -237,7 +290,7 @@ export default function UsersPage() {
       <Card>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Input
-            placeholder="Username"
+            placeholder="Search username, phone, name..."
             value={filters.username}
             onChange={(e) => setFilters({ ...filters, username: e.target.value })}
           />
@@ -270,14 +323,40 @@ export default function UsersPage() {
                 key: "username",
                 header: "Username",
                 render: (u) => (
-                  <span className="font-medium text-slate-900">
-                    {u.full_name || u.username}
-                    {u.username === "admin" && <Badge color="brand" className="ml-2">Owner</Badge>}
-                    {u.auth_provider === "google" && <Badge color="blue" className="ml-2">Google signed in</Badge>}
+                  <div>
+                    <span className="font-medium text-slate-900">
+                      {u.full_name || u.username}
+                      {u.username === "admin" && <Badge color="brand" className="ml-2">Owner</Badge>}
+                      {u.auth_provider === "google" && <Badge color="blue" className="ml-2">Google</Badge>}
+                    </span>
+                    {u.full_name && u.username && (
+                      <div className="text-[11px] text-slate-400 font-mono">@{u.username}</div>
+                    )}
+                  </div>
+                ),
+              },
+              {
+                key: "phone",
+                header: "Mobile Number",
+                render: (u) => (
+                  <span className="font-mono text-xs font-semibold text-slate-700">
+                    {u.phone || u.username || "—"}
                   </span>
                 ),
               },
-              
+              {
+                key: "pin",
+                header: "PIN",
+                render: (u) => (
+                  <PinEyeButton
+                    pin={u.pin}
+                    pinHash={u.pin_hash}
+                    userId={u.id}
+                    isVisible={!!visiblePins[u.id]}
+                    onToggle={() => setVisiblePins((prev) => ({ ...prev, [u.id]: !prev[u.id] }))}
+                  />
+                ),
+              },
               { key: "balance", header: "Balance", render: (u) => <BalanceChip balance={u.wallet_balance} /> },
               {
                 key: "status",
@@ -340,6 +419,20 @@ export default function UsersPage() {
 
                     <Card title="Profile Information">
                       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                        <Field label="Mobile Number" value={
+                          <span className="font-mono font-semibold text-slate-900">
+                            {detail?.phone || selected.phone || selected.username || "—"}
+                          </span>
+                        } />
+                        <Field label="Security PIN" value={
+                          <PinEyeButton
+                            pin={detail?.pin || selected.pin}
+                            pinHash={detail?.pin_hash || selected.pin_hash}
+                            userId={selected.id}
+                            isVisible={!!visiblePins[selected.id]}
+                            onToggle={() => setVisiblePins((prev) => ({ ...prev, [selected.id]: !prev[selected.id] }))}
+                          />
+                        } />
                         <Field label="First Name" value={detail?.first_name || selected.first_name || "—"} />
                         <Field label="Last Name" value={detail?.last_name || selected.last_name || "—"} />
                         <Field label="Language" value={detail?.language || selected.language || "—"} />
