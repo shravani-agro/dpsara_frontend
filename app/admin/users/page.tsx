@@ -41,11 +41,10 @@ function BalanceChip({ balance }: { balance: number }) {
   const positive = value >= 0;
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-xs font-bold ring-1 ring-inset ${
-        positive
-          ? "bg-emerald-500/10 text-emerald-300 ring-emerald-500/25"
-          : "bg-red-500/10 text-red-300 ring-red-500/25"
-      }`}
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-xs font-bold ring-1 ring-inset ${positive
+        ? "bg-emerald-500/10 text-emerald-300 ring-emerald-500/25"
+        : "bg-red-500/10 text-red-300 ring-red-500/25"
+        }`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${positive ? "bg-emerald-400" : "bg-red-400"}`} />
       ₹{value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -121,7 +120,7 @@ export default function UsersPage() {
   const [userContacts, setUserContacts] = useState<any[]>([]);
   const [userLocations, setUserLocations] = useState<any[]>([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  
+
   const [activeTab, setActiveTab] = useState("overview");
 
   const [bonusUser, setBonusUser] = useState<any>(null);
@@ -210,7 +209,7 @@ export default function UsersPage() {
       toast.success(`Bonus of ₹${fmtNum(bonusAmount)} credited to ${bonusUser.username}`);
       load();
       if (selected && selected.id === bonusUser.id) {
-          openDetail(selected); // refresh details if open
+        openDetail(selected); // refresh details if open
       }
     } catch (e: any) {
       toast.error(parseApiError(e, "Failed to credit bonus"));
@@ -231,7 +230,7 @@ export default function UsersPage() {
       toast.success(`₹${fmtNum(deductAmount)} deducted from ${deductUser.username}`);
       load();
       if (selected && selected.id === deductUser.id) {
-          openDetail(selected);
+        openDetail(selected);
       }
     } catch (e: any) {
       toast.error(parseApiError(e, "Failed to deduct funds"));
@@ -294,7 +293,7 @@ export default function UsersPage() {
             value={filters.username}
             onChange={(e) => setFilters({ ...filters, username: e.target.value })}
           />
-<Select
+          <Select
             value={filters.is_active}
             onChange={(e) => setFilters({ ...filters, is_active: e.target.value })}
           >
@@ -329,9 +328,7 @@ export default function UsersPage() {
                       {u.username === "admin" && <Badge color="brand" className="ml-2">Owner</Badge>}
                       {u.auth_provider === "google" && <Badge color="blue" className="ml-2">Google</Badge>}
                     </span>
-                    {u.full_name && u.username && (
-                      <div className="text-[11px] text-slate-400 font-mono">@{u.username}</div>
-                    )}
+
                   </div>
                 ),
               },
@@ -390,7 +387,7 @@ export default function UsersPage() {
         {selected && (
           <div className="space-y-6">
             <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
-            
+
             {loadingDetails ? (
               <Spinner className="min-h-[200px]" />
             ) : (
@@ -413,7 +410,7 @@ export default function UsersPage() {
                       <Card bodyClassName="p-4 flex flex-col items-center text-center">
                         <span className="text-xs text-slate-400 uppercase">Role</span>
                         <Badge color={selected.username === "admin" ? "brand" : "slate"} className="mt-2">{selected.username === "admin" ? "Owner" : "User"}</Badge>
-                        
+
                       </Card>
                     </div>
 
@@ -503,13 +500,12 @@ export default function UsersPage() {
                               <div key={a.key} className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5 last:border-0">
                                 <div className="flex items-center gap-3">
                                   <div
-                                    className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${
-                                      a.type === "Deposit"
-                                        ? "bg-emerald-500/15 text-emerald-400"
-                                        : a.type === "Withdrawal"
+                                    className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${a.type === "Deposit"
+                                      ? "bg-emerald-500/15 text-emerald-400"
+                                      : a.type === "Withdrawal"
                                         ? "bg-red-500/15 text-red-400"
                                         : "bg-violet-500/15 text-violet-400"
-                                    }`}
+                                      }`}
                                   >
                                     {a.type === "Deposit" ? "D" : a.type === "Withdrawal" ? "W" : "B"}
                                   </div>
@@ -544,11 +540,13 @@ export default function UsersPage() {
                         { key: "type", header: "Type", render: (b) => b.bet_type },
                         { key: "number", header: "Number", render: (b) => <span className="font-bold text-slate-700">{b.selected_number}</span> },
                         { key: "points", header: "Points", render: (b) => fmtMoney(b.amount) },
-                        { key: "status", header: "Status", render: (b) => (
-                           <Badge color={b.status === "won" ? "emerald" : b.status === "lost" ? "red" : "slate"}>
-                             {b.status.toUpperCase()}
-                           </Badge>
-                        )},
+                        {
+                          key: "status", header: "Status", render: (b) => (
+                            <Badge color={b.status === "won" ? "emerald" : b.status === "lost" ? "red" : "slate"}>
+                              {b.status.toUpperCase()}
+                            </Badge>
+                          )
+                        },
                         { key: "date", header: "Date", render: (b) => format(new Date(b.placed_at || b.created_at), "dd/MM/yyyy") },
                       ]}
                     />
@@ -564,11 +562,13 @@ export default function UsersPage() {
                         columns={[
                           { key: "amount", header: "Amount", render: (d) => <span className="text-emerald-400">+{fmtMoney(d.amount)}</span> },
                           { key: "method", header: "Method", render: (d) => d.method || "N/A" },
-                          { key: "status", header: "Status", render: (d) => (
-                            <Badge color={d.status === "completed" || d.status === "approved" || d.status === "success" ? "emerald" : d.status === "rejected" || d.status === "failed" ? "red" : "amber"}>
-                              {d.status}
-                            </Badge>
-                          )},
+                          {
+                            key: "status", header: "Status", render: (d) => (
+                              <Badge color={d.status === "completed" || d.status === "approved" || d.status === "success" ? "emerald" : d.status === "rejected" || d.status === "failed" ? "red" : "amber"}>
+                                {d.status}
+                              </Badge>
+                            )
+                          },
                           { key: "date", header: "Date", render: (d) => format(new Date(d.created_at), "dd/MM/yyyy") },
                         ]}
                       />
@@ -581,11 +581,13 @@ export default function UsersPage() {
                         columns={[
                           { key: "amount", header: "Amount", render: (w) => <span className="text-red-400">-{fmtMoney(w.amount)}</span> },
                           { key: "method", header: "Method", render: (w) => w.method || w.bank_details || "N/A" },
-                          { key: "status", header: "Status", render: (w) => (
-                            <Badge color={w.status === "approved" ? "emerald" : w.status === "rejected" ? "red" : "amber"}>
-                              {w.status}
-                            </Badge>
-                          )},
+                          {
+                            key: "status", header: "Status", render: (w) => (
+                              <Badge color={w.status === "approved" ? "emerald" : w.status === "rejected" ? "red" : "amber"}>
+                                {w.status}
+                              </Badge>
+                            )
+                          },
                           { key: "date", header: "Date", render: (w) => format(new Date(w.requested_at || w.created_at), "dd/MM/yyyy") },
                         ]}
                       />
@@ -648,24 +650,24 @@ export default function UsersPage() {
                     </Card>
 
                     <Card title="Credit Bonus">
-                       <p className="text-xs text-slate-400 mb-4">Add promotional bonus directly to this user's wallet.</p>
-                       <Button onClick={() => { setBonusAmount("0"); setBonusDesc("Bonus credited"); setBonusUser(selected); }}>
-                          Credit Bonus
-                       </Button>
+                      <p className="text-xs text-slate-400 mb-4">Add promotional bonus directly to this user's wallet.</p>
+                      <Button onClick={() => { setBonusAmount("0"); setBonusDesc("Bonus credited"); setBonusUser(selected); }}>
+                        Credit Bonus
+                      </Button>
                     </Card>
 
                     <Card title="Deduct Funds">
-                       <p className="text-xs text-slate-400 mb-4">Manually deduct funds from this user's wallet.</p>
-                       <Button variant="danger" onClick={() => { setDeductAmount("0"); setDeductDesc("Manual deduction"); setDeductUser(selected); }}>
-                          Deduct Funds
-                       </Button>
+                      <p className="text-xs text-slate-400 mb-4">Manually deduct funds from this user's wallet.</p>
+                      <Button variant="danger" onClick={() => { setDeductAmount("0"); setDeductDesc("Manual deduction"); setDeductUser(selected); }}>
+                        Deduct Funds
+                      </Button>
                     </Card>
 
                     <Card title="Reset Password">
-                       <p className="text-xs text-slate-400 mb-4">Force a password reset for this user.</p>
-                       <Button variant="danger" onClick={() => { setResetPw(""); setResetUser(selected); }}>
-                          Reset Password
-                       </Button>
+                      <p className="text-xs text-slate-400 mb-4">Force a password reset for this user.</p>
+                      <Button variant="danger" onClick={() => { setResetPw(""); setResetUser(selected); }}>
+                        Reset Password
+                      </Button>
                     </Card>
 
                     {selected.username !== "admin" && (
