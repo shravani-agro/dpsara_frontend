@@ -108,29 +108,6 @@ export default function DashboardPage() {
 
       <ErrorMsg msg={error} />
 
-      {Number(stats?.pending_withdrawals || 0) > 0 && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl bg-rose-500/10 border-2 border-rose-500/30 text-rose-700 dark:text-rose-400 shadow-lg shadow-rose-500/10">
-          <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-600 text-white shadow-md shadow-rose-600/40 font-bold text-xl animate-pulse">
-              🚨
-            </span>
-            <div>
-              <p className="font-extrabold text-base text-slate-900 dark:text-white">
-                {stats.pending_withdrawals} Withdrawal Request{stats.pending_withdrawals > 1 ? "s" : ""} Pending Processing!
-              </p>
-              <p className="text-xs text-slate-600 dark:text-slate-300">
-                Action required: Users are waiting for their payouts. Review and approve or reject them.
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/admin/withdrawals"
-            className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-600/30 transition-all flex items-center gap-1.5 whitespace-nowrap"
-          >
-            Review Withdrawals →
-          </Link>
-        </div>
-      )}
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}

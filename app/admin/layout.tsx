@@ -187,6 +187,16 @@ export default function DashboardLayout({
     };
   }, []);
 
+  // Auto-dismiss downside popup after 2 minutes
+  useEffect(() => {
+    if (showWithdrawalPopup) {
+      const timer = setTimeout(() => {
+        setShowWithdrawalPopup(false);
+      }, 120000); // 2 minutes
+      return () => clearTimeout(timer);
+    }
+  }, [showWithdrawalPopup]);
+
   useEffect(() => {
     if (!loading && !authenticated) {
       router.replace("/login");

@@ -45,6 +45,73 @@ const statusDot: Record<string, string> = {
   rejected: "bg-red-400",
 };
 
+function getPaymentInfo(raw: any) {
+  let data: Record<string, any> = {};
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed === "string") {
+        try {
+          data = JSON.parse(parsed);
+        } catch {
+          data = { "Payment Details": parsed };
+        }
+      } else if (parsed && typeof parsed === "object") {
+        data = { ...parsed };
+      }
+    } catch {
+      data = { "Payment Details": raw };
+    }
+  } else if (raw && typeof raw === "object") {
+    data = { ...raw };
+  }
+
+  const upiId = String(data.upi_id || data.upi || data.vpa || data.upiId || "").trim();
+  const accountHolder = String(data.account_holder || data.holder_name || data.acc_holder || data.name || "").trim();
+  const accountNumber = String(data.account_number || data.acc_number || data.acc_no || data.accountNo || "").trim();
+  const ifsc = String(data.ifsc || data.ifsc_code || data.ifscCode || "").trim();
+  const bankName = String(data.bank_name || data.bankName || "").trim();
+
+  const standardKeys = new Set([
+    "upi_id", "upi", "vpa", "upiId",
+    "account_holder", "holder_name", "acc_holder", "name",
+    "account_number", "acc_number", "acc_no", "accountNo",
+    "ifsc", "ifsc_code", "ifscCode",
+    "bank_name", "bankName",
+    "fee_percent", "fee_amount", "net_amount",
+  ]);
+
+  const extraFields: Array<{ label: string; value: string }> = [];
+  for (const [k, v] of Object.entries(data)) {
+    if (!standardKeys.has(k) && v !== null && v !== undefined && String(v).trim()) {
+      const label = k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      extraFields.push({ label, value: String(v).trim() });
+    }
+  }
+
+  const hasUpi = !!upiId;
+  const hasBank = !!(accountHolder || accountNumber || ifsc || bankName);
+  const hasExtra = extraFields.length > 0;
+  const hasAny = hasUpi || hasBank || hasExtra;
+
+  return {
+    data,
+    upiId,
+    accountHolder,
+    accountNumber,
+    ifsc,
+    bankName,
+    extraFields,
+    hasUpi,
+    hasBank,
+    hasExtra,
+    hasAny,
+    netAmount: data.net_amount,
+    feePercent: data.fee_percent,
+    feeAmount: data.fee_amount,
+  };
+}
+
 export default function WithdrawalsPage() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -135,8 +202,7 @@ export default function WithdrawalsPage() {
     }
   }
 
-  const bank = detail?.bank_details || {};
-  const isUpi = !!bank.upi_id;
+  const payment = getPaymentInfo(detail?.bank_details);
 
   return (
     <div className="space-y-6">
@@ -152,22 +218,6 @@ export default function WithdrawalsPage() {
         }
       />
       <ErrorMsg msg={error} />
-
-      {Number(counts.pending || 0) > 0 && (
-        <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-rose-500/10 border-2 border-rose-500/30 text-rose-700 dark:text-rose-400 shadow-md shadow-rose-500/5">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-600 text-white font-bold text-lg animate-pulse">
-            🚨
-          </span>
-          <div className="flex-1 min-w-0">
-            <p className="font-extrabold text-sm text-slate-900 dark:text-white">
-              {counts.pending} Withdrawal Request{counts.pending > 1 ? "s" : ""} Pending Processing
-            </p>
-            <p className="text-xs text-slate-600 dark:text-slate-300">
-              Transfer funds to user UPI/Bank details, then click Approve/Process to finalize, or Reject to instantly refund wallet.
-            </p>
-          </div>
-        </div>
-      )}
 
       <div className="flex flex-wrap gap-1.5 overflow-x-auto no-scrollbar">
         {STATUSES.map((s) => {
@@ -315,29 +365,43 @@ export default function WithdrawalsPage() {
               <Badge color={statusColor[detail.status] ?? "slate"} className="text-sm px-3 py-1">{detail.status}</Badge>
             </div>
 
-            {isUpi ? (
+            {/* User & Request Info */}
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
               <div>
-                <h4 className="mb-3 text-sm font-semibold text-slate-700">UPI Details</h4>
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs text-slate-400">User</p>
+                <p className="font-bold text-sm text-slate-900">{detail.username} <span className="text-xs text-slate-400 font-normal">(#{detail.user_id})</span></p>
+              </div>
+              <Button size="sm" variant="ghost" onClick={() => copyText(detail.username, "Username")}>Copy User</Button>
+            </div>
+
+            {/* UPI Details */}
+            {payment.hasUpi && (
+              <div>
+                <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">UPI Payment Details</h4>
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-500/20 bg-brand-50/50 dark:bg-brand-950/20 p-4">
                   <div>
-                    <p className="text-xs text-slate-400">UPI ID</p>
-                    <p className="mt-0.5 font-mono text-base font-semibold text-brand-300">{bank.upi_id}</p>
+                    <p className="text-xs text-slate-400">UPI ID / VPA</p>
+                    <p className="mt-0.5 font-mono text-base font-bold text-brand-600 dark:text-brand-400">{payment.upiId}</p>
                   </div>
-                  <Button size="sm" variant="outline" onClick={() => copyText(bank.upi_id, "UPI ID")}>Copy</Button>
+                  <Button size="sm" variant="outline" onClick={() => copyText(payment.upiId, "UPI ID")}>Copy UPI</Button>
                 </div>
               </div>
-            ) : (
+            )}
+
+            {/* Bank Details */}
+            {payment.hasBank && (
               <div>
-                <h4 className="mb-3 text-sm font-semibold text-slate-700">Bank Details</h4>
-                <div className="space-y-2.5">
+                <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">Bank Account Details</h4>
+                <div className="space-y-2">
                   {[
-                    { label: "Account Holder", value: bank.account_holder },
-                    { label: "Account Number", value: bank.account_number },
-                    { label: "IFSC", value: bank.ifsc },
+                    { label: "Account Holder", value: payment.accountHolder },
+                    { label: "Account Number", value: payment.accountNumber },
+                    { label: "IFSC Code", value: payment.ifsc },
+                    { label: "Bank Name", value: payment.bankName },
                   ].filter((f) => f.value).map((f) => (
-                    <div key={f.label} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <div key={f.label} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5">
                       <div className="min-w-0">
-                        <p className="text-xs text-slate-400">{f.label}</p>
+                        <p className="text-[11px] text-slate-400 uppercase tracking-wide">{f.label}</p>
                         <p className="mt-0.5 truncate font-mono text-sm font-semibold text-slate-900">{f.value}</p>
                       </div>
                       <Button size="sm" variant="outline" onClick={() => copyText(String(f.value), f.label)}>Copy</Button>
@@ -347,14 +411,38 @@ export default function WithdrawalsPage() {
               </div>
             )}
 
+            {/* Extra Fields */}
+            {payment.hasExtra && (
+              <div>
+                <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">Additional Payment Info</h4>
+                <div className="space-y-2">
+                  {payment.extraFields.map((f) => (
+                    <div key={f.label} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5">
+                      <div className="min-w-0">
+                        <p className="text-[11px] text-slate-400 uppercase tracking-wide">{f.label}</p>
+                        <p className="mt-0.5 truncate font-mono text-sm font-semibold text-slate-900">{f.value}</p>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => copyText(f.value, f.label)}>Copy</Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!payment.hasAny && (
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-center">
+                <p className="text-xs font-medium text-amber-600">No payment details (UPI/Bank) were recorded for this request.</p>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs text-slate-400">Net Amount</p>
-                <p className="mt-1 text-lg font-bold text-slate-900">{fmtMoney(bank.net_amount ?? detail.amount)}</p>
+                <p className="mt-1 text-lg font-bold text-slate-900">{fmtMoney(payment.netAmount ?? detail.amount)}</p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs text-slate-400">Fee ({bank.fee_percent ?? 0}%)</p>
-                <p className="mt-1 text-lg font-bold text-red-400">-{fmtMoney(bank.fee_amount ?? 0)}</p>
+                <p className="text-xs text-slate-400">Fee ({payment.feePercent ?? 0}%)</p>
+                <p className="mt-1 text-lg font-bold text-red-400">-{fmtMoney(payment.feeAmount ?? 0)}</p>
               </div>
             </div>
 
@@ -379,12 +467,12 @@ export default function WithdrawalsPage() {
             )}
 
             {detail.status === "pending" && (
-              <div className="flex gap-2 pt-1">
-                <Button variant="success" className="flex-1" onClick={() => openConfirm(detail.id, "process")}>
-                  Mark as Done (Paid)
+              <div className="flex gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <Button variant="success" className="flex-1 font-bold" onClick={() => openConfirm(detail.id, "process")}>
+                  ✓ Mark as Done (Paid)
                 </Button>
-                <Button variant="danger" className="flex-1" onClick={() => openConfirm(detail.id, "reject")}>
-                  Reject
+                <Button variant="danger" className="flex-1 font-bold" onClick={() => openConfirm(detail.id, "reject")}>
+                  ✕ Reject / Cancel Request
                 </Button>
               </div>
             )}
@@ -395,17 +483,27 @@ export default function WithdrawalsPage() {
       <Modal
         open={!!confirm}
         onClose={() => setConfirm(null)}
-        title={`${confirm?.action === "process" ? "Mark as Done" : confirm?.action === "approve" ? "Approve" : "Reject"} withdrawal`}
+        title={confirm?.action === "process" ? "Confirm Payout (Mark as Done)" : "Reject / Cancel Withdrawal"}
       >
-        <p className="text-sm text-slate-600">
-          Are you sure you want to <b>{confirm?.action === "process" ? "mark as done" : confirm?.action}</b> withdrawal request #{confirm?.id}?
-          {confirm?.action === "process" && " Make sure you have already sent the money to the user from your UPI/Bank."}
-          {confirm?.action === "reject" && " The amount will be added back to the user's wallet."}
-        </p>
+        <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+          <p>
+            Are you sure you want to <b>{confirm?.action === "process" ? "mark as done (paid)" : "reject and cancel"}</b> withdrawal request #{confirm?.id}?
+          </p>
+          {confirm?.action === "process" && (
+            <p className="text-xs text-slate-500 rounded-lg bg-slate-100 dark:bg-slate-800 p-2.5">
+              Make sure you have already transferred the money to the user&apos;s UPI or Bank account.
+            </p>
+          )}
+          {confirm?.action === "reject" && (
+            <p className="text-xs text-rose-600 dark:text-rose-400 font-medium rounded-lg bg-rose-500/10 p-2.5">
+              Rejecting will automatically cancel the request and refund the amount back to the user&apos;s wallet immediately.
+            </p>
+          )}
+        </div>
         <div className="mt-5 flex justify-end gap-2">
-          <Button variant="ghost" onClick={() => setConfirm(null)}>Cancel</Button>
+          <Button variant="ghost" onClick={() => setConfirm(null)}>Back</Button>
           <Button variant={confirm?.action === "reject" ? "danger" : "success"} onClick={doProcess}>
-            Confirm
+            {confirm?.action === "reject" ? "Confirm Rejection & Refund" : "Confirm Marked as Paid"}
           </Button>
         </div>
       </Modal>
