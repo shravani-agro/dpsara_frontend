@@ -273,78 +273,138 @@ export default function WithdrawalsPage() {
         {loading ? (
           <div className="p-4"><Spinner /></div>
         ) : (
-          <div className="table-wrap">
-            <table className="w-full min-w-[820px] text-sm">
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
-                  <th className="py-2.5">
-                    <input
-                      type="checkbox"
-                      className="accent-brand-600"
-                      checked={items.length > 0 && items.every((i) => selected.includes(i.id))}
-                      onChange={(e) =>
-                        setSelected(e.target.checked ? items.map((i) => i.id) : [])
-                      }
-                    />
-                  </th>
-                  <th>ID</th>
-                  <th>User</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Requested</th>
-                  <th className="text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((w) => (
-                  <tr
-                    key={w.id}
-                    onClick={() => setDetail(w)}
-                    className={`border-t border-slate-100 transition-colors cursor-pointer ${
-                      selected.includes(w.id) ? "bg-brand-500/[0.07]" : "hover:bg-slate-50"
-                    }`}
-                  >
-                    <td className="py-3" onClick={(e) => e.stopPropagation()}>
+          <>
+            {/* Mobile Card List */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+              {items.map((w) => (
+                <div
+                  key={w.id}
+                  onClick={() => setDetail(w)}
+                  className={`p-3.5 transition-colors cursor-pointer space-y-2.5 ${
+                    selected.includes(w.id) ? "bg-brand-500/[0.08]" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
-                        className="accent-brand-600"
+                        className="accent-brand-600 h-4 w-4 rounded"
                         checked={selected.includes(w.id)}
                         onChange={() => toggle(w.id)}
                       />
-                    </td>
-                    <td className="text-slate-400">#{w.id}</td>
-                    <td className="font-medium text-slate-900">
-                      {w.username}
-                      <span className="ml-1.5 text-xs text-slate-400">(#{w.user_id})</span>
-                    </td>
-                    <td className="font-semibold text-slate-900">{fmtMoney(w.amount)}</td>
-                    <td>
-                      <Badge color={statusColor[w.status] ?? "slate"}>{w.status}</Badge>
-                    </td>
-                    <td className="text-slate-400">
-                      {fmtDateTime(w.requested_at)}
-                    </td>
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <div className="flex flex-wrap justify-end gap-1.5">
-                        <Button size="sm" variant="outline" onClick={() => setDetail(w)}>View</Button>
-                        {w.status === "pending" && (
-                          <>
-                            <Button size="sm" variant="success" onClick={() => openConfirm(w.id, "process")}>
-                              Mark as Done
-                            </Button>
-                            <Button size="sm" variant="danger" onClick={() => openConfirm(w.id, "reject")}>
-                              Reject
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </td>
+                      <span className="font-mono text-xs text-slate-400">#{w.id}</span>
+                      <span className="font-semibold text-sm text-slate-900 dark:text-white truncate">
+                        {w.username}
+                      </span>
+                    </div>
+                    <Badge color={statusColor[w.status] ?? "slate"}>{w.status}</Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] text-slate-400">Amount</p>
+                      <p className="text-lg font-bold text-slate-900 dark:text-emerald-400">{fmtMoney(w.amount)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[11px] text-slate-400">Requested</p>
+                      <p className="text-xs text-slate-500">{fmtDateTime(w.requested_at)}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-1.5 pt-1" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="outline" className="text-xs px-2.5 py-1" onClick={() => setDetail(w)}>
+                      View & Pay
+                    </Button>
+                    {w.status === "pending" && (
+                      <>
+                        <Button size="sm" variant="success" className="text-xs px-2.5 py-1 font-bold" onClick={() => openConfirm(w.id, "process")}>
+                          Mark Done
+                        </Button>
+                        <Button size="sm" variant="danger" className="text-xs px-2 py-1" onClick={() => openConfirm(w.id, "reject")}>
+                          Reject
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block table-wrap">
+              <table className="w-full min-w-[820px] text-sm">
+                <thead>
+                  <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                    <th className="py-2.5">
+                      <input
+                        type="checkbox"
+                        className="accent-brand-600"
+                        checked={items.length > 0 && items.every((i) => selected.includes(i.id))}
+                        onChange={(e) =>
+                          setSelected(e.target.checked ? items.map((i) => i.id) : [])
+                        }
+                      />
+                    </th>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Requested</th>
+                    <th className="text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {items.map((w) => (
+                    <tr
+                      key={w.id}
+                      onClick={() => setDetail(w)}
+                      className={`border-t border-slate-100 transition-colors cursor-pointer ${
+                        selected.includes(w.id) ? "bg-brand-500/[0.07]" : "hover:bg-slate-50"
+                      }`}
+                    >
+                      <td className="py-3" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className="accent-brand-600"
+                          checked={selected.includes(w.id)}
+                          onChange={() => toggle(w.id)}
+                        />
+                      </td>
+                      <td className="text-slate-400">#{w.id}</td>
+                      <td className="font-medium text-slate-900">
+                        {w.username}
+                        <span className="ml-1.5 text-xs text-slate-400">(#{w.user_id})</span>
+                      </td>
+                      <td className="font-semibold text-slate-900">{fmtMoney(w.amount)}</td>
+                      <td>
+                        <Badge color={statusColor[w.status] ?? "slate"}>{w.status}</Badge>
+                      </td>
+                      <td className="text-slate-400">
+                        {fmtDateTime(w.requested_at)}
+                      </td>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <div className="flex flex-wrap justify-end gap-1.5">
+                          <Button size="sm" variant="outline" onClick={() => setDetail(w)}>View</Button>
+                          {w.status === "pending" && (
+                            <>
+                              <Button size="sm" variant="success" onClick={() => openConfirm(w.id, "process")}>
+                                Mark as Done
+                              </Button>
+                              <Button size="sm" variant="danger" onClick={() => openConfirm(w.id, "reject")}>
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
             {items.length === 0 && <EmptyState title="No withdrawal requests found" hint="Try changing the status filter or date range" />}
-          </div>
+          </>
         )}
       </Card>
 

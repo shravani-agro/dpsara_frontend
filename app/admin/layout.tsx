@@ -260,12 +260,12 @@ export default function DashboardLayout({
       >
         <aside
           className={cn(
-            "absolute left-0 top-0 flex h-full w-72 max-w-[80%] flex-col border-r border-slate-200 bg-white transition-transform duration-300",
+            "absolute left-0 top-0 flex h-full w-72 max-w-[85%] flex-col border-r border-slate-200 bg-white transition-transform duration-300",
             open ? "translate-x-0" : "-translate-x-full"
           )}
           onClick={(e) => e.stopPropagation()}
         >
-           <div className="flex items-center justify-between px-5 py-5">
+          <div className="flex items-center justify-between px-5 py-5">
             <div className="flex items-center gap-2">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-md ring-1 ring-brand-500/10">
                 <img src="/images/logo/dpsara777-logo.svg" alt="SattaAdmin Logo" className="h-full w-full object-cover" />
@@ -306,75 +306,146 @@ export default function DashboardLayout({
         </aside>
       </div>
 
-      {/* Main */}
+      {/* Main Container */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Topbar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur lg:px-6">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 px-3 py-2.5 backdrop-blur lg:px-6 lg:py-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => setOpen(true)}
-              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
+              className="rounded-lg p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden shrink-0"
               aria-label="Open menu"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
               </svg>
             </button>
-            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg lg:hidden shadow-sm ring-1 ring-brand-500/10">
+            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center overflow-hidden rounded-lg lg:hidden shadow-sm ring-1 ring-brand-500/10 shrink-0">
               <img src="/images/logo/dpsara777-logo.svg" alt="SattaAdmin Logo" className="h-full w-full object-cover" />
             </div>
-             <h1 className="text-sm font-semibold text-slate-700">
-               {ALL_NAV.find((n) =>
-                 n.href === "/admin" ? pathname === "/admin" : (pathname === n.href || pathname.startsWith(n.href + "/"))
-               )?.label ?? "Dashboard"}
-             </h1>
+            <h1 className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100 truncate max-w-[125px] xs:max-w-[170px] sm:max-w-none">
+              {ALL_NAV.find((n) =>
+                n.href === "/admin" ? pathname === "/admin" : (pathname === n.href || pathname.startsWith(n.href + "/"))
+              )?.label ?? "Dashboard"}
+            </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {pendingWithdrawals > 0 && (
               <Link
                 href="/admin/withdrawals"
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-300 dark:border-rose-800 text-xs font-bold animate-pulse hover:bg-rose-100 dark:hover:bg-rose-900/50 transition shadow-sm"
+                className="flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-300 dark:border-rose-800 text-xs font-bold animate-pulse hover:bg-rose-100 dark:hover:bg-rose-900/50 transition shadow-sm"
                 title="View pending withdrawals"
               >
-                <span className="relative flex h-2.5 w-2.5">
+                <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-600"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-rose-600"></span>
                 </span>
-                <span>🚨 {pendingWithdrawals} Pending Withdrawal{pendingWithdrawals > 1 ? "s" : ""}</span>
+                <span className="sm:hidden font-extrabold">🚨 {pendingWithdrawals}</span>
+                <span className="hidden sm:inline">🚨 {pendingWithdrawals} Pending Withdrawal{pendingWithdrawals > 1 ? "s" : ""}</span>
               </Link>
             )}
-            <span className="hidden items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-600 sm:flex">
+            <span className="hidden items-center gap-2 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-600 dark:text-slate-300 md:flex">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
               {username || "admin"}
             </span>
-            <Button variant="ghost" size="sm" className="lg:hidden" onClick={logout}>
-              Logout
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-sm text-slate-600 hover:bg-slate-200 transition-colors"
+              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
               aria-label="Toggle dark mode"
+              title="Toggle theme"
             >
-              {theme === "dark" ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20.395 15.947a13.953 13.953 0 0 1-4.22-1.447l-.356.188a6.553 6.553 0 0 0 1.063 4.67L21.077 24l-4.887 1.517a6.522 6.522 0 0 1-3.155-1.816l-.076-.255a6.518 6.518 0 0 0-4.388-3.061l-.355.187a13.989 13.989 0 0 1-5.727-1.71l-.022-.076a6.568 6.568 0 0 0-5.228 1.6l-.015.057a14.062 14.062 0 0 1-4.48 2.066l-.115.23a6.533 6.533 0 0 1-5.177-1.247l-.1-.213a14.026 14.026 0 0 1-2.378-5.077l.052-.216a6.527 6.527 0 0 0-.069-4.67l-.282-.518a8.315 8.315 0 0 1-1.126-4.357l-.115-.228a6.513 6.513 0 0 1 1.078-5.058l.1.217a13.968 13.968 0 0 1 3.157 1.077l.122-.25a6.523 6.523 0 0 0-1.065-4.67l-.322-.552a6.796 6.796 0 0 1-1.083-3.154l-.218-.368a6.836 6.836 0 0 1 .547-5.208l1.338-1.887a8.342 8.342 0 0 1 3.457-1.083l1.348.115c.3.013 .606.023.906.023s.607 0 .906-.023l1.35-.118a6.813 6.813 0 0 1 1.083 3.154l.22.368c.044.155.16 1.23.403 2.72l.1.212a6.522 6.522 0 0 0 1.063 4.67l.052-.077a13.995 13.995 0 0 1 4.577 1.81l.128-.252a6.558 6.558 0 0 0 5.178 1.246l.115-.23a6.522 6.522 0 0 1 5.18 1.077l.1.213a14.012 14.012 0 0 1 2.332 5.108l-.056.213a6.53 6.53 0 0 0 .072 4.67l.285.52a8.328 8.328 0 0 1 1.128 4.357l.118.228a6.517 6.517 0 0 1-1.083 5.058l-.1.217a13.985 13.985 0 0 1-3.167 1.083l-.122.25c.017.03.033.06.05.092l1.07 1.81a6.53 6.53 0 0 1-1.072 3.167l-.1.213a6.563 6.563 0 0 0-5.222 1.6l.013-.057a6.512 6.512 0 0 1-4.388 3.06l.355-.187a6.531 6.531 0 0 0 4.394 3.061l.077.255a6.505 6.505 0 0 1 3.152 1.816l4.893-1.515a6.556 6.556 0 0 1 1.063 4.671zM12 2l-4.11 6.89L7.86 5.17 12 2 12 2z" />
-                </svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2l-4.11 6.89L7.86 5.17 12 2 12 2zM1 21l4.95-2.227L23 7l-4.937-2.226L12 21l-11 5zM1 7l4.95 2.227L11 17l4.937 2.226L1 7z" />
-                </svg>
-              )}
+              {theme === "dark" ? "🌙" : "☀️"}
+            </button>
+            <Button variant="ghost" size="sm" className="hidden sm:inline-flex lg:hidden text-xs" onClick={logout}>
+              Logout
             </Button>
           </div>
         </header>
 
-        <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">{children}</main>
+        <main className="flex-1 px-3 py-4 sm:px-6 lg:px-8 lg:py-7 pb-24 lg:pb-8">{children}</main>
       </div>
 
+      {/* Mobile Bottom Navigation Dock */}
+      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)] safe-area-bottom">
+        <div className="grid grid-cols-5 items-center h-16 px-1 max-w-lg mx-auto">
+          {/* 1. Dashboard */}
+          <Link
+            href="/admin"
+            className={cn(
+              "flex flex-col items-center justify-center h-full gap-0.5 transition-all text-[11px] font-semibold active:scale-95",
+              pathname === "/admin"
+                ? "text-brand-600 dark:text-brand-400 font-bold"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+            )}
+          >
+            <span className="text-xl leading-none">▦</span>
+            <span>Home</span>
+          </Link>
+
+          {/* 2. Withdrawals with LIVE badge */}
+          <Link
+            href="/admin/withdrawals"
+            className={cn(
+              "relative flex flex-col items-center justify-center h-full gap-0.5 transition-all text-[11px] font-semibold active:scale-95",
+              pathname.startsWith("/admin/withdrawals")
+                ? "text-rose-600 dark:text-rose-400 font-bold"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+            )}
+          >
+            <span className="text-xl leading-none relative">
+              💸
+              {pendingWithdrawals > 0 && (
+                <span className="absolute -top-1 -right-2.5 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-600 text-[9px] font-black text-white ring-2 ring-white dark:ring-slate-900 animate-pulse">
+                  {pendingWithdrawals > 99 ? "99+" : pendingWithdrawals}
+                </span>
+              )}
+            </span>
+            <span>Payouts</span>
+          </Link>
+
+          {/* 3. Results */}
+          <Link
+            href="/admin/results"
+            className={cn(
+              "flex flex-col items-center justify-center h-full gap-0.5 transition-all text-[11px] font-semibold active:scale-95",
+              pathname.startsWith("/admin/results")
+                ? "text-brand-600 dark:text-brand-400 font-bold"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+            )}
+          >
+            <span className="text-xl leading-none">🎯</span>
+            <span>Results</span>
+          </Link>
+
+          {/* 4. Users */}
+          <Link
+            href="/admin/users"
+            className={cn(
+              "flex flex-col items-center justify-center h-full gap-0.5 transition-all text-[11px] font-semibold active:scale-95",
+              pathname.startsWith("/admin/users")
+                ? "text-brand-600 dark:text-brand-400 font-bold"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+            )}
+          >
+            <span className="text-xl leading-none">👤</span>
+            <span>Users</span>
+          </Link>
+
+          {/* 5. More Menu */}
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="flex flex-col items-center justify-center h-full gap-0.5 transition-all text-[11px] font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 active:scale-95"
+            aria-label="Open Full Menu"
+          >
+            <span className="text-xl leading-none">☰</span>
+            <span>Menu</span>
+          </button>
+        </div>
+      </nav>
+
       {showWithdrawalPopup && pendingWithdrawals > 0 && (
-        <div className="fixed bottom-6 right-6 z-50 max-w-sm w-full p-4 rounded-2xl bg-white dark:bg-slate-900 border-2 border-rose-500 shadow-2xl shadow-rose-500/30">
+        <div className="fixed bottom-20 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 z-50 max-w-sm w-auto sm:w-full p-4 rounded-2xl bg-white dark:bg-slate-900 border-2 border-rose-500 shadow-2xl shadow-rose-500/30">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-600 text-white font-bold text-lg animate-pulse">
               🚨

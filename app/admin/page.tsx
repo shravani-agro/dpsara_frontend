@@ -88,16 +88,16 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-6 relative mesh-bg p-6 rounded-3xl border border-slate-100 shadow-2xl">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-ink-950/80 pointer-events-none rounded-3xl" />
-      <div className="relative z-10 space-y-6">
+    <div className="space-y-5 sm:space-y-6 relative mesh-bg p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 dark:border-slate-800 shadow-2xl">
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-ink-950/80 pointer-events-none rounded-2xl sm:rounded-3xl" />
+      <div className="relative z-10 space-y-5 sm:space-y-6">
         <PageHeader
         title="Dashboard"
         description="Real-time overview of your platform"
         actions={
           <div className="flex items-center gap-2">
             <span className="hidden text-sm text-slate-400 sm:inline">Revenue period</span>
-            <Select value={period} onChange={(e) => setPeriod(e.target.value)} className="w-32">
+            <Select value={period} onChange={(e) => setPeriod(e.target.value)} className="w-28 sm:w-32">
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
@@ -113,7 +113,7 @@ export default function DashboardPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, staggerChildren: 0.1 }}
-        className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4"
+        className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 xl:grid-cols-4"
       >
         {cards.map((c, i) => (
           <motion.div 

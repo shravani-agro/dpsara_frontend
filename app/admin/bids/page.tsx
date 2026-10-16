@@ -111,14 +111,14 @@ export default function BidsPage() {
         title="Regular Bids History"
         description="View all individual placed bets for regular games"
         actions={
-          <div className="flex gap-2">
-            <Select value={marketId} onChange={(e) => setMarketId(e.target.value)} className="w-40">
+          <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
+            <Select value={marketId} onChange={(e) => setMarketId(e.target.value)} className="w-full sm:w-40 text-xs sm:text-sm">
               <option value="">All markets</option>
               {markets.map((m) => (
                 <option key={m.id} value={m.id}>{m.name}</option>
               ))}
             </Select>
-            <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-40">
+            <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full sm:w-40 text-xs sm:text-sm">
               <option value="">All statuses</option>
               {STATUSES.map((s) => (
                 <option key={s} value={s}>{s}</option>

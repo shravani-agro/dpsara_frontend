@@ -147,45 +147,45 @@ export default function TransactionsPage() {
       <ErrorMsg msg={error} />
 
       {/* Summary KPI Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card bodyClassName="p-4">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-4">
+        <Card bodyClassName="p-3 sm:p-4">
+          <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate block">
             Total Records
           </span>
-          <div className="mt-1 text-2xl font-bold text-slate-900">
+          <div className="mt-1 text-lg sm:text-2xl font-bold text-slate-900 truncate">
             {fmtNum(summary.count)}
           </div>
-          <span className="text-xs text-slate-400">In current filtered view</span>
+          <span className="text-[11px] text-slate-400 hidden xs:inline">In current filter</span>
         </Card>
 
-        <Card bodyClassName="p-4">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600">
+        <Card bodyClassName="p-3 sm:p-4">
+          <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-emerald-600 truncate block">
             Total Credits (+)
           </span>
-          <div className="mt-1 text-2xl font-bold text-emerald-600">
+          <div className="mt-1 text-lg sm:text-2xl font-bold text-emerald-600 truncate">
             {fmtMoney(summary.credits)}
           </div>
-          <span className="text-xs text-slate-400">Deposits, wins, bonuses</span>
+          <span className="text-[11px] text-slate-400 hidden xs:inline">Deposits, wins</span>
         </Card>
 
-        <Card bodyClassName="p-4">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-rose-600">
+        <Card bodyClassName="p-3 sm:p-4">
+          <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-rose-600 truncate block">
             Total Debits (-)
           </span>
-          <div className="mt-1 text-2xl font-bold text-rose-600">
+          <div className="mt-1 text-lg sm:text-2xl font-bold text-rose-600 truncate">
             {fmtMoney(summary.debits)}
           </div>
-          <span className="text-xs text-slate-400">Withdrawals, bets, deductions</span>
+          <span className="text-[11px] text-slate-400 hidden xs:inline">Withdrawals, bets</span>
         </Card>
 
-        <Card bodyClassName="p-4">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-brand-600">
+        <Card bodyClassName="p-3 sm:p-4">
+          <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-brand-600 truncate block">
             Total Volume
           </span>
-          <div className="mt-1 text-2xl font-bold text-brand-600">
+          <div className="mt-1 text-lg sm:text-2xl font-bold text-brand-600 truncate">
             {fmtMoney(summary.totalVolume)}
           </div>
-          <span className="text-xs text-slate-400">Combined cash movement</span>
+          <span className="text-[11px] text-slate-400 hidden xs:inline">Combined movement</span>
         </Card>
       </div>
 

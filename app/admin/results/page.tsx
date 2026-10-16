@@ -628,57 +628,57 @@ export default function ResultsPage() {
           </div>
 
           {/* LIVE MATKA BOARD CARD PREVIEW */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Live Combined Result Preview</span>
-                <h3 className="text-base font-bold text-white">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 sm:p-5 shadow-xl">
+            <div className="flex flex-col items-center justify-between gap-4 lg:flex-row">
+              <div className="text-center lg:text-left">
+                <span className="text-[11px] sm:text-xs uppercase tracking-wider text-slate-400 font-semibold">Live Combined Result Preview</span>
+                <h3 className="text-base sm:text-lg font-bold text-white">
                   {selectedMarket ? selectedMarket.name : "Select a Market"}
                 </h3>
               </div>
 
               {/* Matka Board Number Boxes */}
-              <div className="flex items-center gap-2 font-mono">
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2 font-mono overflow-x-auto max-w-full py-1">
                 {/* Open Pana Box */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[10px] uppercase text-emerald-400 font-semibold mb-1">Open Pana</span>
-                  <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-2 text-xl font-black text-emerald-300 tracking-wider">
+                  <span className="text-[9px] sm:text-[10px] uppercase text-emerald-400 font-semibold mb-1">Open Pana</span>
+                  <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-base sm:text-xl font-black text-emerald-300 tracking-wider">
                     {combinedCardPreview.openPana}
                   </div>
                 </div>
 
-                <span className="text-2xl text-slate-600 font-bold -mt-2">-</span>
+                <span className="text-xl sm:text-2xl text-slate-600 font-bold -mt-2">-</span>
 
                 {/* Jodi Center Box */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[10px] uppercase text-amber-400 font-semibold mb-1">Jodi Result</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase text-amber-400 font-semibold mb-1">Jodi Result</span>
                   <div className="flex gap-1">
-                    <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xl font-black text-emerald-300">
+                    <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-2 sm:px-3 py-1.5 sm:py-2 text-base sm:text-xl font-black text-emerald-300">
                       {combinedCardPreview.openAnk}
                     </div>
-                    <div className="rounded-xl border border-blue-500/40 bg-blue-500/10 px-3 py-2 text-xl font-black text-blue-300">
+                    <div className="rounded-xl border border-blue-500/40 bg-blue-500/10 px-2 sm:px-3 py-1.5 sm:py-2 text-base sm:text-xl font-black text-blue-300">
                       {combinedCardPreview.closeAnk}
                     </div>
                   </div>
                 </div>
 
-                <span className="text-2xl text-slate-600 font-bold -mt-2">-</span>
+                <span className="text-xl sm:text-2xl text-slate-600 font-bold -mt-2">-</span>
 
                 {/* Close Pana Box */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[10px] uppercase text-blue-400 font-semibold mb-1">Close Pana</span>
-                  <div className="rounded-xl border border-blue-500/40 bg-blue-500/10 px-3.5 py-2 text-xl font-black text-blue-300 tracking-wider">
+                  <span className="text-[9px] sm:text-[10px] uppercase text-blue-400 font-semibold mb-1">Close Pana</span>
+                  <div className="rounded-xl border border-blue-500/40 bg-blue-500/10 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-base sm:text-xl font-black text-blue-300 tracking-wider">
                     {combinedCardPreview.closePana}
                   </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
                 <Button
                   onClick={() => handleDeclare("both")}
                   disabled={!marketId || !openResultFormatted || !closeResultFormatted || loading}
-                  className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold px-5"
+                  className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold px-5 flex-1 sm:flex-initial"
                 >
                   {loading ? "Processing..." : "Declare Full Result (Both)"}
                 </Button>

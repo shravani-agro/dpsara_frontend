@@ -79,7 +79,7 @@ export default function VideoPopup() {
                 ? "max-w-sm aspect-[9/16]"
                 : "max-w-5xl aspect-video"
             )}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             <button
               onClick={handleClose}

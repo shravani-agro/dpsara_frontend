@@ -374,6 +374,7 @@ export default function UsersPage() {
           </div>
         ) : (
           <DataTable
+            responsive={true}
             getRowKey={(u) => u.id}
             rows={users}
             columns={[
