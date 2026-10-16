@@ -206,6 +206,11 @@ export async function resetUserPassword(userId: number, newPassword: string) {
   return res.data;
 }
 
+export async function setUserPin(userId: number, pin: string) {
+  const res = await client.post(`/admin/users/${userId}/set-pin`, { pin });
+  return res.data;
+}
+
 export async function deleteUser(userId: number) {
   const res = await client.delete(`/admin/users/${userId}`);
   return res.data;

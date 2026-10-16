@@ -297,7 +297,7 @@ export default function TransactionsPage() {
         ) : items.length === 0 ? (
           <EmptyState
             title="No transactions found"
-            description="Try adjusting your filters or search term to see records."
+            hint="Try adjusting your filters or search term to see records."
           />
         ) : (
           <DataTable

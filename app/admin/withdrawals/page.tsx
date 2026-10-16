@@ -97,9 +97,15 @@ export default function WithdrawalsPage() {
     if (!confirm) return;
     try {
       await processWithdrawal(confirm.id, confirm.action);
+      const actionName =
+        confirm.action === "process"
+          ? "marked as done (paid)"
+          : confirm.action === "approve"
+          ? "approved"
+          : "rejected";
       setConfirm(null);
       if (detail && detail.id === confirm.id) setDetail(null);
-      toast.success(`Withdrawal #${confirm.id} ${confirm.action === "approve" ? "approved" : "rejected"}`);
+      toast.success(`Withdrawal #${confirm.id} ${actionName}`);
       setSelected([]);
       load();
     } catch (e: any) {
@@ -248,7 +254,7 @@ export default function WithdrawalsPage() {
                       selected.includes(w.id) ? "bg-brand-500/[0.07]" : "hover:bg-slate-50"
                     }`}
                   >
-                    <td className="py-3 pointer-events-none" onClick={(e) => e.stopPropagation()}>
+                    <td className="py-3" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         className="accent-brand-600"
@@ -268,7 +274,7 @@ export default function WithdrawalsPage() {
                     <td className="text-slate-400">
                       {fmtDateTime(w.requested_at)}
                     </td>
-                    <td className="pointer-events-none" onClick={(e) => e.stopPropagation()}>
+                    <td onClick={(e) => e.stopPropagation()}>
                       <div className="flex flex-wrap justify-end gap-1.5">
                         <Button size="sm" variant="outline" onClick={() => setDetail(w)}>View</Button>
                         {w.status === "pending" && (

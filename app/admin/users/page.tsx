@@ -23,6 +23,7 @@ import {
   addUserBonus,
   deductUserFunds,
   resetUserPassword,
+  setUserPin,
   deleteUser,
   getUserDetailed,
   listBids,
@@ -34,7 +35,7 @@ import {
   cancelBet,
 } from "@/lib/admin";
 import { parseApiError } from "@/lib/error-parser";
-import { fmtMoney, fmtNum, fmtDate } from "@/lib/format";
+import { fmtMoney, fmtNum, fmtDate, fmtDateTime } from "@/lib/format";
 import { toast } from "@/components/Toast";
 
 function BalanceChip({ balance }: { balance: number }) {
@@ -59,50 +60,68 @@ function PinEyeButton({
   userId,
   isVisible,
   onToggle,
+  onSetPin,
 }: {
   pin?: string | null;
   pinHash?: string | null;
   userId: number;
   isVisible: boolean;
   onToggle: () => void;
+  onSetPin?: () => void;
 }) {
-  if (pin) {
-    return (
-      <div className="inline-flex items-center gap-1.5 font-mono text-xs">
-        <span className="font-semibold tracking-widest px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700">
-          {isVisible ? pin : "••••"}
-        </span>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggle();
-          }}
-          className="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
-          title={isVisible ? "Hide PIN" : "Show PIN"}
-        >
-          {isVisible ? (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-            </svg>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          )}
-        </button>
-      </div>
-    );
+  const hasCredential = !!(pin || pinHash);
+  if (!hasCredential) {
+    return <span className="text-xs text-slate-400 font-mono">—</span>;
   }
-  if (pinHash) {
-    return (
-      <span className="inline-flex items-center gap-1 font-mono text-xs text-amber-500 font-medium bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20" title="Security PIN is encrypted in database">
-        🔒 Encrypted
+
+  return (
+    <div className="inline-flex items-center gap-1.5 font-mono text-xs">
+      <span className="font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700">
+        {!isVisible ? (
+          <span className="tracking-widest">••••</span>
+        ) : pin ? (
+          <span className="tracking-widest">{pin}</span>
+        ) : (
+          <span className="text-amber-500 font-normal tracking-normal inline-flex items-center gap-1 text-[11px]">
+            🔒 Encrypted
+            {onSetPin && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSetPin();
+                }}
+                className="ml-1 text-[10px] text-brand-600 dark:text-brand-400 hover:underline font-bold"
+                title="Click to set a 4-digit PIN"
+              >
+                Set PIN
+              </button>
+            )}
+          </span>
+        )}
       </span>
-    );
-  }
-  return <span className="text-xs text-slate-400 font-mono">—</span>;
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
+        className="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+        title={isVisible ? "Hide PIN" : "Show PIN"}
+      >
+        {isVisible ? (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+          </svg>
+        ) : (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        )}
+      </button>
+    </div>
+  );
 }
 
 export default function UsersPage() {
@@ -129,6 +148,10 @@ export default function UsersPage() {
   const [bonusDesc, setBonusDesc] = useState("Bonus credited");
   const [resetUser, setResetUser] = useState<any>(null);
   const [resetPw, setResetPw] = useState("");
+
+  const [pinTargetUser, setPinTargetUser] = useState<any>(null);
+  const [newPinInput, setNewPinInput] = useState("");
+  const [settingPin, setSettingPin] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState("");
@@ -245,13 +268,35 @@ export default function UsersPage() {
     setSubmitting(true);
     try {
       await resetUserPassword(resetUser.id, resetPw);
+      setUsers((prev) =>
+        prev.map((u) => (u.id === resetUser.id ? { ...u, pin: resetPw } : u))
+      );
       setResetUser(null);
       setResetPw("");
-      toast.success("Password reset successfully");
+      toast.success("Password / PIN reset successfully");
     } catch (e: any) {
       toast.error(parseApiError(e, "Failed to reset password"));
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleSetPin() {
+    if (!pinTargetUser || !newPinInput.trim() || settingPin) return;
+    setSettingPin(true);
+    try {
+      await setUserPin(pinTargetUser.id, newPinInput.trim());
+      toast.success(`PIN for ${pinTargetUser.username || "User"} updated to ${newPinInput.trim()}`);
+      setUsers((prev) =>
+        prev.map((u) => (u.id === pinTargetUser.id ? { ...u, pin: newPinInput.trim() } : u))
+      );
+      setVisiblePins((prev) => ({ ...prev, [pinTargetUser.id]: true }));
+      setPinTargetUser(null);
+      setNewPinInput("");
+    } catch (e: any) {
+      toast.error(parseApiError(e, "Failed to update PIN"));
+    } finally {
+      setSettingPin(false);
     }
   }
 
@@ -366,6 +411,10 @@ export default function UsersPage() {
                     userId={u.id}
                     isVisible={!!visiblePins[u.id]}
                     onToggle={() => setVisiblePins((prev) => ({ ...prev, [u.id]: !prev[u.id] }))}
+                    onSetPin={() => {
+                      setPinTargetUser(u);
+                      setNewPinInput(u.pin || "");
+                    }}
                   />
                 ),
               },
@@ -562,7 +611,7 @@ export default function UsersPage() {
                             </Badge>
                           )
                         },
-                        { key: "date", header: "Date", render: (b) => format(new Date(b.placed_at || b.created_at), "dd/MM/yyyy") },
+                        { key: "date", header: "Date", render: (b) => fmtDate(b.placed_at || b.created_at) },
                         {
                           key: "actions",
                           header: "Actions",
@@ -622,7 +671,7 @@ export default function UsersPage() {
                               </Badge>
                             )
                           },
-                          { key: "date", header: "Date", render: (d) => format(new Date(d.created_at), "dd/MM/yyyy") },
+                          { key: "date", header: "Date", render: (d) => fmtDate(d.created_at) },
                         ]}
                       />
                     </Card>
@@ -641,7 +690,7 @@ export default function UsersPage() {
                               </Badge>
                             )
                           },
-                          { key: "date", header: "Date", render: (w) => format(new Date(w.requested_at || w.created_at), "dd/MM/yyyy") },
+                          { key: "date", header: "Date", render: (w) => fmtDate(w.requested_at || w.created_at) },
                         ]}
                       />
                     </Card>
@@ -657,7 +706,7 @@ export default function UsersPage() {
                         columns={[
                           { key: "name", header: "Name", render: (c) => c.name || "Unknown" },
                           { key: "number", header: "Number", render: (c) => c.number },
-                          { key: "date", header: "Date Extracted", render: (c) => format(new Date(c.created_at), "dd/MM/yyyy HH:mm") },
+                          { key: "date", header: "Date Extracted", render: (c) => fmtDateTime(c.created_at) },
                         ]}
                       />
                     </Card>
@@ -669,7 +718,7 @@ export default function UsersPage() {
                         columns={[
                           { key: "coords", header: "Coordinates", render: (l) => `${l.latitude || '-'}, ${l.longitude || '-'}` },
                           { key: "address", header: "Address", render: (l) => l.address || "-" },
-                          { key: "date", header: "Date Extracted", render: (l) => format(new Date(l.created_at), "dd/MM/yyyy HH:mm") },
+                          { key: "date", header: "Date Extracted", render: (l) => fmtDateTime(l.created_at) },
                         ]}
                       />
                     </Card>
@@ -826,6 +875,32 @@ export default function UsersPage() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Set PIN modal */}
+      <Modal open={!!pinTargetUser} onClose={() => setPinTargetUser(null)} title={`Set PIN — ${pinTargetUser?.full_name || pinTargetUser?.username || ""}`}>
+        <div className="space-y-4">
+          <p className="text-xs text-slate-500">
+            Set or update the 4-digit security login PIN for this user.
+          </p>
+          <Field label="New 4-digit PIN">
+            <Input
+              type="text"
+              maxLength={6}
+              value={newPinInput}
+              onChange={(e) => setNewPinInput(e.target.value.replace(/\D/g, ""))}
+              placeholder="e.g. 1234"
+              className="font-mono tracking-widest text-lg"
+              autoFocus
+            />
+          </Field>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setPinTargetUser(null)}>Cancel</Button>
+            <Button disabled={settingPin || newPinInput.trim().length < 4} onClick={handleSetPin}>
+              {settingPin ? "Saving…" : "Save PIN"}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
