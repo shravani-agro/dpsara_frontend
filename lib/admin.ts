@@ -272,6 +272,11 @@ export async function deleteResult(resultId: number) {
   return res.data;
 }
 
+export async function settlePendingBets(params: { market_id?: number; result_date?: string } = {}) {
+  const res = await client.post("/admin/results/settle-pending", null, { params });
+  return res.data;
+}
+
 /* ---------------- Admin: Withdrawals ---------------- */
 
 export async function listWithdrawals(params: any = {}) {

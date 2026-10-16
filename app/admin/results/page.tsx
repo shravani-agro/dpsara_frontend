@@ -14,7 +14,7 @@ import {
   EmptyState,
   Modal,
 } from "@/components/ui";
-import { listMarkets, listResults, previewResult, bulkDeclareResults, deleteResult, rollbackResult } from "@/lib/admin";
+import { listMarkets, listResults, previewResult, bulkDeclareResults, deleteResult, rollbackResult, settlePendingBets } from "@/lib/admin";
 import { parseApiError } from "@/lib/error-parser";
 
 function calculateAnk(panna: string): string {
@@ -62,6 +62,7 @@ export default function ResultsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<any>(null);
   const [confirmRollback, setConfirmRollback] = useState<any>(null);
+  const [settling, setSettling] = useState(false);
 
   const loadMarkets = useCallback(async () => {
     try {
@@ -363,6 +364,30 @@ export default function ResultsPage() {
     }
   }
 
+  async function handleSettlePendingBets() {
+    setSettling(true);
+    setError(null);
+    setMsg(null);
+    try {
+      const res = await settlePendingBets({});
+      const count = res.settled?.length || 0;
+      let totalWon = 0;
+      let totalSettled = 0;
+      if (res.settled) {
+        for (const item of res.settled) {
+          totalWon += item.won || 0;
+          totalSettled += item.total_settled || 0;
+        }
+      }
+      setMsg(`Success: Settled ${totalSettled} pending bets across ${count} declared markets (${totalWon} won).`);
+      await loadResults();
+    } catch (e: any) {
+      setError(parseApiError(e, "Failed to settle pending bets"));
+    } finally {
+      setSettling(false);
+    }
+  }
+
   const selectedMarket = markets.find((m: any) => m.id === marketId);
 
   // Filtered Results List
@@ -394,6 +419,16 @@ export default function ResultsPage() {
       <PageHeader
         title="Declare Results — Main Markets"
         description="Upload and manage Open and Close results for regular Satta Matka markets with auto-ank calculation"
+        actions={
+          <Button
+            variant="secondary"
+            onClick={handleSettlePendingBets}
+            loading={settling}
+            className="gap-2 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+          >
+            <span>⚡</span> Settle All Pending Bets
+          </Button>
+        }
       />
 
       {msg && (
