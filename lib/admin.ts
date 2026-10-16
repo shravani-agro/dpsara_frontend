@@ -423,14 +423,36 @@ export async function updateGameRates(payload: any) {
   return res.data;
 }
 
-/* ---------------- Admin: Rollback / Cancel ---------------- */
+/* ---------------- Admin: Rollback / Cancel / Status ---------------- */
 export async function cancelBet(id: number) {
   const res = await client.post(`/admin/bids/${id}/cancel`, {});
   return res.data;
 }
 
+export async function updateBidStatus(id: number, status: string) {
+  const res = await client.post(`/admin/bids/${id}/status`, null, { params: { new_status: status } });
+  return res.data;
+}
+
 export async function cancelStarlineBet(id: number) {
   const res = await client.post(`/admin/starline/bids/${id}/cancel`, {});
+  return res.data;
+}
+
+export async function updateStarlineBidStatus(id: number, status: string) {
+  const res = await client.post(`/admin/starline/bids/${id}/status`, null, { params: { new_status: status } });
+  return res.data;
+}
+
+export async function approveDeposit(id: number) {
+  const res = await client.post(`/admin/deposits/${id}/approve`, {});
+  return res.data;
+}
+
+export async function rejectDeposit(id: number, reason?: string) {
+  const res = await client.post(`/admin/deposits/${id}/reject`, null, {
+    params: reason ? { reason } : {},
+  });
   return res.data;
 }
 

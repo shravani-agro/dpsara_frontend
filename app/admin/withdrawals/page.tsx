@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Card,
@@ -21,7 +20,7 @@ import {
   bulkApproveWithdrawals,
   getWithdrawalCounts,
 } from "@/lib/admin";
-import { fmtMoney } from "@/lib/format";
+import { fmtMoney, fmtDateTime } from "@/lib/format";
 import { toast } from "@/components/Toast";
 import { parseApiError } from "@/lib/error-parser";
 
@@ -148,6 +147,22 @@ export default function WithdrawalsPage() {
       />
       <ErrorMsg msg={error} />
 
+      {Number(counts.pending || 0) > 0 && (
+        <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-rose-500/10 border-2 border-rose-500/30 text-rose-700 dark:text-rose-400 shadow-md shadow-rose-500/5">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-600 text-white font-bold text-lg animate-pulse">
+            🚨
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="font-extrabold text-sm text-slate-900 dark:text-white">
+              {counts.pending} Withdrawal Request{counts.pending > 1 ? "s" : ""} Pending Processing
+            </p>
+            <p className="text-xs text-slate-600 dark:text-slate-300">
+              Transfer funds to user UPI/Bank details, then click Approve/Process to finalize, or Reject to instantly refund wallet.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-1.5 overflow-x-auto no-scrollbar">
         {STATUSES.map((s) => {
           const active = status === s.id;
@@ -251,7 +266,7 @@ export default function WithdrawalsPage() {
                       <Badge color={statusColor[w.status] ?? "slate"}>{w.status}</Badge>
                     </td>
                     <td className="text-slate-400">
-                      {format(new Date(w.requested_at), "dd/MM/yyyy hh:mm a")}
+                      {fmtDateTime(w.requested_at)}
                     </td>
                     <td className="pointer-events-none" onClick={(e) => e.stopPropagation()}>
                       <div className="flex flex-wrap justify-end gap-1.5">
@@ -282,7 +297,7 @@ export default function WithdrawalsPage() {
         open={!!detail}
         onClose={() => setDetail(null)}
         title={`Withdrawal #${detail?.id ?? ""}`}
-        description={detail ? `${detail.username} requested on ${format(new Date(detail.requested_at), "dd MMM yyyy hh:mm a")}` : ""}
+        description={detail ? `${detail.username} requested on ${fmtDateTime(detail.requested_at)}` : ""}
       >
         {detail && (
           <div className="space-y-5">
@@ -340,12 +355,12 @@ export default function WithdrawalsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs text-slate-400">Requested</p>
-                <p className="mt-1 text-sm text-slate-700">{format(new Date(detail.requested_at), "dd MMM yyyy, hh:mm a")}</p>
+                <p className="mt-1 text-sm text-slate-700">{fmtDateTime(detail.requested_at)}</p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs text-slate-400">Processed</p>
                 <p className="mt-1 text-sm text-slate-700">
-                  {detail.processed_at ? format(new Date(detail.processed_at), "dd MMM yyyy, hh:mm a") : "—"}
+                  {detail.processed_at ? fmtDateTime(detail.processed_at) : "—"}
                 </p>
               </div>
             </div>

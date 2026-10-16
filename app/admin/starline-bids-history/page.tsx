@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { format } from "date-fns";
 import {
   Card,
   Select,
@@ -12,8 +11,9 @@ import {
   Button,
 } from "@/components/ui";
 import { toast } from "@/components/Toast";
-import { listStarlineBids, listStarlineMarkets, cancelStarlineBet } from "@/lib/admin";
+import { listStarlineBids, listStarlineMarkets, cancelStarlineBet, updateStarlineBidStatus } from "@/lib/admin";
 import type { Bid } from "@/lib/types";
+import { fmtDate, fmtDateTime } from "@/lib/format";
 import { parseApiError } from "@/lib/error-parser";
 
 const STATUSES = ["pending", "won", "lost", "cancelled"];
@@ -56,10 +56,22 @@ export default function StarlineBidsHistoryPage() {
     }
   }, [status, marketId]);
 
+  const handleStatusChange = async (id: number, newStatus: string) => {
+    if (!confirm(`Are you sure you want to mark Starline Bet #${id} as ${newStatus.toUpperCase()}?`)) return;
+    try {
+      const res = await updateStarlineBidStatus(id, newStatus);
+      toast.success(res.message || `Starline Bet #${id} updated to ${newStatus.toUpperCase()}`);
+      load();
+    } catch (e: any) {
+      toast.error(parseApiError(e, "Failed to update starline bet status"));
+    }
+  };
+
   const handleCancel = async (id: number) => {
     if (!confirm("Are you sure you want to cancel this bet?")) return;
     try {
       await cancelStarlineBet(id);
+      toast.success(`Starline Bet #${id} cancelled and refunded`);
       load(); // refresh
     } catch (e: any) {
       toast.error(parseApiError(e, "Failed to cancel bet"));
@@ -127,7 +139,7 @@ export default function StarlineBidsHistoryPage() {
                     <td className="font-medium text-slate-900">{b.username || b.user_id}</td>
                     <td>{b.market_name}</td>
                     <td>{b.session || "-"}</td>
-                    <td>{b.bid_date ? format(new Date(b.bid_date), "dd/MM/yyyy") : "-"}</td>
+                    <td>{b.bid_date ? fmtDate(b.bid_date) : "-"}</td>
                     <td className="text-slate-400">{b.bet_type}</td>
                     <td>{b.selected_number}</td>
                     <td>{Number(b.amount).toFixed(2)}</td>
@@ -136,12 +148,41 @@ export default function StarlineBidsHistoryPage() {
                       <Badge color={statusColor[b.status] ?? "slate"}>{b.status}</Badge>
                     </td>
                     <td className="text-slate-400">
-                      {format(new Date(b.placed_at), "dd/MM/yyyy hh:mm a")}
+                      {fmtDateTime(b.placed_at)}
                     </td>
                     <td>
-                      {b.status === "pending" && (
-                         <Button variant="danger" size="sm" onClick={() => handleCancel(b.id)}>Cancel</Button>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {b.status !== "won" && (
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(b.id, "won")}
+                            className="px-2 py-1 rounded text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition"
+                            title="Mark as WON & Credit wallet"
+                          >
+                            Won
+                          </button>
+                        )}
+                        {b.status !== "lost" && (
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(b.id, "lost")}
+                            className="px-2 py-1 rounded text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition"
+                            title="Mark as LOST"
+                          >
+                            Lost
+                          </button>
+                        )}
+                        {b.status !== "cancelled" && (
+                          <button
+                            type="button"
+                            onClick={() => handleCancel(b.id)}
+                            className="px-2 py-1 rounded text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-600 hover:text-white border border-slate-200 transition"
+                            title="Cancel bet & refund stake"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

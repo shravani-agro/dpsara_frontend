@@ -8,6 +8,29 @@ import { useTheme } from "@/components/useTheme";
 import { Button, Spinner, cn } from "@/components/ui";
 import { ToastContainer } from "@/components/Toast";
 import { CommandPalette } from "@/components/CommandPalette";
+import { getWithdrawalCounts } from "@/lib/admin";
+
+function playWithdrawalChime() {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    const now = ctx.currentTime;
+    osc.frequency.setValueAtTime(587.33, now); // D5
+    osc.frequency.setValueAtTime(880, now + 0.15); // A5
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+    osc.start(now);
+    osc.stop(now + 0.6);
+  } catch {
+    // Autoplay restrictions may ignore until user interaction
+  }
+}
 
 type NavItem = { href: string; label: string; icon: string };
 type NavGroup = { label: string; items: NavItem[] };
@@ -72,10 +95,12 @@ function NavContent({
   pathname,
   query,
   onNavigate,
+  pendingWithdrawals = 0,
 }: {
   pathname: string;
   query: string;
   onNavigate?: () => void;
+  pendingWithdrawals?: number;
 }) {
   const q = query.trim().toLowerCase();
   const groups = q
@@ -89,15 +114,23 @@ function NavContent({
           {group.label && <div className="section-label">{group.label}</div>}
           {group.items.map((item) => {
             const active = isActive(item, pathname);
+            const isWithdrawals = item.href === "/admin/withdrawals";
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={onNavigate}
-                className={cn("nav-link", active && "nav-link-active")}
+                className={cn("nav-link flex items-center justify-between", active && "nav-link-active")}
               >
-                <span className="w-5 text-center text-base leading-none">{item.icon}</span>
-                <span className="truncate">{item.label}</span>
+                <div className="flex items-center gap-2 truncate">
+                  <span className="w-5 text-center text-base leading-none">{item.icon}</span>
+                  <span className="truncate">{item.label}</span>
+                </div>
+                {isWithdrawals && pendingWithdrawals > 0 && (
+                  <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-black text-white bg-rose-600 rounded-full animate-pulse shadow-sm shadow-rose-600/50">
+                    {pendingWithdrawals} PENDING
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -121,6 +154,38 @@ export default function DashboardLayout({
   const [open, setOpen] = useState(false);
   const [navQuery, setNavQuery] = useState("");
   const { theme, setTheme } = useTheme();
+  const [pendingWithdrawals, setPendingWithdrawals] = useState(0);
+  const [showWithdrawalPopup, setShowWithdrawalPopup] = useState(false);
+  const prevPendingRef = React.useRef<number | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const checkWithdrawals = async () => {
+      try {
+        const counts = await getWithdrawalCounts();
+        const pending = Number(counts?.pending || 0);
+        if (!mounted) return;
+        setPendingWithdrawals(pending);
+
+        if (prevPendingRef.current !== null && pending > prevPendingRef.current) {
+          playWithdrawalChime();
+          setShowWithdrawalPopup(true);
+        } else if (prevPendingRef.current === null && pending > 0) {
+          setShowWithdrawalPopup(true);
+        }
+        prevPendingRef.current = pending;
+      } catch {
+        // ignore polling errors
+      }
+    };
+
+    checkWithdrawals();
+    const interval = setInterval(checkWithdrawals, 10000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     if (!loading && !authenticated) {
@@ -163,7 +228,7 @@ export default function DashboardLayout({
             />
           </div>
         </div>
-        <NavContent pathname={pathname} query={navQuery} />
+        <NavContent pathname={pathname} query={navQuery} pendingWithdrawals={pendingWithdrawals} />
         <div className="border-t border-slate-200 p-3">
           <div className="px-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400">
             Signed in as
@@ -218,7 +283,7 @@ export default function DashboardLayout({
               />
             </div>
           </div>
-          <NavContent pathname={pathname} query={navQuery} onNavigate={() => setOpen(false)} />
+          <NavContent pathname={pathname} query={navQuery} onNavigate={() => setOpen(false)} pendingWithdrawals={pendingWithdrawals} />
           <div className="border-t border-slate-200 p-3">
             <div className="px-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400">
               Signed in as
@@ -255,6 +320,19 @@ export default function DashboardLayout({
              </h1>
           </div>
           <div className="flex items-center gap-2">
+            {pendingWithdrawals > 0 && (
+              <Link
+                href="/admin/withdrawals"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-300 dark:border-rose-800 text-xs font-bold animate-pulse hover:bg-rose-100 dark:hover:bg-rose-900/50 transition shadow-sm"
+                title="View pending withdrawals"
+              >
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-600"></span>
+                </span>
+                <span>🚨 {pendingWithdrawals} Pending Withdrawal{pendingWithdrawals > 1 ? "s" : ""}</span>
+              </Link>
+            )}
             <span className="hidden items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-600 sm:flex">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
               {username || "admin"}
@@ -284,6 +362,48 @@ export default function DashboardLayout({
 
         <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">{children}</main>
       </div>
+
+      {showWithdrawalPopup && pendingWithdrawals > 0 && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm w-full p-4 rounded-2xl bg-white dark:bg-slate-900 border-2 border-rose-500 shadow-2xl shadow-rose-500/30">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-600 text-white font-bold text-lg animate-pulse">
+              🚨
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <p className="font-extrabold text-sm text-rose-600 dark:text-rose-400 uppercase tracking-wide">
+                  Withdrawal Request!
+                </p>
+                <button
+                  onClick={() => setShowWithdrawalPopup(false)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs font-bold p-1"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                There {pendingWithdrawals === 1 ? "is 1 new withdrawal request" : `are ${pendingWithdrawals} withdrawal requests`} waiting for approval.
+              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <Link
+                  href="/admin/withdrawals"
+                  onClick={() => setShowWithdrawalPopup(false)}
+                  className="flex-1 py-1.5 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold text-center shadow transition"
+                >
+                  Review & Approve
+                </Link>
+                <button
+                  onClick={() => setShowWithdrawalPopup(false)}
+                  className="py-1.5 px-3 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <CommandPalette />
       <ToastContainer />
     </div>
