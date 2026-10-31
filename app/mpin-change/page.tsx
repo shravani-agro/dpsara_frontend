@@ -66,7 +66,7 @@ export default function MpinChangePage() {
               <p className="text-slate-400">Your new MPIN has been set. You can now use it to login.</p>
               <Button
                 type="button"
-                onClick={() => router.push("/login")}
+                onClick={() => router.push("/ouradminportal/login")}
                 className="w-full h-12 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-xl mt-4"
               >
                 Back to Login

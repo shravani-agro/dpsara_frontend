@@ -151,6 +151,7 @@ export default function DashboardLayout({
   const { authenticated, loading, username, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const isLoginPage = pathname === "/ouradminportal/login";
   const [open, setOpen] = useState(false);
   const [navQuery, setNavQuery] = useState("");
   const { theme, setTheme } = useTheme();
@@ -159,6 +160,7 @@ export default function DashboardLayout({
   const prevPendingRef = React.useRef<number | null>(null);
 
   useEffect(() => {
+    if (isLoginPage || !authenticated) return;
     let mounted = true;
     const checkWithdrawals = async () => {
       try {
@@ -185,7 +187,7 @@ export default function DashboardLayout({
       mounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [authenticated, isLoginPage]);
 
   // Auto-dismiss downside popup after 2 minutes
   useEffect(() => {
@@ -198,14 +200,19 @@ export default function DashboardLayout({
   }, [showWithdrawalPopup]);
 
   useEffect(() => {
+    if (isLoginPage) return;
     if (!loading && !authenticated) {
       router.replace("/ouradminportal/login");
     }
-  }, [loading, authenticated, router]);
+  }, [loading, authenticated, isLoginPage, router]);
 
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   if (loading || !authenticated) {
     return (

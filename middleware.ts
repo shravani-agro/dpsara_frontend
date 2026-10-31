@@ -5,7 +5,12 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Block/redirect legacy /admin and /login paths to protect admin portal secrecy
-  if (pathname === '/admin' || pathname.startsWith('/admin/') || pathname === '/login') {
+  if (
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/') ||
+    pathname === '/login' ||
+    pathname.startsWith('/login/')
+  ) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 

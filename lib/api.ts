@@ -38,10 +38,10 @@ client.interceptors.response.use(
       error.response &&
       error.response.status === 401
     ) {
-      // Token invalid/expired — clear and redirect to login.
+      // Token invalid/expired — clear and redirect to admin portal login.
       clearToken();
-      if (!window.location.pathname.startsWith("/login")) {
-        window.location.href = "/login";
+      if (!window.location.pathname.startsWith("/ouradminportal/login")) {
+        window.location.href = "/ouradminportal/login";
       }
     }
     return Promise.reject(error);
