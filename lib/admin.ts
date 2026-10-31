@@ -454,6 +454,13 @@ export async function approveDeposit(id: number) {
   return res.data;
 }
 
+export async function autoRejectExpiredDeposits(maxAgeMinutes: number = 30) {
+  const res = await client.post("/admin/deposits/auto-reject-expired", null, {
+    params: { max_age_minutes: maxAgeMinutes },
+  });
+  return res.data;
+}
+
 export async function rejectDeposit(id: number, reason?: string) {
   const res = await client.post(`/admin/deposits/${id}/reject`, null, {
     params: reason ? { reason } : {},
