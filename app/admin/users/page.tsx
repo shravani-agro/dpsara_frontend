@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import { format } from "date-fns";
 import {
   Card,
   Button,
@@ -23,7 +24,6 @@ import {
   addUserBonus,
   deductUserFunds,
   resetUserPassword,
-  setUserPin,
   deleteUser,
   getUserDetailed,
   listBids,
@@ -31,11 +31,9 @@ import {
   listWithdrawals,
   getUserContacts,
   getUserLocations,
-  updateBidStatus,
-  cancelBet,
 } from "@/lib/admin";
 import { parseApiError } from "@/lib/error-parser";
-import { fmtMoney, fmtNum, fmtDate, fmtDateTime } from "@/lib/format";
+import { fmtMoney, fmtNum, fmtDate } from "@/lib/format";
 import { toast } from "@/components/Toast";
 
 function BalanceChip({ balance }: { balance: number }) {
@@ -43,84 +41,14 @@ function BalanceChip({ balance }: { balance: number }) {
   const positive = value >= 0;
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-xs font-bold ring-1 ring-inset ${positive
-        ? "bg-emerald-500/10 text-emerald-300 ring-emerald-500/25"
-        : "bg-red-500/10 text-red-300 ring-red-500/25"
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-xs font-bold ring-1 ring-inset ${positive
+        ? "bg-emerald-500/10 text-emerald-700 ring-emerald-500/25"
+        : "bg-red-500/10 text-red-600 ring-red-500/25"
         }`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${positive ? "bg-emerald-400" : "bg-red-400"}`} />
+      <span className={`h-1.5 w-1.5 rounded-full ${positive ? "bg-emerald-500" : "bg-red-500"}`} />
       ₹{value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
     </span>
-  );
-}
-
-function PinEyeButton({
-  pin,
-  pinHash,
-  userId,
-  isVisible,
-  onToggle,
-  onSetPin,
-}: {
-  pin?: string | null;
-  pinHash?: string | null;
-  userId: number;
-  isVisible: boolean;
-  onToggle: () => void;
-  onSetPin?: () => void;
-}) {
-  const hasCredential = !!(pin || pinHash);
-  if (!hasCredential) {
-    return <span className="text-xs text-slate-400 font-mono">—</span>;
-  }
-
-  return (
-    <div className="inline-flex items-center gap-1.5 font-mono text-xs">
-      <span className="font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700">
-        {!isVisible ? (
-          <span className="tracking-widest">••••</span>
-        ) : pin ? (
-          <span className="tracking-widest">{pin}</span>
-        ) : (
-          <span className="text-amber-500 font-normal tracking-normal inline-flex items-center gap-1 text-[11px]">
-            🔒 Encrypted
-            {onSetPin && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSetPin();
-                }}
-                className="ml-1 text-[10px] text-brand-600 dark:text-brand-400 hover:underline font-bold"
-                title="Click to set a 4-digit PIN"
-              >
-                Set PIN
-              </button>
-            )}
-          </span>
-        )}
-      </span>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggle();
-        }}
-        className="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
-        title={isVisible ? "Hide PIN" : "Show PIN"}
-      >
-        {isVisible ? (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-          </svg>
-        ) : (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-        )}
-      </button>
-    </div>
   );
 }
 
@@ -129,7 +57,6 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({ username: "", is_active: "" });
-  const [visiblePins, setVisiblePins] = useState<Record<number, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const [selected, setSelected] = useState<any>(null);
@@ -148,10 +75,6 @@ export default function UsersPage() {
   const [bonusDesc, setBonusDesc] = useState("Bonus credited");
   const [resetUser, setResetUser] = useState<any>(null);
   const [resetPw, setResetPw] = useState("");
-
-  const [pinTargetUser, setPinTargetUser] = useState<any>(null);
-  const [newPinInput, setNewPinInput] = useState("");
-  const [settingPin, setSettingPin] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState("");
@@ -197,12 +120,6 @@ export default function UsersPage() {
         getUserLocations(user.id),
       ]);
       setDetail(d);
-      if (d) {
-        setSelected((prev: any) => ({ ...prev, ...d, wallet_balance: d.wallet_balance }));
-        setUsers((prev) =>
-          prev.map((u) => (u.id === user.id ? { ...u, ...d, wallet_balance: d.wallet_balance } : u))
-        );
-      }
       setUserBids(b);
       setUserDeposits(dep);
       setUserWithdrawals(w);
@@ -268,35 +185,13 @@ export default function UsersPage() {
     setSubmitting(true);
     try {
       await resetUserPassword(resetUser.id, resetPw);
-      setUsers((prev) =>
-        prev.map((u) => (u.id === resetUser.id ? { ...u, pin: resetPw } : u))
-      );
       setResetUser(null);
       setResetPw("");
-      toast.success("Password / PIN reset successfully");
+      toast.success("Password reset successfully");
     } catch (e: any) {
       toast.error(parseApiError(e, "Failed to reset password"));
     } finally {
       setSubmitting(false);
-    }
-  }
-
-  async function handleSetPin() {
-    if (!pinTargetUser || !newPinInput.trim() || settingPin) return;
-    setSettingPin(true);
-    try {
-      await setUserPin(pinTargetUser.id, newPinInput.trim());
-      toast.success(`PIN for ${pinTargetUser.username || "User"} updated to ${newPinInput.trim()}`);
-      setUsers((prev) =>
-        prev.map((u) => (u.id === pinTargetUser.id ? { ...u, pin: newPinInput.trim() } : u))
-      );
-      setVisiblePins((prev) => ({ ...prev, [pinTargetUser.id]: true }));
-      setPinTargetUser(null);
-      setNewPinInput("");
-    } catch (e: any) {
-      toast.error(parseApiError(e, "Failed to update PIN"));
-    } finally {
-      setSettingPin(false);
     }
   }
 
@@ -318,20 +213,6 @@ export default function UsersPage() {
     }
   }
 
-  async function handleBetStatusChange(bidId: number, newStatus: string) {
-    if (!confirm(`Are you sure you want to mark Bet #${bidId} as ${newStatus.toUpperCase()}?`)) return;
-    try {
-      const res = await updateBidStatus(bidId, newStatus);
-      toast.success(res.message || `Bet #${bidId} updated to ${newStatus.toUpperCase()}`);
-      if (selected) {
-        await openDetail(selected);
-      }
-      load();
-    } catch (e: any) {
-      toast.error(parseApiError(e, "Failed to update bet status"));
-    }
-  }
-
   const tabs = [
     { id: "overview", label: "Overview", icon: "👤" },
     { id: "bets", label: "Recent Bets", icon: "🎯" },
@@ -349,9 +230,12 @@ export default function UsersPage() {
       <Card>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Input
-            placeholder="Search username, phone, name..."
+            placeholder="Search username…"
             value={filters.username}
             onChange={(e) => setFilters({ ...filters, username: e.target.value })}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") load();
+            }}
           />
           <Select
             value={filters.is_active}
@@ -361,84 +245,186 @@ export default function UsersPage() {
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </Select>
-          <Button onClick={load} className="w-full sm:w-auto">
-            Search
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={load} className="w-full sm:w-auto">
+              Search
+            </Button>
+            {(filters.username || filters.is_active !== "") && (
+              <Button
+                variant="outline"
+                onClick={() => setFilters({ username: "", is_active: "" })}
+                className="px-3"
+              >
+                Reset
+              </Button>
+            )}
+          </div>
         </div>
       </Card>
 
-      <Card title={`${users.length} users`} bodyClassName="p-0">
+      <Card
+        title={
+          <div className="flex items-center gap-2">
+            <span>Users</span>
+            <span className="rounded-full bg-slate-200/80 px-2 py-0.5 text-xs font-bold text-slate-700">
+              {users.length}
+            </span>
+          </div>
+        }
+        subtitle="Browse and manage all registered platform users"
+        bodyClassName="p-0"
+      >
         {loading ? (
-          <div className="p-4">
+          <div className="p-6">
             <Spinner />
           </div>
         ) : (
-          <DataTable
-            responsive={true}
-            getRowKey={(u) => u.id}
-            rows={users}
-            columns={[
-              { key: "id", header: "ID", className: "w-12 text-slate-400" },
-              {
-                key: "username",
-                header: "Username",
-                render: (u) => (
-                  <div>
-                    <span className="font-medium text-slate-900">
-                      {u.full_name || u.username}
-                      {u.username === "admin" && <Badge color="brand" className="ml-2">Owner</Badge>}
-                      {u.auth_provider === "google" && <Badge color="blue" className="ml-2">Google</Badge>}
-                    </span>
+          <>
+            {/* Desktop Full Table */}
+            <div className="hidden md:block">
+              <DataTable
+                getRowKey={(u) => u.id}
+                rows={users}
+                onRowClick={openDetail}
+                columns={[
+                  { key: "id", header: "ID", className: "w-12 text-slate-400" },
+                  {
+                    key: "username",
+                    header: "Username",
+                    render: (u) => (
+                      <span className="font-medium text-slate-900">
+                        {u.full_name || u.username}
+                        {u.username === "admin" && <Badge color="brand" className="ml-2">Owner</Badge>}
+                        {u.auth_provider === "google" && <Badge color="blue" className="ml-2">Google signed in</Badge>}
+                      </span>
+                    ),
+                  },
+                  { key: "balance", header: "Balance", render: (u) => <BalanceChip balance={u.wallet_balance} /> },
+                  {
+                    key: "status",
+                    header: "Status",
+                    render: (u) => (
+                      <Badge color={u.is_active ? "emerald" : "red"}>
+                        {u.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    key: "actions",
+                    header: "Actions",
+                    className: "text-right",
+                    render: (u) => (
+                      <Button size="sm" variant="outline" onClick={() => openDetail(u)}>View Profile</Button>
+                    ),
+                  },
+                ]}
+              />
+            </div>
 
-                  </div>
-                ),
-              },
-              {
-                key: "phone",
-                header: "Mobile Number",
-                render: (u) => (
-                  <span className="font-mono text-xs font-semibold text-slate-700">
-                    {u.phone || u.username || "—"}
+            {/* Mobile Compact High-Density Row View */}
+            <div className="md:hidden">
+              {/* Mobile Table Header */}
+              <div className="flex items-center justify-between border-b border-slate-200/80 bg-slate-50/90 px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <div className="flex items-center gap-1.5">
+                  <span>User</span>
+                  <span className="rounded-full bg-slate-200 px-1.5 py-0.2 text-[9px] font-semibold text-slate-700">
+                    {users.length}
                   </span>
-                ),
-              },
-              {
-                key: "pin",
-                header: "PIN",
-                render: (u) => (
-                  <PinEyeButton
-                    pin={u.pin}
-                    pinHash={u.pin_hash}
-                    userId={u.id}
-                    isVisible={!!visiblePins[u.id]}
-                    onToggle={() => setVisiblePins((prev) => ({ ...prev, [u.id]: !prev[u.id] }))}
-                    onSetPin={() => {
-                      setPinTargetUser(u);
-                      setNewPinInput(u.pin || "");
-                    }}
-                  />
-                ),
-              },
-              { key: "balance", header: "Balance", render: (u) => <BalanceChip balance={u.wallet_balance} /> },
-              {
-                key: "status",
-                header: "Status",
-                render: (u) => (
-                  <Badge color={u.is_active ? "emerald" : "red"}>
-                    {u.is_active ? "Active" : "Inactive"}
-                  </Badge>
-                ),
-              },
-              {
-                key: "actions",
-                header: "Actions",
-                className: "text-right",
-                render: (u) => (
-                  <Button size="sm" variant="outline" onClick={() => openDetail(u)}>View Profile</Button>
-                ),
-              },
-            ]}
-          />
+                </div>
+                <span>Balance & Status</span>
+              </div>
+
+              {users.length === 0 ? (
+                <div className="py-10">
+                  <EmptyState title="No users found" hint="Try changing the search filter above" />
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {users.map((u) => {
+                    const displayName = u.full_name || u.username;
+                    const initial = (displayName?.[0] || "U").toUpperCase();
+                    const balance = Number(u.wallet_balance || 0);
+                    const isPositive = balance >= 0;
+
+                    return (
+                      <div
+                        key={u.id}
+                        onClick={() => openDetail(u)}
+                        className="flex items-center justify-between gap-2.5 px-3 py-2.5 transition-colors active:bg-amber-500/10 hover:bg-slate-50 cursor-pointer select-none"
+                      >
+                        {/* Left: Avatar & Info */}
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/20 to-brand-500/15 text-xs font-bold text-amber-800 ring-1 ring-inset ring-amber-500/25">
+                            {initial}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="truncate text-xs sm:text-sm font-semibold text-slate-900 leading-tight">
+                                {displayName}
+                              </span>
+                              {u.username === "admin" && (
+                                <span className="shrink-0 rounded bg-amber-500/15 px-1 py-0.2 text-[9px] font-bold text-amber-700">
+                                  Owner
+                                </span>
+                              )}
+                              {u.auth_provider === "google" && (
+                                <span className="shrink-0 rounded bg-blue-500/15 px-1 py-0.2 text-[9px] font-bold text-blue-700">
+                                  Google
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 leading-tight mt-0.5">
+                              <span className="font-mono text-slate-500 font-medium">#{u.id}</span>
+                              {u.mobile_number || u.phone ? (
+                                <>
+                                  <span>•</span>
+                                  <span className="truncate">{u.mobile_number || u.phone}</span>
+                                </>
+                              ) : u.created_at ? (
+                                <>
+                                  <span>•</span>
+                                  <span>{format(new Date(u.created_at), "dd/MM/yy")}</span>
+                                </>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right: Balance & Status & Chevron */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="text-right">
+                            <div
+                              className={`font-mono text-xs font-bold leading-tight ${isPositive ? "text-emerald-600" : "text-red-600"
+                                }`}
+                            >
+                              ₹{balance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                            <div className="mt-0.5 flex items-center justify-end gap-1">
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${u.is_active ? "bg-emerald-500" : "bg-red-500"
+                                  }`}
+                              />
+                              <span
+                                className={`text-[10px] font-medium leading-none ${u.is_active ? "text-emerald-700" : "text-red-600"
+                                  }`}
+                              >
+                                {u.is_active ? "Active" : "Inactive"}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-slate-400 pl-0.5">
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </>
         )}
       </Card>
 
@@ -462,14 +448,14 @@ export default function UsersPage() {
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                       <Card bodyClassName="p-4 flex flex-col items-center text-center">
                         <span className="text-xs text-slate-400 uppercase">Wallet Balance</span>
-                        <span className={`mt-1 text-2xl font-bold ${(detail?.wallet_balance ?? selected.wallet_balance ?? 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                          {fmtMoney(detail?.wallet_balance ?? selected.wallet_balance ?? 0)}
+                        <span className={`mt-1 text-2xl font-bold ${selected.wallet_balance >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                          {fmtMoney(selected.wallet_balance)}
                         </span>
                         <span className="mt-1 text-[11px] text-slate-400">Joined {fmtDate(selected.created_at)}</span>
                       </Card>
                       <Card bodyClassName="p-4 flex flex-col items-center text-center">
                         <span className="text-xs text-slate-400 uppercase">Status</span>
-                        <Badge color={(detail?.is_active ?? selected.is_active) ? "emerald" : "red"} className="mt-2">{(detail?.is_active ?? selected.is_active) ? "Active" : "Inactive"}</Badge>
+                        <Badge color={selected.is_active ? "emerald" : "red"} className="mt-2">{selected.is_active ? "Active" : "Inactive"}</Badge>
                         <span className="mt-1 text-[11px] text-slate-400">ID #{selected.id}</span>
                       </Card>
                       <Card bodyClassName="p-4 flex flex-col items-center text-center">
@@ -481,26 +467,12 @@ export default function UsersPage() {
 
                     <Card title="Profile Information">
                       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                        <Field label="Mobile Number" value={
-                          <span className="font-mono font-semibold text-slate-900">
-                            {detail?.phone || selected.phone || selected.username || "—"}
-                          </span>
-                        } />
-                        <Field label="Security PIN" value={
-                          <PinEyeButton
-                            pin={detail?.pin || selected.pin}
-                            pinHash={detail?.pin_hash || selected.pin_hash}
-                            userId={selected.id}
-                            isVisible={!!visiblePins[selected.id]}
-                            onToggle={() => setVisiblePins((prev) => ({ ...prev, [selected.id]: !prev[selected.id] }))}
-                          />
-                        } />
-                        <Field label="First Name" value={detail?.first_name || selected.first_name || "—"} />
-                        <Field label="Last Name" value={detail?.last_name || selected.last_name || "—"} />
-                        <Field label="Language" value={detail?.language || selected.language || "—"} />
-                        <Field label="Postal PIN" value={detail?.postal_pin || selected.postal_pin || "—"} />
-                        <Field label="State" value={detail?.state || selected.state || "—"} />
-                        <Field label="City" value={detail?.city || selected.city || "—"} />
+                        <Field label="First Name" value={selected.first_name || "—"} />
+                        <Field label="Last Name" value={selected.last_name || "—"} />
+                        <Field label="Language" value={selected.language || "—"} />
+                        <Field label="Postal PIN" value={selected.postal_pin || "—"} />
+                        <Field label="State" value={selected.state || "—"} />
+                        <Field label="City" value={selected.city || "—"} />
                       </div>
                     </Card>
 
@@ -612,45 +584,7 @@ export default function UsersPage() {
                             </Badge>
                           )
                         },
-                        { key: "date", header: "Date", render: (b) => fmtDate(b.placed_at || b.created_at) },
-                        {
-                          key: "actions",
-                          header: "Actions",
-                          render: (b) => (
-                            <div className="flex items-center gap-1.5">
-                              {b.status !== "won" && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleBetStatusChange(b.id, "won")}
-                                  className="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition"
-                                  title="Mark as WON & credit winnings"
-                                >
-                                  Won
-                                </button>
-                              )}
-                              {b.status !== "lost" && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleBetStatusChange(b.id, "lost")}
-                                  className="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition"
-                                  title="Mark as LOST"
-                                >
-                                  Lost
-                                </button>
-                              )}
-                              {b.status !== "cancelled" && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleBetStatusChange(b.id, "cancelled")}
-                                  className="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-600 hover:bg-slate-600 hover:text-white border border-slate-200 transition"
-                                  title="Cancel bet & refund stake"
-                                >
-                                  Cancel
-                                </button>
-                              )}
-                            </div>
-                          )
-                        },
+                        { key: "date", header: "Date", render: (b) => format(new Date(b.placed_at || b.created_at), "dd/MM/yyyy") },
                       ]}
                     />
                   </Card>
@@ -672,7 +606,7 @@ export default function UsersPage() {
                               </Badge>
                             )
                           },
-                          { key: "date", header: "Date", render: (d) => fmtDate(d.created_at) },
+                          { key: "date", header: "Date", render: (d) => format(new Date(d.created_at), "dd/MM/yyyy") },
                         ]}
                       />
                     </Card>
@@ -691,7 +625,7 @@ export default function UsersPage() {
                               </Badge>
                             )
                           },
-                          { key: "date", header: "Date", render: (w) => fmtDate(w.requested_at || w.created_at) },
+                          { key: "date", header: "Date", render: (w) => format(new Date(w.requested_at || w.created_at), "dd/MM/yyyy") },
                         ]}
                       />
                     </Card>
@@ -707,7 +641,7 @@ export default function UsersPage() {
                         columns={[
                           { key: "name", header: "Name", render: (c) => c.name || "Unknown" },
                           { key: "number", header: "Number", render: (c) => c.number },
-                          { key: "date", header: "Date Extracted", render: (c) => fmtDateTime(c.created_at) },
+                          { key: "date", header: "Date Extracted", render: (c) => format(new Date(c.created_at), "dd/MM/yyyy HH:mm") },
                         ]}
                       />
                     </Card>
@@ -719,7 +653,7 @@ export default function UsersPage() {
                         columns={[
                           { key: "coords", header: "Coordinates", render: (l) => `${l.latitude || '-'}, ${l.longitude || '-'}` },
                           { key: "address", header: "Address", render: (l) => l.address || "-" },
-                          { key: "date", header: "Date Extracted", render: (l) => fmtDateTime(l.created_at) },
+                          { key: "date", header: "Date Extracted", render: (l) => format(new Date(l.created_at), "dd/MM/yyyy HH:mm") },
                         ]}
                       />
                     </Card>
@@ -876,32 +810,6 @@ export default function UsersPage() {
             </div>
           </div>
         )}
-      </Modal>
-
-      {/* Set PIN modal */}
-      <Modal open={!!pinTargetUser} onClose={() => setPinTargetUser(null)} title={`Set PIN — ${pinTargetUser?.full_name || pinTargetUser?.username || ""}`}>
-        <div className="space-y-4">
-          <p className="text-xs text-slate-500">
-            Set or update the 4-digit security login PIN for this user.
-          </p>
-          <Field label="New 4-digit PIN">
-            <Input
-              type="text"
-              maxLength={6}
-              value={newPinInput}
-              onChange={(e) => setNewPinInput(e.target.value.replace(/\D/g, ""))}
-              placeholder="e.g. 1234"
-              className="font-mono tracking-widest text-lg"
-              autoFocus
-            />
-          </Field>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setPinTargetUser(null)}>Cancel</Button>
-            <Button disabled={settingPin || newPinInput.trim().length < 4} onClick={handleSetPin}>
-              {settingPin ? "Saving…" : "Save PIN"}
-            </Button>
-          </div>
-        </div>
       </Modal>
     </div>
   );
