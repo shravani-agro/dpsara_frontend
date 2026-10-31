@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { format } from "date-fns";
+import { format } from "@/lib/format";
 import {
   Card,
   Button,

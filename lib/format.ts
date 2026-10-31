@@ -93,3 +93,56 @@ export function fmtTime(iso: string | null | undefined): string {
     hour12: true,
   });
 }
+
+/**
+ * Custom IST format helper replacing date-fns format.
+ * Formats dates strictly in Indian Standard Time (IST - Asia/Kolkata).
+ * Supports standard format patterns: "yyyy-MM-dd", "dd/MM/yyyy", "dd/MM/yy", "hh:mm a", "HH:mm", etc.
+ */
+export function format(dateInput: any, formatStr: string = "yyyy-MM-dd"): string {
+  const d = parseToDate(dateInput) || (dateInput instanceof Date ? dateInput : new Date(dateInput));
+  if (!d || isNaN(d.getTime())) return "—";
+
+  const parts = new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+
+  const getPart = (type: string) => parts.find((p) => p.type === type)?.value || "";
+  const year = getPart("year");
+  const month = getPart("month");
+  const day = getPart("day");
+  const hours24 = parseInt(getPart("hour") || "0", 10);
+  const hours12 = hours24 % 12 || 12;
+  const minutes = getPart("minute");
+  const seconds = getPart("second");
+  const ampm = hours24 >= 12 ? "PM" : "AM";
+  const pad = (n: number | string, len: number = 2) => String(n).padStart(len, "0");
+
+  const tokens: Record<string, string> = {
+    "yyyy": year,
+    "yy": year.slice(-2),
+    "MM": month,
+    "dd": day,
+    "HH": pad(hours24),
+    "H": String(hours24),
+    "hh": pad(hours12),
+    "h": String(hours12),
+    "mm": minutes,
+    "ss": seconds,
+    "a": ampm,
+    "aa": ampm,
+    "aaa": ampm.toLowerCase(),
+    "aaaa": ampm.toLowerCase(),
+  };
+
+  return formatStr.replace(/yyyy|yy|MM|dd|HH|H|hh|h|mm|ss|aaaa|aaa|aa|a/g, (match) => {
+    return tokens[match] !== undefined ? tokens[match] : match;
+  });
+}
