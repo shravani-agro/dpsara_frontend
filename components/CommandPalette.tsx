@@ -6,18 +6,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/components/ui";
 
 const ACTIONS = [
-  { href: "/admin", label: "Dashboard", icon: "▦", section: "Navigation" },
-  { href: "/admin/users", label: "Users", icon: "👤", section: "Navigation" },
-  { href: "/admin/markets", label: "Markets", icon: "📈", section: "Navigation" },
-  { href: "/admin/starline", label: "Starline", icon: "⭐", section: "Navigation" },
-  { href: "/admin/results", label: "Results", icon: "🎯", section: "Navigation" },
-  { href: "/admin/deposits", label: "Deposits", icon: "➕", section: "Navigation" },
-  { href: "/admin/bids", label: "Regular Bids", icon: "🎲", section: "Navigation" },
-  { href: "/admin/starline-bids-history", label: "Starline Bids", icon: "🎲", section: "Navigation" },
-  { href: "/admin/withdrawals", label: "Withdrawals", icon: "💸", section: "Navigation" },
-  { href: "/admin/game-rates", label: "Game Rates", icon: "💰", section: "Navigation" },
-  { href: "/admin/audit", label: "Audit Logs", icon: "🛡", section: "Navigation" },
-  { href: "/admin/settings", label: "Settings", icon: "⚙", section: "Navigation" },
+  { href: "/ouradminportal", label: "Dashboard", icon: "▦", section: "Navigation" },
+  { href: "/ouradminportal/users", label: "Users", icon: "👤", section: "Navigation" },
+  { href: "/ouradminportal/markets", label: "Markets", icon: "📈", section: "Navigation" },
+  { href: "/ouradminportal/starline", label: "Starline", icon: "⭐", section: "Navigation" },
+  { href: "/ouradminportal/results", label: "Results", icon: "🎯", section: "Navigation" },
+  { href: "/ouradminportal/deposits", label: "Deposits", icon: "➕", section: "Navigation" },
+  { href: "/ouradminportal/bids", label: "Regular Bids", icon: "🎲", section: "Navigation" },
+  { href: "/ouradminportal/starline-bids-history", label: "Starline Bids", icon: "🎲", section: "Navigation" },
+  { href: "/ouradminportal/withdrawals", label: "Withdrawals", icon: "💸", section: "Navigation" },
+  { href: "/ouradminportal/game-rates", label: "Game Rates", icon: "💰", section: "Navigation" },
+  { href: "/ouradminportal/audit", label: "Audit Logs", icon: "🛡", section: "Navigation" },
+  { href: "/ouradminportal/settings", label: "Settings", icon: "⚙", section: "Navigation" },
 ];
 
 export function CommandPalette() {

@@ -10,7 +10,7 @@ import {
   Input,
   EmptyState,
 } from "@/components/ui";
-import { listDeposits, getDepositCounts, approveDeposit, rejectDeposit } from "@/lib/admin";
+import { listDeposits, getDepositCounts, approveDeposit, rejectDeposit, autoRejectExpiredDeposits } from "@/lib/admin";
 import type { DepositRequest } from "@/lib/types";
 import { fmtMoney, fmtDateTime } from "@/lib/format";
 import { toast } from "@/components/Toast";
@@ -35,6 +35,15 @@ const statusDot: Record<string, string> = {
   rejected: "bg-red-400",
 };
 
+const isDepositExpired = (iso: string) => {
+  try {
+    const t = new Date(iso).getTime();
+    return !isNaN(t) && (Date.now() - t > 30 * 60 * 1000);
+  } catch {
+    return false;
+  }
+};
+
 export default function DepositsPage() {
   const [items, setItems] = useState<DepositRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +52,20 @@ export default function DepositsPage() {
   const [counts, setCounts] = useState<any>({ pending: 0, completed: 0, rejected: 0, total: 0 });
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [cleaning, setCleaning] = useState(false);
+
+  const handleAutoRejectExpired = async () => {
+    setCleaning(true);
+    try {
+      const res = await autoRejectExpiredDeposits(30);
+      toast.success(res.message || `Processed ${res.checked || 0} deposits (${res.auto_rejected || 0} auto-rejected)`);
+      load();
+    } catch (e: any) {
+      toast.error(parseApiError(e, "Failed to auto-reject expired deposits"));
+    } finally {
+      setCleaning(false);
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -105,6 +128,16 @@ export default function DepositsPage() {
             <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-36 h-9 text-xs" />
             <span className="text-slate-400">to</span>
             <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-36 h-9 text-xs" />
+            <button
+              type="button"
+              onClick={handleAutoRejectExpired}
+              disabled={cleaning}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition disabled:opacity-50"
+              title="Auto-reject pending deposits older than 30 minutes"
+            >
+              <span>{cleaning ? "⏳" : "⚡"}</span>
+              <span>{cleaning ? "Checking..." : "Auto-Reject Expired"}</span>
+            </button>
           </div>
         }
       />
@@ -173,24 +206,40 @@ export default function DepositsPage() {
                       </td>
                       <td>
                         {d.status === "pending" ? (
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => handleApprove(d.id)}
-                              className="px-2 py-1 rounded text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition"
-                              title="Approve & Credit Wallet"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleReject(d.id)}
-                              className="px-2 py-1 rounded text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition"
-                              title="Reject Deposit"
-                            >
-                              Reject
-                            </button>
-                          </div>
+                          isDepositExpired(d.created_at) ? (
+                            <div className="flex items-center gap-1.5">
+                              <span className="px-1.5 py-0.5 text-[10px] font-bold text-amber-700 bg-amber-100 rounded border border-amber-300">
+                                Expired
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleReject(d.id)}
+                                className="px-2 py-1 rounded text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition"
+                                title="Auto-Reject Expired Deposit"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleApprove(d.id)}
+                                className="px-2 py-1 rounded text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition"
+                                title="Approve & Credit Wallet"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleReject(d.id)}
+                                className="px-2 py-1 rounded text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition"
+                                title="Reject Deposit"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )
                         ) : (
                           <span className="text-xs text-slate-400 capitalize">{d.status}</span>
                         )}
@@ -219,20 +268,37 @@ export default function DepositsPage() {
                   </div>
                   {d.status === "pending" && (
                     <div className="mt-3 flex items-center gap-2 pt-2 border-t border-slate-200">
-                      <button
-                        type="button"
-                        onClick={() => handleApprove(d.id)}
-                        className="flex-1 py-1.5 rounded text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition text-center"
-                      >
-                        Approve & Credit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleReject(d.id)}
-                        className="flex-1 py-1.5 rounded text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition text-center"
-                      >
-                        Reject
-                      </button>
+                      {isDepositExpired(d.created_at) ? (
+                        <>
+                          <span className="flex-1 py-1.5 rounded text-xs font-bold bg-amber-50 text-amber-700 border border-amber-300 text-center">
+                            Expired (>30m)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleReject(d.id)}
+                            className="flex-1 py-1.5 rounded text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition text-center"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleApprove(d.id)}
+                            className="flex-1 py-1.5 rounded text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition text-center"
+                          >
+                            Approve & Credit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleReject(d.id)}
+                            className="flex-1 py-1.5 rounded text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition text-center"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

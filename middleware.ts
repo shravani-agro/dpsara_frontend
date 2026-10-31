@@ -3,14 +3,18 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Skip API routes, static files (images, css, js), next internals
+
+  // Block/redirect legacy /admin and /login paths to protect admin portal secrecy
+  if (pathname === '/admin' || pathname.startsWith('/admin/') || pathname === '/login') {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  // Skip API routes, static files (images, css, js), next internals, and ouradminportal
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
     pathname.match(/\.(css|js|png|jpg|jpeg|svg|gif|ico|webp)$/) ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/login')
+    pathname.startsWith('/ouradminportal')
   ) {
     return NextResponse.next();
   }

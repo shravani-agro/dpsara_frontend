@@ -1,3 +1,4 @@
+import { fmtDateTime } from "@/lib/format";
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -71,7 +72,7 @@ export default function AuditPage() {
                     <td><Badge color="violet" className="font-mono">{l.action_type}</Badge></td>
                     <td className="text-slate-400">{l.endpoint || "—"}</td>
                     <td className="text-slate-400">{l.ip_address || "—"}</td>
-                    <td className="text-slate-400">{new Date(l.created_at).toLocaleString()}</td>
+                    <td className="text-slate-400">{fmtDateTime(l.created_at)}</td>
                   </tr>
                 ))}
               </tbody>

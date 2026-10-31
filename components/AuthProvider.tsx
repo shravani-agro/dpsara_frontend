@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     apiLogout();
     setAuthenticated(false);
     setUsername(null);
-    window.location.href = "/login";
+    window.location.href = "/ouradminportal/login";
   }
 
   return (

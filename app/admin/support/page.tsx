@@ -1,3 +1,4 @@
+import { fmtDateTime } from "@/lib/format";
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -37,14 +38,7 @@ function categoryLabel(key?: string) {
 
 function formatDate(raw?: string) {
   if (!raw) return "";
-  const d = new Date(raw);
-  if (isNaN(d.getTime())) return raw;
-  return d.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return fmtDateTime(raw);
 }
 
 import { API_BASE } from "@/lib/config";
