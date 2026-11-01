@@ -57,8 +57,23 @@ export default function DepositsPage() {
   const handleAutoRejectExpired = async () => {
     setCleaning(true);
     try {
-      const res = await autoRejectExpiredDeposits(30);
-      toast.success(res.message || `Processed ${res.checked || 0} deposits (${res.auto_rejected || 0} auto-rejected)`);
+      let rejectedCount = 0;
+      try {
+        const res = await autoRejectExpiredDeposits(30);
+        rejectedCount = res.auto_rejected || 0;
+      } catch {
+        const pendingItems = await listDeposits({ status: "pending", limit: 100 });
+        const expired = pendingItems.filter((d: DepositItem) => isDepositExpired(d.created_at));
+        for (const item of expired) {
+          try {
+            await rejectDeposit(item.id, "Auto-rejected: pending deposit older than 30 minutes");
+            rejectedCount++;
+          } catch {
+            // ignore
+          }
+        }
+      }
+      toast.success(`Auto-reject complete: ${rejectedCount} expired deposit(s) rejected`);
       load();
     } catch (e: any) {
       toast.error(parseApiError(e, "Failed to auto-reject expired deposits"));
@@ -80,7 +95,24 @@ export default function DepositsPage() {
         params.date_to = dt.toISOString();
       }
       const [data, c] = await Promise.all([listDeposits(params), getDepositCounts()]);
-      setItems(data);
+      // Auto-reject any expired pending deposits found in the loaded list
+      const expiredPending = data.filter((d: DepositItem) => d.status === "pending" && isDepositExpired(d.created_at));
+      if (expiredPending.length > 0) {
+        Promise.allSettled(
+          expiredPending.map((d: DepositItem) =>
+            rejectDeposit(d.id, "Auto-rejected: pending deposit older than 30 minutes")
+          )
+        ).then(() => {
+          listDeposits(params).then(setItems).catch(() => {});
+          getDepositCounts().then(setCounts).catch(() => {});
+        });
+        const updated = data.map((d: DepositItem) =>
+          d.status === "pending" && isDepositExpired(d.created_at) ? { ...d, status: "rejected" } : d
+        );
+        setItems(updated);
+      } else {
+        setItems(data);
+      }
       setCounts(c);
     } catch (e: any) {
       setError(parseApiError(e, "Failed to load deposits"));
