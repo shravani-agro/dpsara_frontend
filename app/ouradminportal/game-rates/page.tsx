@@ -121,7 +121,7 @@ export default function GameRatesPage() {
 
       <ErrorMsg msg={error} />
       {msg && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-300">
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-700 dark:text-emerald-300 font-medium">
           {msg}
         </div>
       )}
@@ -133,10 +133,10 @@ export default function GameRatesPage() {
           <Card title="Regular Markets" subtitle="Applies to all regular games">
             <div className="space-y-4">
               {REGULAR_BET_TYPES.map((bt) => (
-                <div key={bt.key} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-slate-50">
+                <div key={bt.key} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850/70">
                   <div>
-                    <div className="font-medium text-slate-700">{bt.label}</div>
-                    <div className="text-xs text-slate-400 font-mono mt-1">Key: {bt.key}</div>
+                    <div className="font-medium text-slate-800 dark:text-slate-200">{bt.label}</div>
+                    <div className="text-xs text-slate-400 dark:text-slate-500 font-mono mt-1">Key: {bt.key}</div>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-semibold text-slate-400">1 ₹ :</span>
@@ -160,10 +160,10 @@ export default function GameRatesPage() {
                 {STARLINE_BET_TYPES.map((bt) => {
                   const starlineKey = `starline_${bt.key}`;
                   return (
-                    <div key={bt.key} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-slate-50">
+                    <div key={bt.key} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850/70">
                       <div>
-                        <div className="font-medium text-slate-700">{bt.label} <Badge color="violet">Starline</Badge></div>
-                        <div className="text-xs text-slate-400 font-mono mt-1">Key: {starlineKey}</div>
+                        <div className="font-medium text-slate-800 dark:text-slate-200">{bt.label} <Badge color="violet">Starline</Badge></div>
+                        <div className="text-xs text-slate-400 dark:text-slate-500 font-mono mt-1">Key: {starlineKey}</div>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-semibold text-slate-400">1 ₹ :</span>
@@ -187,10 +187,10 @@ export default function GameRatesPage() {
                 {JACKPOT_BET_TYPES.map((bt) => {
                   const jackpotKey = `jackpot_${bt.key}`;
                   return (
-                    <div key={bt.key} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-slate-50">
+                    <div key={bt.key} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850/70">
                       <div>
-                        <div className="font-medium text-slate-700">{bt.label} <Badge color="orange">Jackpot</Badge></div>
-                        <div className="text-xs text-slate-400 font-mono mt-1">Key: {jackpotKey}</div>
+                        <div className="font-medium text-slate-800 dark:text-slate-200">{bt.label} <Badge color="orange">Jackpot</Badge></div>
+                        <div className="text-xs text-slate-400 dark:text-slate-500 font-mono mt-1">Key: {jackpotKey}</div>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-semibold text-slate-400">1 ₹ :</span>

@@ -202,8 +202,8 @@ export default function TransactionsPage() {
               onClick={() => setType(f.id)}
               className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition-all whitespace-nowrap shadow-sm border ${
                 active
-                  ? "bg-slate-900 text-white border-slate-900 shadow-md"
-                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                  ? "bg-slate-900 text-white border-slate-900 shadow-md dark:bg-brand-500 dark:border-brand-500 dark:text-slate-950"
+                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300 dark:bg-slate-850 dark:border-slate-700/80 dark:text-slate-300 dark:hover:bg-slate-800"
               }`}
             >
               <span>{f.icon}</span>
@@ -254,9 +254,9 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between pt-3 border-t border-slate-100">
-          <div className="text-xs text-slate-500">
-            Showing <span className="font-semibold text-slate-800">{items.length}</span> transactions
+        <div className="mt-3 flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            Showing <span className="font-semibold text-slate-800 dark:text-slate-200">{items.length}</span> transactions
           </div>
           <div className="flex gap-2">
             {(search || status !== "all" || type !== "all" || dateFrom || dateTo) && (
@@ -345,7 +345,7 @@ export default function TransactionsPage() {
                 key: "balance_after",
                 header: "Wallet After",
                 render: (t) => (
-                  <span className="font-mono text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                  <span className="font-mono text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                     {fmtMoney(t.balance_after)}
                   </span>
                 ),
@@ -354,10 +354,10 @@ export default function TransactionsPage() {
                 key: "description",
                 header: "Description / Reference",
                 render: (t) => (
-                  <div className="max-w-xs truncate text-xs text-slate-700" title={t.description}>
+                  <div className="max-w-xs truncate text-xs text-slate-700 dark:text-slate-300" title={t.description}>
                     <p className="truncate font-medium">{t.description || "—"}</p>
                     {t.reference_id && (
-                      <p className="font-mono text-[11px] text-slate-400 truncate">
+                      <p className="font-mono text-[11px] text-slate-400 dark:text-slate-500 truncate">
                         Ref: {t.reference_id}
                       </p>
                     )}
@@ -406,32 +406,32 @@ export default function TransactionsPage() {
       >
         {selectedTxn && (
           <div className="space-y-4 text-xs">
-            <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4 border border-slate-200">
+            <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 dark:bg-slate-850 p-4 border border-slate-200 dark:border-slate-800">
               <div>
-                <span className="text-slate-400 uppercase text-[10px] font-bold">Transaction Type</span>
+                <span className="text-slate-400 dark:text-slate-500 uppercase text-[10px] font-bold">Transaction Type</span>
                 <div className="mt-1">{getTypeBadge(selectedTxn.type)}</div>
               </div>
               <div>
-                <span className="text-slate-400 uppercase text-[10px] font-bold">Status</span>
+                <span className="text-slate-400 dark:text-slate-500 uppercase text-[10px] font-bold">Status</span>
                 <div className="mt-1">{getStatusBadge(selectedTxn.status)}</div>
               </div>
               <div>
-                <span className="text-slate-400 uppercase text-[10px] font-bold">Amount</span>
-                <div className="mt-1 font-mono font-bold text-base text-slate-900">
+                <span className="text-slate-400 dark:text-slate-500 uppercase text-[10px] font-bold">Amount</span>
+                <div className="mt-1 font-mono font-bold text-base text-slate-900 dark:text-slate-100">
                   {fmtMoney(selectedTxn.amount)}
                 </div>
               </div>
               <div>
-                <span className="text-slate-400 uppercase text-[10px] font-bold">Balance After</span>
-                <div className="mt-1 font-mono font-bold text-base text-slate-900">
+                <span className="text-slate-400 dark:text-slate-500 uppercase text-[10px] font-bold">Balance After</span>
+                <div className="mt-1 font-mono font-bold text-base text-slate-900 dark:text-slate-100">
                   {fmtMoney(selectedTxn.balance_after)}
                 </div>
               </div>
             </div>
 
-            <div className="space-y-2 border-t border-slate-100 pt-3">
+            <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3">
               <div className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-500 font-medium">User Profile</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">User Profile</span>
                 <UserCell
                   userId={selectedTxn.user_id}
                   username={selectedTxn.username}
@@ -439,21 +439,21 @@ export default function TransactionsPage() {
                   phone={selectedTxn.phone}
                 />
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Description</span>
-                <span className="text-slate-800 max-w-[240px] text-right font-medium">
+              <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 dark:text-slate-400">Description</span>
+                <span className="text-slate-800 dark:text-slate-200 max-w-[240px] text-right font-medium">
                   {selectedTxn.description || "—"}
                 </span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Reference ID</span>
-                <span className="font-mono text-slate-800 max-w-[240px] truncate">
+              <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 dark:text-slate-400">Reference ID</span>
+                <span className="font-mono text-slate-800 dark:text-slate-200 max-w-[240px] truncate">
                   {selectedTxn.reference_id || "None"}
                 </span>
               </div>
               <div className="flex justify-between py-1">
-                <span className="text-slate-500">Created At</span>
-                <span className="font-mono text-slate-800">
+                <span className="text-slate-500 dark:text-slate-400">Created At</span>
+                <span className="font-mono text-slate-800 dark:text-slate-200">
                   {fmtDateTime(selectedTxn.created_at)}
                 </span>
               </div>
