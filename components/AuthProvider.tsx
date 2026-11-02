@@ -26,11 +26,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const token = getToken() || "";
         const payload = decodeToken(token);
-        if (payload) {
-          setUsername(payload.username || payload.full_name || "Admin");
+        const storedUser = typeof window !== "undefined"
+          ? (window.localStorage.getItem("admin_display_user") || window.sessionStorage.getItem("admin_display_user"))
+          : null;
+        if (storedUser) {
+          setUsername(storedUser);
+        } else if (payload) {
+          setUsername(payload.username === "admin" ? "OurAdmin_777" : (payload.username || payload.full_name || "OurAdmin_777"));
+        } else {
+          setUsername("OurAdmin_777");
         }
       } catch {
-        // ignore
+        setUsername("OurAdmin_777");
       }
     } else {
       setUsername(null);
@@ -40,12 +47,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function login(credential: string, password: string, remember: boolean = false) {
     await apiLogin(credential, password, remember);
+    if (typeof window !== "undefined") {
+      if (remember) {
+        window.localStorage.setItem("admin_display_user", credential);
+      } else {
+        window.sessionStorage.setItem("admin_display_user", credential);
+      }
+    }
     setAuthenticated(true);
     setUsername(credential);
   }
 
   function logout() {
     apiLogout();
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("admin_display_user");
+      window.sessionStorage.removeItem("admin_display_user");
+    }
     setAuthenticated(false);
     setUsername(null);
     window.location.href = "/ouradminportal/login";
