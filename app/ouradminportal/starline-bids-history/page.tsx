@@ -248,7 +248,7 @@ export default function StarlineBidsHistoryPage() {
                             <button
                               type="button"
                               onClick={() => handleStatusChange(b.id, "won")}
-                              className="px-2 py-1 rounded text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition active:scale-95"
+                              className="px-2 py-1 rounded text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 transition active:scale-95"
                               title="Mark as WON"
                             >
                               Won
@@ -258,7 +258,7 @@ export default function StarlineBidsHistoryPage() {
                             <button
                               type="button"
                               onClick={() => handleStatusChange(b.id, "lost")}
-                              className="px-2 py-1 rounded text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition active:scale-95"
+                              className="px-2 py-1 rounded text-xs font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-500/30 transition active:scale-95"
                               title="Mark as LOST"
                             >
                               Lost
@@ -268,7 +268,7 @@ export default function StarlineBidsHistoryPage() {
                             <button
                               type="button"
                               onClick={() => handleCancel(b.id)}
-                              className="px-2 py-1 rounded text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-600 hover:text-white border border-slate-200 transition active:scale-95"
+                              className="px-2 py-1 rounded text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-600 hover:text-white border border-slate-200 dark:border-slate-700 transition active:scale-95"
                               title="Cancel & Refund"
                             >
                               Cancel
@@ -320,7 +320,7 @@ export default function StarlineBidsHistoryPage() {
                         <button
                           type="button"
                           onClick={() => handleStatusChange(b.id, "won")}
-                          className="px-2 py-1 rounded text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 active:scale-95"
+                          className="px-2 py-1 rounded text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 active:scale-95"
                         >
                           Won
                         </button>
@@ -329,7 +329,7 @@ export default function StarlineBidsHistoryPage() {
                         <button
                           type="button"
                           onClick={() => handleStatusChange(b.id, "lost")}
-                          className="px-2 py-1 rounded text-xs font-bold bg-rose-50 text-rose-600 border border-rose-200 active:scale-95"
+                          className="px-2 py-1 rounded text-xs font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/30 active:scale-95"
                         >
                           Lost
                         </button>
@@ -338,7 +338,7 @@ export default function StarlineBidsHistoryPage() {
                         <button
                           type="button"
                           onClick={() => handleCancel(b.id)}
-                          className="px-2 py-1 rounded text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 active:scale-95"
+                          className="px-2 py-1 rounded text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 active:scale-95"
                         >
                           Cancel
                         </button>

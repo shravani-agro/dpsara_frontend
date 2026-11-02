@@ -301,13 +301,13 @@ export default function DepositsPage() {
                         {d.status === "pending" ? (
                           isDepositExpired(d.created_at) ? (
                             <div className="flex items-center justify-end gap-1.5">
-                              <span className="px-1.5 py-0.5 text-[10px] font-bold text-amber-700 bg-amber-100 rounded border border-amber-300">
+                              <span className="px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/50 rounded border border-amber-300 dark:border-amber-800">
                                 Expired
                               </span>
                               <button
                                 type="button"
                                 onClick={() => handleReject(d.id)}
-                                className="px-2 py-1 rounded text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition active:scale-95"
+                                className="px-2 py-1 rounded text-xs font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-500/30 transition active:scale-95"
                                 title="Auto-Reject Expired Deposit"
                               >
                                 Reject
@@ -318,7 +318,7 @@ export default function DepositsPage() {
                               <button
                                 type="button"
                                 onClick={() => handleApprove(d.id)}
-                                className="px-2.5 py-1 rounded text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition active:scale-95"
+                                className="px-2.5 py-1 rounded text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 transition active:scale-95"
                                 title="Approve & Credit Wallet"
                               >
                                 Approve
@@ -326,7 +326,7 @@ export default function DepositsPage() {
                               <button
                                 type="button"
                                 onClick={() => handleReject(d.id)}
-                                className="px-2.5 py-1 rounded text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition active:scale-95"
+                                className="px-2.5 py-1 rounded text-xs font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-500/30 transition active:scale-95"
                                 title="Reject Deposit"
                               >
                                 Reject
@@ -378,7 +378,7 @@ export default function DepositsPage() {
                           <button
                             type="button"
                             onClick={() => handleReject(d.id)}
-                            className="flex-1 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-600 border border-rose-200 text-center active:scale-95"
+                            className="flex-1 py-1.5 rounded-lg text-xs font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/30 text-center active:scale-95"
                           >
                             Reject
                           </button>
@@ -395,7 +395,7 @@ export default function DepositsPage() {
                           <button
                             type="button"
                             onClick={() => handleReject(d.id)}
-                            className="flex-1 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-600 border border-rose-200 text-center active:scale-95"
+                            className="flex-1 py-1.5 rounded-lg text-xs font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/30 text-center active:scale-95"
                           >
                             Reject
                           </button>
