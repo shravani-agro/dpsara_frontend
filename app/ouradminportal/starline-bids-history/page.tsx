@@ -302,7 +302,7 @@ export default function StarlineBidsHistoryPage() {
                     {/* Left: Market, Session & User */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate">
+                        <span className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">
                           {b.market_name}
                         </span>
                         {b.session && (
@@ -310,15 +310,10 @@ export default function StarlineBidsHistoryPage() {
                             {b.session}
                           </span>
                         )}
-                        <span className="text-[10px] text-slate-400">
-                          {b.bet_type}
-                        </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5 flex-wrap">
-                        <span className="font-mono text-slate-400">#{b.id}</span>
-                        <span>•</span>
-                        <span className="font-medium text-slate-700 dark:text-slate-300 truncate max-w-[120px]">
+                      <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5 truncate">
+                        <span className="font-medium text-slate-600 dark:text-slate-300 truncate max-w-[130px]">
                           {b.username || `User #${b.user_id}`}
                         </span>
                         <span>•</span>
