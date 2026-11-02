@@ -1,0 +1,14 @@
+# Robots.txt for DPSara777
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /ouradminportal/
+Disallow: /admin/
+Disallow: /login/
+Disallow: /mpin-login/
+Disallow: /mpin-change/
+Disallow: /campaigns/
+Disallow: /dynamic/
+
+# Sitemaps
+Sitemap: https://dpsara777.com/sitemap.xml

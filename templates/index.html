@@ -104,7 +104,7 @@
       background-color: rgba(171, 108, 254, 0.25);
     }
   </style>
-  <script id="theme-initializer">(function () { try { if (localStorage.getItem("theme") === "dark") { document.documentElement.setAttribute("data-theme", "dark"); document.documentElement.classList.add("dark"); } else { document.documentElement.removeAttribute("data-theme"); document.documentElement.classList.remove("dark"); } } catch (e) { } })();</script>
+  <script id="theme-initializer">(function(){try{var t=localStorage.getItem("theme")||localStorage.getItem("dpsara_theme");if(!t&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches){t="dark";}if(t==="dark"){document.documentElement.setAttribute("data-theme","dark");document.documentElement.classList.add("dark");document.documentElement.classList.remove("light");}else{document.documentElement.removeAttribute("data-theme");document.documentElement.classList.remove("dark");document.documentElement.classList.add("light");}}catch(e){}})();</script>
   <style type="text/css">
     .styles-module_blinkingCursor__yugAC {
       color: inherit;
@@ -148,7 +148,7 @@
         <div class="w-full flex items-center justify-between gap-4 h-full">
           <div class="inline-flex items-center"><button aria-controls="mobile-nav" aria-expanded="false" aria-label="Open menu" class="inline-flex items-center justify-center bg-transparent border-none p-0 cursor-pointer leading-none mr-3 text-black xl:hidden" type="button"><svg aria-hidden="true" class="w-6 h-auto block" fill="none" height="14" viewBox="0 0 20 14" width="20" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1 7H13M1 1H19M1 13H19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-              </svg></button><a class="inline-flex items-center" href="/index.html"><img alt="DPSara777" class="h-10 max-sm:h-[34px] w-auto block" src="/dpsara.svg"></a></div>
+              </svg></button><a class="inline-flex items-center" href="/index.html"><img alt="DPSara777" class="h-10 max-sm:h-[34px] w-auto block dark:hidden" src="/dpsara.svg"><img alt="DPSara777" class="h-10 max-sm:h-[34px] w-auto block hidden dark:block" src="/dpsara-dark.svg"></a></div>
           <nav aria-label="Primary" class="hidden xl:block">
             <ul class="flex flex-nowrap justify-center items-center gap-4 2xl:gap-6 p-0 m-0 list-none">
               <li class="relative flex items-center"><a class="inline-flex items-center text-black text-[15px] xl:text-[16px] whitespace-nowrap transition-colors duration-300 hover:text-primary font-bold" href="/index.html">Home</a></li>
@@ -234,7 +234,7 @@
               <li class="relative flex items-center"><a class="inline-flex items-center text-black text-[15px] xl:text-[16px] whitespace-nowrap transition-colors duration-300 hover:text-primary font-medium" href="/blog.html">Blogs</a></li>
             </ul>
           </nav>
-          <div class="flex items-center gap-3"><button aria-label="Switch to Dark Theme" class="w-10 h-10 rounded-full flex items-center justify-center border border-borderColor bg-surfaceBg text-black transition-all duration-300 hover:scale-105 shadow-sm" style="background-color:#FFFFFF;border-color:#E4E1DF;color:#16100E" title="Switch to Dark Theme" type="button"><svg class="w-5 h-5 transition-transform duration-300 -rotate-12 hover:rotate-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <div class="flex items-center gap-3"><button aria-label="Switch to Dark Theme" class="w-10 h-10 rounded-full flex items-center justify-center border border-borderColor bg-surfaceBg text-black transition-all duration-300 hover:scale-105 shadow-sm" style="background-color:var(--surface-bg);border-color:var(--border-color);color:var(--black-color)" title="Switch to Dark Theme" type="button"><svg class="w-5 h-5 transition-transform duration-300 -rotate-12 hover:rotate-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
               </svg></button></div>
         </div>
@@ -571,7 +571,7 @@
       <section class="pt-[56px] max-lg:pt-12">
         <div class="container mx-auto px-4">
           <h2 class="sr-only">Game Rates</h2>
-          <div class="max-md:border-2 max-md:border-[#F9B12B] max-md:rounded-3xl max-md:p-3 max-md:bg-white/40">
+          <div class="max-md:border-2 max-md:border-[#F9B12B] max-md:rounded-3xl max-md:p-3 max-md:bg-white/40 dark:max-md:bg-[#000000]">
             <div class="text-center mb-6 max-md:mb-3"><span class="inline-flex items-center justify-center h-[48px] max-sm:h-[42px] px-7 max-sm:px-6 rounded-[12px] bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-[#16100E] text-[18px] max-sm:text-[16px] font-display font-bold tracking-[0.4px] leading-none shadow-[0_8px_18px_rgba(120,82,13,0.32)] max-sm:w-full"><span class="inline-flex items-center gap-2"><svg aria-hidden="true" class="lucide lucide-indian-rupee max-sm:w-4 max-sm:h-4" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
                     <path d="M6 3h12"></path>
                     <path d="M6 8h12"></path>
@@ -585,19 +585,19 @@
                     <path d="M6 13h3"></path>
                     <path d="M9 13c6.667 0 6.667-10 0-10"></path>
                   </svg></span></span></div>
-            <div class="md:hidden overflow-hidden rounded-xl border border-[#F2E2B8] bg-white">
+            <div class="md:hidden overflow-hidden rounded-xl border border-[#F2E2B8] dark:border-white/20 bg-white dark:bg-[#000000]">
               <table class="w-full border-collapse text-left">
                 <thead>
-                  <tr class="bg-[#FFF8E7] border-b border-[#F2E2B8]">
+                  <tr class="bg-[#FFF8E7] dark:bg-[#000000] border-b border-[#F2E2B8] dark:border-white/20">
                     <th class="px-3 py-2.5 font-display text-[11px] font-bold uppercase tracking-[0.4px] text-black">
                       Game</th>
                     <th class="px-3 py-2.5 font-display text-[11px] font-bold uppercase tracking-[0.4px] text-black text-left w-[152px]">
                       Rate</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-[#F2E2B8]">
-                  <tr class="bg-white">
-                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-black leading-tight">Single
+                <tbody class="divide-y divide-[#F2E2B8] dark:divide-white/15">
+                  <tr class="bg-white dark:bg-[#000000]">
+                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-[#16100E] dark:text-white leading-tight">Single
                       Digit</td>
                     <td class="px-3 py-2.5 text-right w-[152px]"><span class="inline-flex w-full items-center justify-center rounded-md border border-borderColor bg-timeBg px-2 py-1.5 text-[13px] font-bold text-black leading-none"><span class="inline-flex items-center justify-center gap-0.5 whitespace-nowrap"><svg aria-hidden="true" class="lucide lucide-indian-rupee shrink-0 -mr-0.5" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 3h12"></path>
@@ -613,8 +613,8 @@
                             <path d="M9 13c6.667 0 6.667-10 0-10"></path>
                           </svg><span>9.5</span></span></span></td>
                   </tr>
-                  <tr class="bg-white">
-                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-black leading-tight">Jodi
+                  <tr class="bg-white dark:bg-[#000000]">
+                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-[#16100E] dark:text-white leading-tight">Jodi
                       Digit</td>
                     <td class="px-3 py-2.5 text-right w-[152px]"><span class="inline-flex w-full items-center justify-center rounded-md border border-borderColor bg-timeBg px-2 py-1.5 text-[13px] font-bold text-black leading-none"><span class="inline-flex items-center justify-center gap-0.5 whitespace-nowrap"><svg aria-hidden="true" class="lucide lucide-indian-rupee shrink-0 -mr-0.5" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 3h12"></path>
@@ -630,8 +630,8 @@
                             <path d="M9 13c6.667 0 6.667-10 0-10"></path>
                           </svg><span>95</span></span></span></td>
                   </tr>
-                  <tr class="bg-white">
-                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-black leading-tight">Single
+                  <tr class="bg-white dark:bg-[#000000]">
+                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-[#16100E] dark:text-white leading-tight">Single
                       Pana</td>
                     <td class="px-3 py-2.5 text-right w-[152px]"><span class="inline-flex w-full items-center justify-center rounded-md border border-borderColor bg-timeBg px-2 py-1.5 text-[13px] font-bold text-black leading-none"><span class="inline-flex items-center justify-center gap-0.5 whitespace-nowrap"><svg aria-hidden="true" class="lucide lucide-indian-rupee shrink-0 -mr-0.5" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 3h12"></path>
@@ -647,8 +647,8 @@
                             <path d="M9 13c6.667 0 6.667-10 0-10"></path>
                           </svg><span>150</span></span></span></td>
                   </tr>
-                  <tr class="bg-white">
-                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-black leading-tight">Double
+                  <tr class="bg-white dark:bg-[#000000]">
+                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-[#16100E] dark:text-white leading-tight">Double
                       Pana</td>
                     <td class="px-3 py-2.5 text-right w-[152px]"><span class="inline-flex w-full items-center justify-center rounded-md border border-borderColor bg-timeBg px-2 py-1.5 text-[13px] font-bold text-black leading-none"><span class="inline-flex items-center justify-center gap-0.5 whitespace-nowrap"><svg aria-hidden="true" class="lucide lucide-indian-rupee shrink-0 -mr-0.5" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 3h12"></path>
@@ -664,8 +664,8 @@
                             <path d="M9 13c6.667 0 6.667-10 0-10"></path>
                           </svg><span>300</span></span></span></td>
                   </tr>
-                  <tr class="bg-white">
-                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-black leading-tight">Triple
+                  <tr class="bg-white dark:bg-[#000000]">
+                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-[#16100E] dark:text-white leading-tight">Triple
                       Pana</td>
                     <td class="px-3 py-2.5 text-right w-[152px]"><span class="inline-flex w-full items-center justify-center rounded-md border border-borderColor bg-timeBg px-2 py-1.5 text-[13px] font-bold text-black leading-none"><span class="inline-flex items-center justify-center gap-0.5 whitespace-nowrap"><svg aria-hidden="true" class="lucide lucide-indian-rupee shrink-0 -mr-0.5" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 3h12"></path>
@@ -681,8 +681,8 @@
                             <path d="M9 13c6.667 0 6.667-10 0-10"></path>
                           </svg><span>900</span></span></span></td>
                   </tr>
-                  <tr class="bg-white">
-                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-black leading-tight">Red
+                  <tr class="bg-white dark:bg-[#000000]">
+                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-[#16100E] dark:text-white leading-tight">Red
                       Brackets</td>
                     <td class="px-3 py-2.5 text-right w-[152px]"><span class="inline-flex w-full items-center justify-center rounded-md border border-borderColor bg-timeBg px-2 py-1.5 text-[13px] font-bold text-black leading-none"><span class="inline-flex items-center justify-center gap-0.5 whitespace-nowrap"><svg aria-hidden="true" class="lucide lucide-indian-rupee shrink-0 -mr-0.5" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 3h12"></path>
@@ -698,8 +698,8 @@
                             <path d="M9 13c6.667 0 6.667-10 0-10"></path>
                           </svg><span>95</span></span></span></td>
                   </tr>
-                  <tr class="bg-white">
-                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-black leading-tight">Half
+                  <tr class="bg-white dark:bg-[#000000]">
+                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-[#16100E] dark:text-white leading-tight">Half
                       Sangam A</td>
                     <td class="px-3 py-2.5 text-right w-[152px]"><span class="inline-flex w-full items-center justify-center rounded-md border border-borderColor bg-timeBg px-2 py-1.5 text-[13px] font-bold text-black leading-none"><span class="inline-flex items-center justify-center gap-0.5 whitespace-nowrap"><svg aria-hidden="true" class="lucide lucide-indian-rupee shrink-0 -mr-0.5" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 3h12"></path>
@@ -715,8 +715,8 @@
                             <path d="M9 13c6.667 0 6.667-10 0-10"></path>
                           </svg><span>1000</span></span></span></td>
                   </tr>
-                  <tr class="bg-white">
-                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-black leading-tight">Half
+                  <tr class="bg-white dark:bg-[#000000]">
+                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-[#16100E] dark:text-white leading-tight">Half
                       Sangam B</td>
                     <td class="px-3 py-2.5 text-right w-[152px]"><span class="inline-flex w-full items-center justify-center rounded-md border border-borderColor bg-timeBg px-2 py-1.5 text-[13px] font-bold text-black leading-none"><span class="inline-flex items-center justify-center gap-0.5 whitespace-nowrap"><svg aria-hidden="true" class="lucide lucide-indian-rupee shrink-0 -mr-0.5" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 3h12"></path>
@@ -732,8 +732,8 @@
                             <path d="M9 13c6.667 0 6.667-10 0-10"></path>
                           </svg><span>1000</span></span></span></td>
                   </tr>
-                  <tr class="bg-white">
-                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-black leading-tight">Full
+                  <tr class="bg-white dark:bg-[#000000]">
+                    <td class="px-3 py-2.5 font-display text-[12px] font-bold uppercase text-[#16100E] dark:text-white leading-tight">Full
                       Sangam Digits</td>
                     <td class="px-3 py-2.5 text-right w-[152px]"><span class="inline-flex w-full items-center justify-center rounded-md border border-borderColor bg-timeBg px-2 py-1.5 text-[13px] font-bold text-black leading-none"><span class="inline-flex items-center justify-center gap-0.5 whitespace-nowrap"><svg aria-hidden="true" class="lucide lucide-indian-rupee shrink-0 -mr-0.5" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 3h12"></path>
@@ -7364,4 +7364,5 @@
   </style>
 </csext-root>
 
+<script src="/theme-toggle.js"></script>
 </body></html>

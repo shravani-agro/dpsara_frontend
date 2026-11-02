@@ -14,11 +14,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // Skip API routes, static files (images, css, js), next internals, and ouradminportal
+  // Skip API routes, static files (images, css, js, xml, txt), next internals, and ouradminportal
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
-    pathname.match(/\.(css|js|png|jpg|jpeg|svg|gif|ico|webp)$/) ||
+    pathname.match(/\.(css|js|png|jpg|jpeg|svg|gif|ico|webp|xml|txt)$/) ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml' ||
     pathname.startsWith('/ouradminportal')
   ) {
     return NextResponse.next();

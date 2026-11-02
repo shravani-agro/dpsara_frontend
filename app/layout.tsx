@@ -151,12 +151,14 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                var savedTheme = localStorage.getItem('dpsara_theme');
+                var savedTheme = localStorage.getItem('theme') || localStorage.getItem('dpsara_theme');
                 var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                 if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                  document.documentElement.setAttribute('data-theme', 'dark');
                   document.documentElement.classList.add('dark');
                   document.documentElement.classList.remove('light');
                 } else {
+                  document.documentElement.removeAttribute('data-theme');
                   document.documentElement.classList.add('light');
                   document.documentElement.classList.remove('dark');
                 }

@@ -197,11 +197,59 @@ export async function GET(request: Request, { params }: { params: { slug: string
             .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
             .join(' ');
 
-      $('title').text(`${marketDisplayName} ${isJodi ? 'Jodi' : 'Pana'} Chart | DPSara777`);
-      $('h1').text(`${marketDisplayName} Chart`);
+      const pageUrl = `https://dpsara777.com/${filePath}`;
+      const chartTitle = `${marketDisplayName} ${isJodi ? 'Jodi' : 'Pana'} Chart Today — Satta Matka Panel Record | DPSara777`;
+      const chartDesc = `Get live ${marketDisplayName} ${isJodi ? 'Jodi' : 'Pana'} chart records today on official DPSara777. Accurate historical winning records, open-close results, and daily updated Satta Matka pana jodi database.`;
+      const chartKeywords = `${marketDisplayName} ${isJodi ? 'jodi' : 'pana'} chart, ${marketDisplayName} matka result, ${marketDisplayName} panel record, satta matka ${marketDisplayName}, dpsara777 ${marketDisplayName}, ${marketDisplayName} open close`;
+
+      $('title').text(chartTitle);
+      $('h1').text(`${marketDisplayName} ${isJodi ? 'Jodi' : 'Pana'} Chart`);
       $('strong:contains("Chart Records")').text(
         `${marketDisplayName} ${isJodi ? 'Jodi' : 'Pana'} Chart Records.`
       );
+
+      // Comprehensive SEO Meta Tags
+      $('meta[name="description"]').attr('content', chartDesc);
+      if ($('meta[name="keywords"]').length) {
+        $('meta[name="keywords"]').attr('content', chartKeywords);
+      } else {
+        $('head').append(`<meta name="keywords" content="${chartKeywords}">`);
+      }
+
+      // Canonical & Hreflang
+      if ($('link[rel="canonical"]').length) {
+        $('link[rel="canonical"]').attr('href', pageUrl);
+      } else {
+        $('head').append(`<link rel="canonical" href="${pageUrl}">`);
+      }
+      if ($('link[rel="alternate"][hreflang="en-IN"]').length) {
+        $('link[rel="alternate"][hreflang="en-IN"]').attr('href', pageUrl);
+      } else {
+        $('head').append(`<link rel="alternate" hreflang="en-IN" href="${pageUrl}">`);
+      }
+
+      // OpenGraph
+      $('meta[property="og:title"]').attr('content', chartTitle);
+      $('meta[property="og:description"]').attr('content', chartDesc);
+      $('meta[property="og:url"]').attr('content', pageUrl);
+      $('meta[property="og:image"]').attr('content', 'https://dpsara777.com/dpsara.svg');
+
+      // Twitter Cards
+      $('meta[name="twitter:title"]').attr('content', chartTitle);
+      $('meta[name="twitter:description"]').attr('content', chartDesc);
+      $('meta[name="twitter:image"]').attr('content', 'https://dpsara777.com/dpsara.svg');
+
+      // Breadcrumb JSON-LD
+      const chartBreadcrumb = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://dpsara777.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Charts", "item": "https://dpsara777.com/all-satta-matka-chart.html" },
+          { "@type": "ListItem", "position": 3, "name": `${marketDisplayName} ${isJodi ? 'Jodi' : 'Pana'} Chart`, "item": pageUrl }
+        ]
+      };
+      $('head').append(`<script type="application/ld+json">${JSON.stringify(chartBreadcrumb)}</script>`);
 
       // Fetch historical data from rsboss_db via backend
       let history: { result_date: string; result: string }[] = [];
@@ -528,6 +576,83 @@ export async function GET(request: Request, { params }: { params: { slug: string
 
       // Inject client-side polling script
       $('body').append('<script src="/dynamic-homepage.js"></script>');
+    }
+
+    // Global Dark Theme & SEO Processing
+    // A. Ensure early theme initializer is always in head
+    if ($('#theme-initializer').length === 0) {
+      $('head').prepend(`
+        <script id="theme-initializer">
+          (function(){
+            try {
+              var t = localStorage.getItem("theme") || localStorage.getItem("dpsara_theme");
+              if (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                t = "dark";
+              }
+              if (t === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+                document.documentElement.classList.add("dark");
+                document.documentElement.classList.remove("light");
+              } else {
+                document.documentElement.removeAttribute("data-theme");
+                document.documentElement.classList.remove("dark");
+                document.documentElement.classList.add("light");
+              }
+            } catch (e) {}
+          })();
+        </script>
+      `);
+    }
+
+    // B. Header logo: support dual dark/light logos everywhere
+    $('header a[href*="index.html"], header a[href="/"]').find('img[src*="dpsara.svg"]').each((_, img) => {
+      if (!$(img).hasClass('dark:hidden')) {
+        $(img).addClass('dark:hidden');
+        if ($(img).parent().find('img[src*="dpsara-dark.svg"]').length === 0) {
+          $(img).after('<img alt="DPSara777" class="h-10 max-sm:h-[34px] w-auto block hidden dark:block" src="/dpsara-dark.svg">');
+        }
+      }
+    });
+
+    // C. Footer logo: support dual dark/light logos
+    $('footer img[src*="dpsara.svg"]').each((_, img) => {
+      if (!$(img).hasClass('dark:hidden')) {
+        $(img).addClass('dark:hidden');
+        if ($(img).parent().find('img[src*="dpsara-dark.svg"]').length === 0) {
+          $(img).after('<img alt="DPSara777" class="h-10 w-auto block hidden dark:block" src="/dpsara-dark.svg">');
+        }
+      }
+    });
+
+    // D. Theme toggle button styling: remove hardcoded white inline style
+    $('button[aria-label*="Theme"], button[title*="Theme"]').attr(
+      'style',
+      'background-color:var(--surface-bg);border-color:var(--border-color);color:var(--black-color)'
+    );
+
+    // E. Homepage specific SEO enhancements
+    if (filePath === 'index.html') {
+      const homeTitle = 'DPSara777 Official — Live Satta Matka Result Today | Free Jodi & Pana Charts';
+      const homeDesc = 'Skip fake clone sites. DPSara777.com is the original official hub for live Kalyan, Milan, Sridevi, Time Bazar results, full jodi/pana chart history, and official DPSara 777 app download — fast, verified, trusted.';
+      const homeKeywords = 'DPSara777 Official, DPSara 777 original website, DPSara live result today, DPSara Satta matka, DPSara777 app download, dpsara download APK, satta matka result today, kalyan chart dpsara, jodi chart, pana chart, DPSara Kalyan Result, official satta matka charts, DPSara Matka App, Kalyan Satta Matka Bazar';
+
+      $('title').text(homeTitle);
+      $('meta[name="description"]').attr('content', homeDesc);
+      if ($('meta[name="keywords"]').length) {
+        $('meta[name="keywords"]').attr('content', homeKeywords);
+      } else {
+        $('head').append(`<meta name="keywords" content="${homeKeywords}">`);
+      }
+      $('meta[property="og:title"]').attr('content', homeTitle);
+      $('meta[property="og:description"]').attr('content', homeDesc);
+      $('meta[property="og:url"]').attr('content', 'https://dpsara777.com/');
+      $('meta[name="twitter:title"]').attr('content', homeTitle);
+      $('meta[name="twitter:description"]').attr('content', homeDesc);
+    }
+
+    // F. Append theme toggle & interaction script
+    if ($('script[src="/theme-toggle.js"]').length === 0) {
+      $('body').append('<script src="/theme-toggle.js"></script>');
     }
 
     return new NextResponse($.html(), {
