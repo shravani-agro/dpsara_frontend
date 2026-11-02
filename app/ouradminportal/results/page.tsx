@@ -16,6 +16,7 @@ import {
 } from "@/components/ui";
 import { listMarkets, listResults, previewResult, bulkDeclareResults, deleteResult, rollbackResult, settlePendingBets } from "@/lib/admin";
 import { parseApiError } from "@/lib/error-parser";
+import { UserCell } from "@/components/UserCell";
 
 function calculateAnk(panna: string): string {
   const clean = panna.replace(/\D/g, "");
@@ -733,7 +734,15 @@ export default function ResultsPage() {
                   {preview.bets.map((b: any) => (
                     <tr key={b.id} className="border-t border-slate-100 dark:border-slate-800">
                       <td className="py-2.5 text-slate-400 font-mono">#{b.id}</td>
-                      <td className="font-medium text-slate-900 dark:text-white">{b.user_id}</td>
+                      <td>
+                        <UserCell
+                          userId={b.user_id}
+                          username={b.username || b.user_name}
+                          fullName={b.full_name}
+                          phone={b.phone || b.mobile_number}
+                          showId={false}
+                        />
+                      </td>
                       <td>
                         <Badge color={b.session === "open" ? "emerald" : "blue"}>
                           {b.session || "Open"}

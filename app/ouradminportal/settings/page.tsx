@@ -20,6 +20,7 @@ import {
   broadcastNotification,
   sendUserNotification,
 } from "@/lib/admin";
+import { UserSelect } from "@/components/UserSelect";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<any[]>([]);
@@ -237,8 +238,13 @@ export default function SettingsPage() {
 
       <Card title="Send Notification to User">
         <form onSubmit={submitUserNotification} className="space-y-4">
-          <Field label="User ID">
-            <Input required type="number" value={userNotifUserId} onChange={(e) => setUserNotifUserId(e.target.value)} placeholder="User ID" />
+          <Field label="Select User (Search by Name or Phone)">
+            <UserSelect
+              value={userNotifUserId}
+              onChange={(id) => setUserNotifUserId(id)}
+              placeholder="Search user by name, username or phone..."
+              required
+            />
           </Field>
           <Field label="Title">
             <Input required value={userNotifTitle} onChange={(e) => setUserNotifTitle(e.target.value)} placeholder="Notification title" />

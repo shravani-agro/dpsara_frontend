@@ -630,7 +630,14 @@ export async function GET(request: Request, { params }: { params: { slug: string
       'background-color:var(--surface-bg);border-color:var(--border-color);color:var(--black-color)'
     );
 
-    // E. Homepage specific SEO enhancements
+    // E. Global & Page-Specific SEO Enhancements
+    const canonicalUrl = `https://dpsara777.com/${filePath === 'index.html' ? '' : filePath}`;
+    if ($('link[rel="canonical"]').length === 0) {
+      $('head').append(`<link rel="canonical" href="${canonicalUrl}">`);
+    } else {
+      $('link[rel="canonical"]').attr('href', canonicalUrl);
+    }
+
     if (filePath === 'index.html') {
       const homeTitle = 'DPSara777 Official — Live Satta Matka Result Today | Free Jodi & Pana Charts';
       const homeDesc = 'Skip fake clone sites. DPSara777.com is the original official hub for live Kalyan, Milan, Sridevi, Time Bazar results, full jodi/pana chart history, and official DPSara 777 app download — fast, verified, trusted.';
@@ -646,8 +653,190 @@ export async function GET(request: Request, { params }: { params: { slug: string
       $('meta[property="og:title"]').attr('content', homeTitle);
       $('meta[property="og:description"]').attr('content', homeDesc);
       $('meta[property="og:url"]').attr('content', 'https://dpsara777.com/');
+      $('meta[property="og:site_name"]').attr('content', 'DPSara777 Official');
+      $('meta[property="og:type"]').attr('content', 'website');
+      $('meta[property="og:locale"]').attr('content', 'en_IN');
+      $('meta[name="twitter:card"]').attr('content', 'summary_large_image');
+      $('meta[name="twitter:site"]').attr('content', '@dpsara777');
       $('meta[name="twitter:title"]').attr('content', homeTitle);
       $('meta[name="twitter:description"]').attr('content', homeDesc);
+
+      // Organization & WebSite JSON-LD
+      const homeOrgSchema = {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "DPSara777",
+        "alternateName": ["DPSara", "DPSara 777", "DPSara Matka", "DPSara Booking"],
+        "url": "https://dpsara777.com",
+        "logo": "https://dpsara777.com/dpsara-dark.svg",
+        "sameAs": [
+          "https://t.me/dpsara777",
+          "https://wa.me/918377999777"
+        ],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+91 8377 999 777",
+          "contactType": "customer service",
+          "availableLanguage": ["English", "Hindi"]
+        }
+      };
+
+      const homeWebSiteSchema = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "DPSara777 Official",
+        "url": "https://dpsara777.com",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://dpsara777.com/{search_term_string}_jodi.html",
+          "query-input": "required name=search_term_string"
+        }
+      };
+
+      const homeSoftwareSchema = {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "DPSara 777 Satta Matka Official App",
+        "operatingSystem": "Android",
+        "applicationCategory": "GameApplication",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "INR"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.9",
+          "ratingCount": "18450",
+          "bestRating": "5",
+          "worstRating": "1"
+        }
+      };
+
+      const homeFaqSchema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is the official website of DPSara777?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "DPSara777.com is the original official website for live Satta Matka results, Jodi and Pana charts, and the verified Android APK download."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How fast are live Matka results updated on DPSara777?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Results for Kalyan, Milan Day, Rajdhani Night, Time Bazar, and Main Bazar are updated in real-time within seconds of official declaration."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Where can I view historical Jodi and Pana charts?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "You can access complete date-wise historical charts for all major markets on DPSara777 under the All Matka Charts section."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does the Jodi bet settlement work?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Jodi bets depend on both the Open Ank and Close Ank. A Jodi bet remains pending after Open declaration and is settled once the Close result is announced."
+            }
+          }
+        ]
+      };
+
+      $('head').append(`
+        <script type="application/ld+json">${JSON.stringify(homeOrgSchema)}</script>
+        <script type="application/ld+json">${JSON.stringify(homeWebSiteSchema)}</script>
+        <script type="application/ld+json">${JSON.stringify(homeSoftwareSchema)}</script>
+        <script type="application/ld+json">${JSON.stringify(homeFaqSchema)}</script>
+      `);
+    } else if (filePath.includes('_jodi.html') || filePath.includes('_pana.html')) {
+      // Dynamic Chart Pages SEO
+      const isJodi = filePath.includes('_jodi.html');
+      const cleanSlug = filePath.replace(/_(jodi|pana)\.html$/, '');
+      const marketNameFormatted = cleanSlug
+        .split('-')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+      const chartType = isJodi ? 'Jodi' : 'Pana';
+
+      const chartTitle = `${marketNameFormatted} ${chartType} Chart Record 2020-2026 — Live Results | DPSara777`;
+      const chartDesc = `Official date-wise ${marketNameFormatted} ${chartType} chart history. Track past open and close outcomes, red brackets, cut digits, and winning patterns on DPSara777.`;
+
+      $('title').text(chartTitle);
+      $('meta[name="description"]').attr('content', chartDesc);
+      $('meta[property="og:title"]').attr('content', chartTitle);
+      $('meta[property="og:description"]').attr('content', chartDesc);
+      $('meta[property="og:url"]').attr('content', canonicalUrl);
+      $('meta[name="twitter:title"]').attr('content', chartTitle);
+      $('meta[name="twitter:description"]').attr('content', chartDesc);
+
+      const chartBreadcrumb = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://dpsara777.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "All Charts",
+            "item": "https://dpsara777.com/all-satta-matka-chart.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": `${marketNameFormatted} ${chartType} Chart`,
+            "item": canonicalUrl
+          }
+        ]
+      };
+
+      $('head').append(`
+        <script type="application/ld+json">${JSON.stringify(chartBreadcrumb)}</script>
+      `);
+    } else if (filePath.startsWith('blog_')) {
+      // Dynamic Blog Pages SEO
+      const blogBreadcrumb = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://dpsara777.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Blog & Guides",
+            "item": "https://dpsara777.com/blog.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": $('h1').text() || 'Matka Guide',
+            "item": canonicalUrl
+          }
+        ]
+      };
+
+      $('head').append(`
+        <script type="application/ld+json">${JSON.stringify(blogBreadcrumb)}</script>
+      `);
     }
 
     // F. Append theme toggle & interaction script

@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useUserModal } from "@/components/UserModalContext";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { cn } from "@/components/ui";
+import { getCachedUser, resolveUser } from "@/lib/user-cache";
 
 interface UserCellProps {
   userId?: number | string | null;
@@ -25,22 +26,50 @@ export function UserCell({
   avatarSize = "sm",
   className = "",
   showPhone = true,
-  showId = true,
+  showId = false, // ID is hidden by default to prioritize direct user names
   clickable = true,
 }: UserCellProps) {
   const { openUser } = useUserModal();
 
   const idNum = userId ? Number(userId) : null;
-  const displayName = fullName || username || (idNum ? `User #${idNum}` : "Unknown User");
-  const phoneStr = phone ? String(phone).trim() : "";
+  const cached = idNum ? getCachedUser(idNum) : null;
+
+  const [resolvedName, setResolvedName] = useState<string | null>(
+    fullName || username || cached?.full_name || cached?.username || null
+  );
+  const [resolvedPhone, setResolvedPhone] = useState<string | null>(
+    phone ? String(phone) : cached?.phone || cached?.mobile_number ? String(cached?.phone || cached?.mobile_number) : null
+  );
+
+  useEffect(() => {
+    const currentName = fullName || username;
+    if (idNum && (!currentName || currentName.trim() === "" || currentName.toLowerCase().startsWith("user #"))) {
+      resolveUser(idNum).then((u) => {
+        if (u) {
+          const name = u.full_name || u.username;
+          if (name) setResolvedName(name);
+          const ph = u.phone || u.mobile_number;
+          if (ph) setResolvedPhone(String(ph));
+        }
+      });
+    } else if (currentName) {
+      setResolvedName(currentName);
+    }
+    if (phone) {
+      setResolvedPhone(String(phone));
+    }
+  }, [idNum, fullName, username, phone]);
+
+  const displayName = resolvedName || (idNum ? `User` : "Unknown User");
+  const phoneStr = resolvedPhone ? String(resolvedPhone).trim() : "";
   const initial = (displayName[0] || "U").toUpperCase();
 
   const handleClick = (e: React.MouseEvent) => {
     if (!clickable || !idNum) return;
     e.stopPropagation();
     openUser(idNum, {
-      username: username || undefined,
-      full_name: fullName || undefined,
+      username: username || cached?.username || undefined,
+      full_name: fullName || resolvedName || cached?.full_name || undefined,
       phone: phoneStr || undefined,
     });
   };
@@ -107,3 +136,4 @@ export function UserCell({
     </div>
   );
 }
+

@@ -33,6 +33,7 @@ import {
   getUserContacts,
   getUserLocations,
 } from "@/lib/admin";
+import { primeUserCache } from "@/lib/user-cache";
 import { parseApiError } from "@/lib/error-parser";
 import { fmtMoney, fmtNum, fmtDate } from "@/lib/format";
 import { toast } from "@/components/Toast";
@@ -101,6 +102,7 @@ export default function UsersPage() {
       if (filters.dateTo) params.registered_to = `${filters.dateTo}T23:59:59`;
       const data = await listUsers(params);
       setUsers(data);
+      primeUserCache(data);
     } catch (e: any) {
       setError(parseApiError(e, "Failed to load users"));
     } finally {

@@ -59,55 +59,71 @@ if (typeof window !== "undefined") {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://dpsara.in"),
+  metadataBase: new URL("https://dpsara777.com"),
   title: {
-    default: "DPSara | Satta Matka Booking Platform",
-    template: `%s | DPSara Booking`,
+    default: "DPSara777 | Original & Official Website | Live Satta Matka Results & Charts",
+    template: `%s | DPSara777 Official`,
   },
   description:
-    "DPSara is the trusted satta matka booking platform offering instant withdrawals, real-time results, and 24/7 support. Play responsibly and win big!",
+    "Skip fake clone sites. DPSara777.com is the original official hub for live Kalyan, Milan, Sridevi, Time Bazar results, full jodi/pana chart history, and official DPSara 777 app download — fast, verified, trusted.",
   keywords: [
-    "satta matka",
-    "satta matka booking",
-    "satta matka results",
-    "satta matka today",
-    "online satta matka",
-    "matka result",
-    "matka guessing",
-    "Indian matka",
-    "satta matka game",
-    "satta matka app",
-    "withdrawal",
-    "secure gaming",
-    "win real money",
+    "DPSara777 Official",
+    "DPSara 777 original website",
+    "DPSara live result today",
+    "DPSara Satta matka",
+    "DPSara777 app download",
+    "dpsara download APK",
+    "satta matka result today",
+    "kalyan chart dpsara",
+    "jodi chart",
+    "pana chart",
+    "DPSara Kalyan Result",
+    "official satta matka charts",
+    "DPSara Matka App",
+    "Kalyan Satta Matka Bazar",
+    "fastest matka results",
+    "online matka play",
   ],
-  authors: [{ name: "DPSara Team" }],
-  creator: "DPSara",
-  publisher: "DPSara",
+  authors: [{ name: "DPSara777 Team" }],
+  creator: "DPSara777",
+  publisher: "DPSara777",
+  alternates: {
+    canonical: "https://dpsara777.com/",
+    languages: {
+      "en-IN": "https://dpsara777.com/",
+      "hi-IN": "https://dpsara777.com/",
+    },
+  },
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://dpsara.in",
-    siteName: "DPSara Booking",
-    title: "DPSara | Satta Matka Booking Platform",
+    url: "https://dpsara777.com/",
+    siteName: "DPSara777 Official",
+    title: "DPSara777 | Original & Official Website | Live Satta Matka Results & Charts",
     description:
-      "DPSara is the trusted satta matka booking platform offering instant withdrawals, real-time results, and 24/7 support. Play responsibly and win big!",
+      "Skip fake clone sites. DPSara777.com is the original official hub for live Kalyan, Milan, Sridevi, Time Bazar results, full jodi/pana chart history, and official DPSara 777 app download.",
     images: [
       {
-        url: "/logo.svg",
-        width: 800,
-        height: 600,
-        alt: "DPSara Logo",
+        url: "/images/about-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "DPSara777 Official Satta Matka Hub",
+      },
+      {
+        url: "/dpsara-dark.svg",
+        width: 600,
+        height: 200,
+        alt: "DPSara777 Logo",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "DPSara | Satta Matka Booking Platform",
+    title: "DPSara777 | Original & Official Website | Live Satta Matka Results & Charts",
     description:
-      "Instant withdrawals, real-time results, and 24/7 support. Play responsibly and win big!",
-    creator: "@DPSara",
-    images: ["/logo.svg"],
+      "Original official platform for live Kalyan, Milan, Sridevi, Time Bazar results, full charts, and official app download.",
+    creator: "@dpsara777",
+    images: ["/images/about-image.jpg"],
   },
   robots: {
     index: true,
@@ -125,14 +141,61 @@ export const metadata: Metadata = {
   },
 };
 
+const orgSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "DPSara777",
+  alternateName: ["DPSara", "DPSara 777", "DPSara Matka", "DPSara Booking"],
+  url: "https://dpsara777.com",
+  logo: "https://dpsara777.com/dpsara-dark.svg",
+  sameAs: [
+    "https://t.me/dpsara777",
+    "https://wa.me/918377999777",
+  ],
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "+91 8377 999 777",
+    contactType: "customer service",
+    availableLanguage: ["English", "Hindi"],
+  },
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "DPSara777",
+  alternateName: "DPSara Satta Matka Results & Charts",
+  url: "https://dpsara777.com",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://dpsara777.com/{search_term_string}_jodi.html",
+    "query-input": "required name=search_term_string",
+  },
+};
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en-IN" suppressHydrationWarning>
       <head>
+        {/* Preconnect to Font & CDN domains for Core Web Vitals optimization */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://backend.dpsara777.com" />
+
+        {/* Global Structured Data JSON-LD */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+
         {/* Google tag (gtag.js) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18397257443"></script>
         <script

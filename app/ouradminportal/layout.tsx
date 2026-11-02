@@ -10,6 +10,7 @@ import { ToastContainer } from "@/components/Toast";
 import { CommandPalette } from "@/components/CommandPalette";
 import { UserModalProvider } from "@/components/UserModalContext";
 import { getWithdrawalCounts } from "@/lib/admin";
+import { prefetchAllUsers } from "@/lib/user-cache";
 
 function playWithdrawalChime() {
   try {
@@ -204,6 +205,8 @@ export default function DashboardLayout({
     if (isLoginPage) return;
     if (!loading && !authenticated) {
       router.replace("/ouradminportal/login");
+    } else if (authenticated) {
+      prefetchAllUsers();
     }
   }, [loading, authenticated, isLoginPage, router]);
 

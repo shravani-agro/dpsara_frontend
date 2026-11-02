@@ -1,11 +1,11 @@
 {
-  "name": "SattaAdmin",
-  "short_name": "SattaAdmin",
-  "description": "Satta Administrator Panel",
+  "name": "DPSara777 Official — Live Satta Matka",
+  "short_name": "DPSara777",
+  "description": "Original & Official Website for Live Satta Matka Results Today, Free Kalyan Jodi & Pana Charts, and Verified App Download.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#brand-600",
+  "background_color": "#0d1117",
+  "theme_color": "#F59E0B",
   "orientation": "portrait",
   "icons": [
     {
@@ -14,12 +14,12 @@
       "type": "image/x-icon"
     },
     {
-      "src": "/logo.svg",
-      "type": "image/svg+xml",
-      "sizes": "192x192"
+      "src": "/images/logo/icon/dpsara777-favicon-180.png",
+      "type": "image/png",
+      "sizes": "180x180"
     },
     {
-      "src": "/logo.svg",
+      "src": "/images/logo/icon/dpsara777-favicon-512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
