@@ -366,17 +366,30 @@ export default function UsersPage() {
                 rows={users}
                 onRowClick={openDetail}
                 columns={[
-                  { key: "id", header: "ID", className: "w-12 text-slate-400" },
                   {
-                    key: "username",
-                    header: "Username",
-                    render: (u) => (
-                      <span className="font-medium text-slate-900 dark:text-slate-100">
-                        {u.full_name || u.username}
-                        {u.username === "admin" && <Badge color="brand" className="ml-2">Owner</Badge>}
-                        {u.auth_provider === "google" && <Badge color="blue" className="ml-2">Google signed in</Badge>}
-                      </span>
-                    ),
+                    key: "name",
+                    header: "Name",
+                    render: (u) => {
+                      const displayName = u.full_name || u.username;
+                      const initial = (displayName?.[0] || "U").toUpperCase();
+                      return (
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl font-bold bg-gradient-to-br from-amber-500/20 to-brand-500/20 text-brand-700 dark:text-brand-300 ring-1 ring-inset ring-brand-500/30 text-xs">
+                            {initial}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">
+                              {displayName}
+                            </span>
+                            {u.full_name && u.username && (
+                              <span className="text-[11px] text-slate-400 block truncate">@{u.username}</span>
+                            )}
+                          </div>
+                          {u.username === "admin" && <Badge color="brand" className="ml-2">Owner</Badge>}
+                          {u.auth_provider === "google" && <Badge color="blue" className="ml-2">Google signed in</Badge>}
+                        </div>
+                      );
+                    },
                   },
                   {
                     key: "phone",
@@ -464,10 +477,10 @@ export default function UsersPage() {
                               )}
                             </div>
                             <div className="flex items-center gap-1.5 text-[11px] text-slate-400 leading-tight mt-1 flex-wrap">
-                              <span className="font-mono text-slate-500 font-medium">#{u.id}</span>
+                              {u.username && u.full_name && <span>@{u.username}</span>}
                               {u.phone || u.mobile_number ? (
                                 <>
-                                  <span>•</span>
+                                  {u.username && u.full_name && <span>•</span>}
                                   <WhatsAppLink
                                     phone={u.phone || u.mobile_number}
                                     userName={displayName}

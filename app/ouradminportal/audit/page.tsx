@@ -140,7 +140,7 @@ export default function AuditPage() {
                   {filteredLogs.map((l) => (
                     <tr key={l.id} className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="py-3 font-mono text-xs text-slate-400">#{l.id}</td>
-                      <td className="font-semibold text-slate-900 dark:text-slate-100">{l.admin_id}</td>
+                      <td className="font-semibold text-slate-900 dark:text-slate-100">{l.admin_username || l.username || (l.admin_id ? `Admin (${l.admin_id})` : "Admin")}</td>
                       <td>
                         <Badge color="violet" className="font-mono text-xs">{l.action_type}</Badge>
                       </td>
