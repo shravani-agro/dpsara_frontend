@@ -185,8 +185,9 @@ export default function RegularBidDataPage() {
         <div className="flex flex-col gap-1 w-full sm:w-48">
           <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Session</label>
           <Select value={session} onChange={(e) => setSession(e.target.value)}>
-            <option value="open">Open</option>
-            <option value="close">Close</option>
+            <option value="open">Open Session</option>
+            <option value="close">Close Session</option>
+            <option value="jodi">Full / Jodi (All)</option>
           </Select>
         </div>
       </div>

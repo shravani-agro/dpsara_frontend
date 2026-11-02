@@ -27,6 +27,20 @@ const statusColor: Record<string, any> = {
   cancelled: "slate",
 };
 
+const isJodiOrSangam = (type?: string, session?: string) => {
+  const t = (type || "").toLowerCase();
+  const s = (session || "").toLowerCase();
+  return (
+    s === "jodi" ||
+    t === "jodi" ||
+    t === "jodi_digit" ||
+    t === "red_bracket" ||
+    t === "group_jodi" ||
+    t === "digit_based_jodi" ||
+    t.includes("sangam")
+  );
+};
+
 export default function BidsPage() {
   const [items, setItems] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,7 +91,13 @@ export default function BidsPage() {
           .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
           .join(" ");
 
-        return { ...b, formatted_bet_type: formattedType };
+        const fullJodi = isJodiOrSangam(type, b.session);
+
+        return {
+          ...b,
+          formatted_bet_type: formattedType,
+          is_jodi_sangam: fullJodi,
+        };
       });
       setItems(processed);
     } catch (e: any) {
@@ -250,14 +270,32 @@ export default function BidsPage() {
                       </td>
                       <td className="font-medium text-slate-900 dark:text-slate-100">{b.market_name}</td>
                       <td>
-                        <span className="uppercase text-[11px] font-bold text-slate-500">{b.session || "—"}</span>
+                        {(b as any).is_jodi_sangam ? (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20"
+                            title="Jodi/Sangam spans both Open and Close results"
+                          >
+                            Full / Jodi
+                          </span>
+                        ) : (
+                          <span className="uppercase text-[11px] font-bold text-slate-500">{b.session || "—"}</span>
+                        )}
                       </td>
                       <td className="text-xs text-slate-500">{(b as any).formatted_bet_type || b.bet_type}</td>
                       <td className="font-mono font-bold text-slate-900 dark:text-slate-100">{b.selected_number}</td>
                       <td className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{fmtMoney(b.amount)}</td>
                       <td className="font-mono text-xs text-slate-600 dark:text-slate-300">{fmtMoney(b.potential_win)}</td>
                       <td>
-                        <Badge color={statusColor[b.status] ?? "slate"}>{b.status}</Badge>
+                        {b.status === "pending" && (b as any).is_jodi_sangam ? (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                            title="Jodi bet remains PENDING until both Open and Close results are announced. It will not be marked won or lost before Close result."
+                          >
+                            ⏳ Pending (Awaiting Close)
+                          </span>
+                        ) : (
+                          <Badge color={statusColor[b.status] ?? "slate"}>{b.status}</Badge>
+                        )}
                       </td>
                       <td className="text-xs text-slate-400 whitespace-nowrap">
                         {fmtDateTime(b.placed_at || b.created_at)}
@@ -313,13 +351,29 @@ export default function BidsPage() {
                       phone={b.phone || (b as any).mobile_number}
                       avatarSize="sm"
                     />
-                    <Badge color={statusColor[b.status] ?? "slate"}>{b.status}</Badge>
+                    {b.status === "pending" && (b as any).is_jodi_sangam ? (
+                      <span
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                        title="Jodi bet remains PENDING until both Open and Close results are announced."
+                      >
+                        ⏳ Pending (Awaiting Close)
+                      </span>
+                    ) : (
+                      <Badge color={statusColor[b.status] ?? "slate"}>{b.status}</Badge>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between text-xs bg-slate-50 dark:bg-slate-850 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
                     <div>
-                      <div className="font-bold text-slate-900 dark:text-slate-100">
-                        {b.market_name} · <span className="uppercase text-[11px] text-slate-500">{b.session}</span>
+                      <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 flex-wrap">
+                        <span>{b.market_name}</span>
+                        {(b as any).is_jodi_sangam ? (
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
+                            Full / Jodi
+                          </span>
+                        ) : (
+                          <span className="uppercase text-[11px] text-slate-500">{b.session}</span>
+                        )}
                       </div>
                       <div className="text-[11px] text-slate-400 mt-0.5">
                         {(b as any).formatted_bet_type || b.bet_type} | Digit:{" "}

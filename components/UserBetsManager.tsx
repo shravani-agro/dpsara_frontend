@@ -318,7 +318,7 @@ export function UserBetsManager({ bids, loading = false }: UserBetsManagerProps)
                     </span>
                     {b.session && (
                       <span className="shrink-0 px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-[9px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                        {b.session}
+                        {((b.bet_type || "").toLowerCase().includes("jodi") || (b.bet_type || "").toLowerCase().includes("sangam") || (b.session || "").toLowerCase() === "jodi") ? "Full / Jodi" : b.session}
                       </span>
                     )}
                   </div>
@@ -363,7 +363,13 @@ export function UserBetsManager({ bids, loading = false }: UserBetsManagerProps)
                     color={isWon ? "emerald" : isLost ? "red" : "amber"}
                     className="font-bold text-[10px] tracking-wide"
                   >
-                    {isWon ? "WON 🎯" : isLost ? "LOST" : "PENDING ⏳"}
+                    {isWon
+                      ? "WON 🎯"
+                      : isLost
+                      ? "LOST"
+                      : ((b.bet_type || "").toLowerCase().includes("jodi") || (b.bet_type || "").toLowerCase().includes("sangam"))
+                      ? "Pending (Awaiting Close)"
+                      : "PENDING ⏳"}
                   </Badge>
                 </div>
               </div>
