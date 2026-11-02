@@ -144,12 +144,34 @@ export default function RegularBidDataPage() {
 
       <div className="flex flex-wrap gap-4 items-center bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
         <div className="flex flex-col gap-1 w-full sm:w-48">
-          <label className="text-xs font-medium text-slate-400">Date</label>
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-slate-400">Date</label>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setBidDate(format(new Date(), "yyyy-MM-dd"))}
+                className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 hover:bg-brand-50 hover:text-brand-600 text-slate-600 transition"
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const y = new Date();
+                  y.setDate(y.getDate() - 1);
+                  setBidDate(format(y, "yyyy-MM-dd"));
+                }}
+                className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 hover:bg-brand-50 hover:text-brand-600 text-slate-600 transition"
+              >
+                Yesterday
+              </button>
+            </div>
+          </div>
           <input
             type="date"
             value={bidDate}
             onChange={(e) => setBidDate(e.target.value)}
-            className="input-base"
+            className="input-base text-xs"
           />
         </div>
         <div className="flex flex-col gap-1 w-full sm:w-48">

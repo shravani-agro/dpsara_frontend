@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, Select, Spinner, ErrorMsg, StatCard, PageHeader } from "@/components/ui";
+import { DateRangeFilter } from "@/components/DateRangeFilter";
+import { UserCell } from "@/components/UserCell";
 import { motion } from "framer-motion";
 import {
   getOverviewStats,
@@ -43,6 +45,8 @@ export default function DashboardPage() {
   const [growth, setGrowth] = useState<any[]>([]);
   const [depWit, setDepWit] = useState<any[]>([]);
   const [period, setPeriod] = useState("daily");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,7 +55,7 @@ export default function DashboardPage() {
     setError(null);
     try {
       const [s, m, t, g, dw] = await Promise.all([
-        getOverviewStats(),
+        getOverviewStats(dateFrom || undefined, dateTo || undefined),
         getMarketSummaries(),
         getTopBettors(5),
         getUserGrowth(30),
@@ -72,7 +76,7 @@ export default function DashboardPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [period]);
+  }, [period, dateFrom, dateTo]);
 
   if (loading && !stats) return <Spinner className="min-h-[60vh]" />;
 
@@ -105,6 +109,28 @@ export default function DashboardPage() {
           </div>
         }
       />
+
+      {/* Intelligent Date Range Filter */}
+      <div className="p-3 sm:p-4 rounded-2xl bg-white/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 backdrop-blur-md shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              📊 Analytics Time Filter
+            </span>
+            {(dateFrom || dateTo) && (
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-700 dark:text-brand-300 font-semibold border border-brand-500/20">
+                {dateFrom || "Start"} → {dateTo || "Today"}
+              </span>
+            )}
+          </div>
+        </div>
+        <DateRangeFilter
+          onFilterChange={({ dateFrom: df, dateTo: dt }) => {
+            setDateFrom(df);
+            setDateTo(dt);
+          }}
+        />
+      </div>
 
       <ErrorMsg msg={error} />
 
@@ -182,9 +208,10 @@ export default function DashboardPage() {
         transition={{ duration: 0.5, delay: 0.6 }}
         className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2"
       >
-        <Card title="Top Bettors" subtitle="Highest net profit/loss">
-          <div className="table-wrap">
-            <table className="w-full min-w-[560px] text-sm">
+        <Card title="Top Bettors" subtitle="Highest net profit/loss (Click user for full details)">
+          {/* Desktop Table View */}
+          <div className="hidden sm:block table-wrap">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
                   <th className="py-2.5 font-medium">User</th>
@@ -195,22 +222,45 @@ export default function DashboardPage() {
               </thead>
               <tbody>
                 {topBettors.map((b) => (
-                  <tr key={b.user_id} className="border-t border-slate-100 transition-colors hover:bg-slate-50">
-                    <td className="py-3 font-medium text-slate-900">
-                      {b.username}
-                      <span className="ml-1.5 text-xs text-slate-400">#{b.user_id}</span>
+                  <tr key={b.user_id} className="border-t border-slate-100 dark:border-slate-800 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td className="py-3">
+                      <UserCell userId={b.user_id} username={b.username} />
                     </td>
-                    <td className="py-3 text-slate-600">{fmtMoney(b.total_wagered)}</td>
-                    <td className="py-3 text-slate-600">{fmtMoney(b.total_won)}</td>
-                    <td className={`py-3 font-medium ${b.net_pl >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <td className="py-3 text-slate-600 dark:text-slate-300 font-mono text-xs">{fmtMoney(b.total_wagered)}</td>
+                    <td className="py-3 text-slate-600 dark:text-slate-300 font-mono text-xs">{fmtMoney(b.total_won)}</td>
+                    <td className={`py-3 font-mono font-bold text-xs ${b.net_pl >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
                       {b.net_pl >= 0 ? "+" : ""}{fmtMoney(b.net_pl)}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {topBettors.length === 0 && <p className="py-8 text-center text-sm text-slate-400">No betting activity yet</p>}
           </div>
+
+          {/* Mobile High-Density Cards */}
+          <div className="sm:hidden space-y-2">
+            {topBettors.map((b) => (
+              <div
+                key={b.user_id}
+                className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 flex items-center justify-between gap-3 shadow-2xs"
+              >
+                <div className="min-w-0 flex-1">
+                  <UserCell userId={b.user_id} username={b.username} />
+                  <div className="mt-1 text-[11px] text-slate-400">
+                    Wagered: <span className="font-mono text-slate-600 dark:text-slate-300">{fmtMoney(b.total_wagered)}</span>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Net P/L</span>
+                  <span className={`font-mono text-xs font-black ${b.net_pl >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                    {b.net_pl >= 0 ? "+" : ""}{fmtMoney(b.net_pl)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {topBettors.length === 0 && <p className="py-8 text-center text-sm text-slate-400">No betting activity yet</p>}
         </Card>
 
         <Card title="Market Leaderboard" subtitle="Top markets by total stakes">

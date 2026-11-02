@@ -146,3 +146,31 @@ export function format(dateInput: any, formatStr: string = "yyyy-MM-dd"): string
     return tokens[match] !== undefined ? tokens[match] : match;
   });
 }
+
+/**
+ * Format a phone number into a direct WhatsApp Web / App chat link.
+ * Handles standard 10-digit Indian numbers, leading zeros, +91, international formats, and strips non-digits.
+ */
+export function formatWhatsAppUrl(
+  rawPhone: string | number | null | undefined,
+  message?: string
+): string | null {
+  if (!rawPhone) return null;
+  const digits = String(rawPhone).replace(/\D/g, "");
+  if (!digits || digits.length < 7) return null;
+
+  let normalized = digits;
+  // If 10 digits (standard Indian mobile format, e.g. 9876543210), prepend country code 91
+  if (normalized.length === 10) {
+    normalized = "91" + normalized;
+  } else if (normalized.length === 11 && normalized.startsWith("0")) {
+    normalized = "91" + normalized.slice(1);
+  }
+
+  let url = `https://wa.me/${normalized}`;
+  if (message) {
+    url += `?text=${encodeURIComponent(message)}`;
+  }
+  return url;
+}
+

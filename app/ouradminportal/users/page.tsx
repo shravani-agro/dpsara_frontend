@@ -17,6 +17,7 @@ import {
   DataTable,
   EmptyState,
   Field,
+  cn,
 } from "@/components/ui";
 import {
   listUsers,
@@ -35,6 +36,9 @@ import {
 import { parseApiError } from "@/lib/error-parser";
 import { fmtMoney, fmtNum, fmtDate } from "@/lib/format";
 import { toast } from "@/components/Toast";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
+import { UserBetsManager } from "@/components/UserBetsManager";
+import { DateRangeFilter, DatePreset } from "@/components/DateRangeFilter";
 
 function BalanceChip({ balance }: { balance: number }) {
   const value = Number(balance || 0);
@@ -56,7 +60,13 @@ export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState({ username: "", is_active: "" });
+  const [filters, setFilters] = useState({
+    username: "",
+    is_active: "",
+    dateFrom: "",
+    dateTo: "",
+    datePreset: "all" as DatePreset,
+  });
   const [submitting, setSubmitting] = useState(false);
 
   const [selected, setSelected] = useState<any>(null);
@@ -85,8 +95,10 @@ export default function UsersPage() {
     setError(null);
     try {
       const params: any = {};
-      if (filters.username) params.username = filters.username;
+      if (filters.username.trim()) params.username = filters.username.trim();
       if (filters.is_active !== "") params.is_active = filters.is_active === "true";
+      if (filters.dateFrom) params.registered_from = `${filters.dateFrom}T00:00:00`;
+      if (filters.dateTo) params.registered_to = `${filters.dateTo}T23:59:59`;
       const data = await listUsers(params);
       setUsers(data);
     } catch (e: any) {
@@ -99,6 +111,18 @@ export default function UsersPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const targetId = params.get("userId") || params.get("id");
+    if (targetId) {
+      const numId = parseInt(targetId, 10);
+      if (!isNaN(numId)) {
+        openDetail({ id: numId });
+      }
+    }
+  }, []);
 
   async function openDetail(user: any) {
     setSelected(user);
@@ -113,7 +137,7 @@ export default function UsersPage() {
     try {
       const [d, b, dep, w, contacts, locations] = await Promise.all([
         getUserDetailed(user.id),
-        listBids({ user_id: user.id, limit: 50 }),
+        listBids({ user_id: user.id, limit: 150 }),
         listDeposits({ user_id: user.id, limit: 50 }),
         listWithdrawals({ user_id: user.id, limit: 50 }),
         getUserContacts(user.id),
@@ -227,38 +251,91 @@ export default function UsersPage() {
 
       <ErrorMsg msg={error} />
 
-      <Card>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Input
-            placeholder="Search username…"
-            value={filters.username}
-            onChange={(e) => setFilters({ ...filters, username: e.target.value })}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") load();
-            }}
-          />
-          <Select
-            value={filters.is_active}
-            onChange={(e) => setFilters({ ...filters, is_active: e.target.value })}
-          >
-            <option value="">All status</option>
-            <option value="true">Active</option>
-            <option value="false">Inactive</option>
-          </Select>
-          <div className="flex gap-2">
-            <Button onClick={load} className="w-full sm:w-auto">
+      <Card bodyClassName="p-3.5 space-y-3">
+        {/* Top Search Input with clear button and submit */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">🔍</span>
+            <input
+              type="text"
+              placeholder="Search username, 10-digit mobile, full name, or ID…"
+              value={filters.username}
+              onChange={(e) => setFilters((prev) => ({ ...prev, username: e.target.value }))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") load();
+              }}
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 py-2 pl-9 pr-9 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+            />
+            {filters.username && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFilters((prev) => ({ ...prev, username: "" }));
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
+            {[
+              { id: "", label: "All Users" },
+              { id: "true", label: "Active" },
+              { id: "false", label: "Inactive" },
+            ].map((st) => {
+              const active = filters.is_active === st.id;
+              return (
+                <button
+                  key={st.id}
+                  type="button"
+                  onClick={() => setFilters((prev) => ({ ...prev, is_active: st.id }))}
+                  className={cn(
+                    "px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95",
+                    active
+                      ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                  )}
+                >
+                  {st.label}
+                </button>
+              );
+            })}
+
+            <Button onClick={load} className="h-9 px-4 text-xs font-bold shrink-0">
               Search
             </Button>
-            {(filters.username || filters.is_active !== "") && (
+
+            {(filters.username || filters.is_active !== "" || filters.datePreset !== "all") && (
               <Button
                 variant="outline"
-                onClick={() => setFilters({ username: "", is_active: "" })}
-                className="px-3"
+                onClick={() =>
+                  setFilters({
+                    username: "",
+                    is_active: "",
+                    dateFrom: "",
+                    dateTo: "",
+                    datePreset: "all",
+                  })
+                }
+                className="h-9 px-3 text-xs shrink-0 text-rose-600 border-rose-200 hover:bg-rose-50"
               >
-                Reset
+                Reset ✕
               </Button>
             )}
           </div>
+        </div>
+
+        {/* Date Filter Bar */}
+        <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+          <DateRangeFilter
+            initialPreset={filters.datePreset}
+            onFilterChange={({ dateFrom, dateTo, preset }) => {
+              setFilters((prev) => ({ ...prev, dateFrom, dateTo, datePreset: preset }));
+            }}
+            compact
+          />
         </div>
       </Card>
 
@@ -297,6 +374,17 @@ export default function UsersPage() {
                         {u.username === "admin" && <Badge color="brand" className="ml-2">Owner</Badge>}
                         {u.auth_provider === "google" && <Badge color="blue" className="ml-2">Google signed in</Badge>}
                       </span>
+                    ),
+                  },
+                  {
+                    key: "phone",
+                    header: "Phone / WhatsApp",
+                    render: (u) => (
+                      <WhatsAppLink
+                        phone={u.phone || u.mobile_number}
+                        userName={u.full_name || u.username}
+                        variant="pill"
+                      />
                     ),
                   },
                   { key: "balance", header: "Balance", render: (u) => <BalanceChip balance={u.wallet_balance} /> },
@@ -373,12 +461,16 @@ export default function UsersPage() {
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 leading-tight mt-0.5">
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 leading-tight mt-1 flex-wrap">
                               <span className="font-mono text-slate-500 font-medium">#{u.id}</span>
-                              {u.mobile_number || u.phone ? (
+                              {u.phone || u.mobile_number ? (
                                 <>
                                   <span>•</span>
-                                  <span className="truncate">{u.mobile_number || u.phone}</span>
+                                  <WhatsAppLink
+                                    phone={u.phone || u.mobile_number}
+                                    userName={displayName}
+                                    variant="inline"
+                                  />
                                 </>
                               ) : u.created_at ? (
                                 <>
@@ -466,7 +558,27 @@ export default function UsersPage() {
                     </div>
 
                     <Card title="Profile Information">
+                      {(selected.phone || selected.mobile_number) && (
+                        <div className="mb-4 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
+                              WhatsApp Phone Contact
+                            </p>
+                            <p className="font-mono text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+                              {selected.phone || selected.mobile_number}
+                            </p>
+                          </div>
+                          <WhatsAppLink
+                            phone={selected.phone || selected.mobile_number}
+                            userName={selected.full_name || selected.username}
+                            variant="button"
+                            label="Chat on WhatsApp"
+                          />
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                        <Field label="Phone Number" value={selected.phone || selected.mobile_number || "—"} />
                         <Field label="First Name" value={selected.first_name || "—"} />
                         <Field label="Last Name" value={selected.last_name || "—"} />
                         <Field label="Language" value={selected.language || "—"} />
@@ -568,26 +680,7 @@ export default function UsersPage() {
                 )}
 
                 {activeTab === "bets" && (
-                  <Card title="Recent Bets" bodyClassName="p-0">
-                    <DataTable
-                      getRowKey={(b) => b.id}
-                      rows={userBids}
-                      columns={[
-                        { key: "market", header: "Market", render: (b) => b.market_name },
-                        { key: "type", header: "Type", render: (b) => b.bet_type },
-                        { key: "number", header: "Number", render: (b) => <span className="font-bold text-slate-700">{b.selected_number}</span> },
-                        { key: "points", header: "Points", render: (b) => fmtMoney(b.amount) },
-                        {
-                          key: "status", header: "Status", render: (b) => (
-                            <Badge color={b.status === "won" ? "emerald" : b.status === "lost" ? "red" : "slate"}>
-                              {b.status.toUpperCase()}
-                            </Badge>
-                          )
-                        },
-                        { key: "date", header: "Date", render: (b) => format(new Date(b.placed_at || b.created_at), "dd/MM/yyyy") },
-                      ]}
-                    />
-                  </Card>
+                  <UserBetsManager bids={userBids} />
                 )}
 
                 {activeTab === "transactions" && (
@@ -640,7 +733,17 @@ export default function UsersPage() {
                         rows={userContacts}
                         columns={[
                           { key: "name", header: "Name", render: (c) => c.name || "Unknown" },
-                          { key: "number", header: "Number", render: (c) => c.number },
+                          {
+                            key: "number",
+                            header: "WhatsApp / Phone",
+                            render: (c) => (
+                              <WhatsAppLink
+                                phone={c.number}
+                                userName={c.name}
+                                variant="inline"
+                              />
+                            ),
+                          },
                           { key: "date", header: "Date Extracted", render: (c) => format(new Date(c.created_at), "dd/MM/yyyy HH:mm") },
                         ]}
                       />

@@ -5,7 +5,7 @@ export interface LoginResult {
   token_type: string;
 }
 
-export async function login(username: string, password: string): Promise<LoginResult> {
+export async function login(username: string, password: string, remember: boolean = false): Promise<LoginResult> {
   const res = await client.post<LoginResult>("/auth/login", { username, password });
   const token = res.data.access_token;
   // Admin panel must only accept tokens that carry the admin claim. A normal
@@ -15,7 +15,7 @@ export async function login(username: string, password: string): Promise<LoginRe
     clearToken();
     throw new Error("NOT_ADMIN");
   }
-  setToken(token);
+  setToken(token, remember);
   return res.data;
 }
 
@@ -81,7 +81,13 @@ export async function deleteCampaign(id: number): Promise<void> {
 
 export function isAuthenticated(): boolean {
   const token = getToken();
-  return !!token && isAdminToken(token);
+  if (!token) return false;
+  const valid = isAdminToken(token);
+  if (!valid) {
+    clearToken();
+    return false;
+  }
+  return true;
 }
 
 /** Decode (not verify — verification happens server-side) the JWT payload. */
@@ -97,11 +103,21 @@ export function decodeToken(token: string): any | null {
   }
 }
 
-/** True only if the token explicitly grants admin access. */
+/** True only if the token explicitly grants admin access and has not expired. */
 export function isAdminToken(token: string | null): boolean {
   if (!token) return false;
   const payload = decodeToken(token);
-  return !!payload && payload.admin === true;
+  if (!payload || payload.admin !== true) return false;
+
+  // Validate JWT expiration claim
+  if (payload.exp && typeof payload.exp === "number") {
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    if (payload.exp < nowSeconds) {
+      return false; // Token expired
+    }
+  }
+
+  return true;
 }
 
 /* ---------------- Admin: Stats ---------------- */

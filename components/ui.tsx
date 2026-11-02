@@ -422,7 +422,7 @@ export function DataTable({
       <div className={cn("table-wrap", responsive && "hidden md:block")}>
         <table className="w-full min-w-[640px] text-sm">
            <thead>
-             <tr className="text-left text-[11px] uppercase tracking-[0.08em] text-slate-9000">
+             <tr className="text-left text-[11px] uppercase tracking-[0.08em] text-slate-500">
                {selectable && onSelectAll && (
                  <th className="whitespace-nowrap py-3 font-medium w-10">
                    <input

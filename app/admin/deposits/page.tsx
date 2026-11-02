@@ -63,7 +63,7 @@ export default function DepositsPage() {
         rejectedCount = res.auto_rejected || 0;
       } catch {
         const pendingItems = await listDeposits({ status: "pending", limit: 100 });
-        const expired = pendingItems.filter((d: DepositItem) => isDepositExpired(d.created_at));
+        const expired = pendingItems.filter((d: DepositRequest) => isDepositExpired(d.created_at));
         for (const item of expired) {
           try {
             await rejectDeposit(item.id, "Auto-rejected: pending deposit older than 30 minutes");
@@ -96,17 +96,17 @@ export default function DepositsPage() {
       }
       const [data, c] = await Promise.all([listDeposits(params), getDepositCounts()]);
       // Auto-reject any expired pending deposits found in the loaded list
-      const expiredPending = data.filter((d: DepositItem) => d.status === "pending" && isDepositExpired(d.created_at));
+      const expiredPending = data.filter((d: DepositRequest) => d.status === "pending" && isDepositExpired(d.created_at));
       if (expiredPending.length > 0) {
         Promise.allSettled(
-          expiredPending.map((d: DepositItem) =>
+          expiredPending.map((d: DepositRequest) =>
             rejectDeposit(d.id, "Auto-rejected: pending deposit older than 30 minutes")
           )
         ).then(() => {
           listDeposits(params).then(setItems).catch(() => {});
           getDepositCounts().then(setCounts).catch(() => {});
         });
-        const updated = data.map((d: DepositItem) =>
+        const updated = data.map((d: DepositRequest) =>
           d.status === "pending" && isDepositExpired(d.created_at) ? { ...d, status: "rejected" } : d
         );
         setItems(updated);
@@ -303,7 +303,7 @@ export default function DepositsPage() {
                       {isDepositExpired(d.created_at) ? (
                         <>
                           <span className="flex-1 py-1.5 rounded text-xs font-bold bg-amber-50 text-amber-700 border border-amber-300 text-center">
-                            Expired (>30m)
+                            Expired (&gt;30m)
                           </span>
                           <button
                             type="button"

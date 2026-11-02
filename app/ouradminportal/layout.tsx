@@ -8,6 +8,7 @@ import { useTheme } from "@/components/useTheme";
 import { Button, Spinner, cn } from "@/components/ui";
 import { ToastContainer } from "@/components/Toast";
 import { CommandPalette } from "@/components/CommandPalette";
+import { UserModalProvider } from "@/components/UserModalContext";
 import { getWithdrawalCounts } from "@/lib/admin";
 
 function playWithdrawalChime() {
@@ -223,7 +224,8 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="app-bg flex min-h-screen">
+    <UserModalProvider>
+      <div className="app-bg flex min-h-screen">
       {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white/80 lg:flex">
         <div className="flex items-center gap-2 px-5 py-5">
@@ -492,8 +494,9 @@ export default function DashboardLayout({
         </div>
       )}
 
-      <CommandPalette />
-      <ToastContainer />
-    </div>
+        <CommandPalette />
+        <ToastContainer />
+      </div>
+    </UserModalProvider>
   );
 }

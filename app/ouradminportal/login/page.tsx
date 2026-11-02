@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { Button, Input, ErrorMsg } from "@/components/ui";
@@ -10,29 +10,44 @@ const MAX_ATTEMPTS = 5;
 
 export default function OurAdminPortalLoginPage() {
   const router = useRouter();
-  const { login, authenticated } = useAuth();
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [showEye, setShowEye] = useState(false);
 
-  useEffect(() => {
-    if (authenticated) router.replace("/ouradminportal");
-  }, [authenticated, router]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const cleanUsername = username.trim();
+    if (!cleanUsername) {
+      setError("Please enter your admin username.");
+      return;
+    }
+    if (!password) {
+      setError("Please enter your admin password.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await login(username.trim(), password);
+      await login(cleanUsername, password, remember);
       router.replace("/ouradminportal");
     } catch (err: any) {
       setAttempts((prev) => prev + 1);
-      setError("Invalid administrator credentials. Access denied.");
+      const detail = err?.response?.data?.detail;
+      if (err?.message === "NOT_ADMIN") {
+        setError("This account does not have administrator privileges.");
+      } else if (typeof detail === "string") {
+        setError(detail);
+      } else {
+        setError("Invalid administrator username or password. Access denied.");
+      }
     } finally {
       setLoading(false);
     }
@@ -63,7 +78,7 @@ export default function OurAdminPortalLoginPage() {
             Admin<span className="text-brand-400">Portal</span>
           </h1>
           <p className="mt-1 text-xs font-medium text-slate-400">
-            Secure Administrator Console
+            Secure Administrator Authentication
           </p>
         </div>
 
@@ -72,66 +87,103 @@ export default function OurAdminPortalLoginPage() {
 
           <form onSubmit={handleSubmit} className="relative z-10 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold tracking-wide text-slate-300 uppercase">
+              <label
+                htmlFor="admin-username"
+                className="mb-1.5 block text-xs font-semibold tracking-wide text-slate-300 uppercase"
+              >
                 Admin Username
               </label>
               <Input
+                id="admin-username"
+                name="username"
+                type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter admin username"
-                autoComplete="off"
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 required
-                className="bg-black/60 border-white/10 focus:border-brand-500 focus:ring-brand-500/30 text-white h-11 rounded-xl"
+                className="bg-black/60 border-white/10 focus:border-brand-500 focus:ring-brand-500/30 text-white h-11 rounded-xl placeholder:text-slate-500"
               />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold tracking-wide text-slate-300 uppercase">
+              <label
+                htmlFor="admin-password"
+                className="mb-1.5 block text-xs font-semibold tracking-wide text-slate-300 uppercase"
+              >
                 Admin Password
               </label>
               <div className="relative">
                 <Input
+                  id="admin-password"
+                  name="password"
                   type={showEye ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter admin password"
-                  autoComplete="off"
+                  autoComplete="current-password"
                   required
-                  className="bg-black/60 border-white/10 focus:border-brand-500 focus:ring-brand-500/30 text-white h-11 rounded-xl pr-10"
+                  className="bg-black/60 border-white/10 focus:border-brand-500 focus:ring-brand-500/30 text-white h-11 rounded-xl pr-10 placeholder:text-slate-500"
                 />
                 <button
                   type="button"
                   onClick={() => setShowEye(!showEye)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
                   tabIndex={-1}
+                  aria-label={showEye ? "Hide password" : "Show password"}
                 >
                   {showEye ? "👁" : "🙈"}
                 </button>
               </div>
             </div>
 
-            {error && <ErrorMsg msg={error} />}
+            <div className="flex items-center justify-between pt-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-700 bg-slate-800 text-brand-500 focus:ring-brand-500/30 focus:ring-offset-0 cursor-pointer"
+                />
+                <span className="text-xs text-slate-400 hover:text-slate-300 transition-colors">
+                  Remember on this device
+                </span>
+              </label>
 
-            <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-              <span>Attempts: {attempts}/{MAX_ATTEMPTS}</span>
-              <span className="text-[11px] text-slate-500">256-bit Encrypted</span>
+              <div className="text-[11px] text-slate-500 font-medium">
+                {attempts > 0 ? (
+                  <span className="text-amber-400 font-semibold">
+                    Attempts: {attempts}/{MAX_ATTEMPTS}
+                  </span>
+                ) : (
+                  <span>256-bit Encrypted</span>
+                )}
+              </div>
             </div>
+
+            {error && <ErrorMsg msg={error} />}
 
             <Button
               type="submit"
-              className="w-full h-11 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-xl shadow-lg transition-all mt-3"
-              disabled={loading || (attempts >= MAX_ATTEMPTS)}
+              className="w-full h-11 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-xl shadow-lg transition-all mt-3 active:scale-[0.98]"
+              disabled={loading || attempts >= MAX_ATTEMPTS}
             >
-              {loading ? "Authenticating..." : (attempts >= MAX_ATTEMPTS ? "Locked Out" : "Sign In to Admin Portal")}
+              {loading
+                ? "Authenticating..."
+                : attempts >= MAX_ATTEMPTS
+                ? "Locked Out — Retry Later"
+                : "Sign In Securely"}
             </Button>
           </form>
         </div>
 
         <p className="mt-6 text-center text-[11px] font-semibold text-slate-500 tracking-wider uppercase">
-          RESTRICTED AREA · IP & LOGIN ACTIVITY IS MONITORED
+          RESTRICTED AREA · IP & LOGIN ACTIVITY IS AUDITED
         </p>
       </motion.div>
     </div>
   );
 }
-

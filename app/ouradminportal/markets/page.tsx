@@ -284,123 +284,199 @@ export default function MarketsPage() {
             <Spinner />
           </div>
         ) : (
-          <div className="table-wrap">
-            <table className="w-full min-w-[760px] text-sm">
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-100">
-                  <th className="py-3 w-8 pl-3"></th>
-                  <th className="py-3">ID</th>
-                  <th className="py-3">Name</th>
-                  <th className="py-3">Type</th>
-                  <th className="py-3">Result Fetch</th>
-                  <th className="py-3">Holiday</th>
-                  <th className="py-3">Open / Close (Bid Times)</th>
-                  <th className="py-3 text-right pr-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {markets.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="py-12 text-center text-slate-400">
-                      No active markets found. Click "+ Create Market" to add one.
-                    </td>
+          <>
+            {/* Desktop Table View */}
+            <div className="table-wrap hidden md:block">
+              <table className="w-full min-w-[760px] text-sm">
+                <thead>
+                  <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                    <th className="py-3 w-8 pl-3"></th>
+                    <th className="py-3">ID</th>
+                    <th className="py-3">Name</th>
+                    <th className="py-3">Type</th>
+                    <th className="py-3">Result Fetch</th>
+                    <th className="py-3">Holiday</th>
+                    <th className="py-3">Open / Close (Bid Times)</th>
+                    <th className="py-3 text-right pr-3">Actions</th>
                   </tr>
-                ) : (
-                  markets.map((m, idx) => (
-                    <tr
-                      key={m.id}
-                      className="border-t border-slate-100 hover:bg-slate-50 cursor-move transition-colors"
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, idx)}
-                      onDragEnter={(e) => handleDragEnter(e, idx)}
-                      onDragEnd={handleDragEnd}
-                      onDragOver={(e) => e.preventDefault()}
-                    >
-                      <td className="py-3 text-slate-400 pl-3">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <circle cx="9" cy="12" r="1" />
-                          <circle cx="9" cy="5" r="1" />
-                          <circle cx="9" cy="19" r="1" />
-                          <circle cx="15" cy="12" r="1" />
-                          <circle cx="15" cy="5" r="1" />
-                          <circle cx="15" cy="19" r="1" />
-                        </svg>
+                </thead>
+                <tbody>
+                  {markets.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-12 text-center text-slate-400">
+                        No active markets found. Click "+ Create Market" to add one.
                       </td>
-                      <td className="py-3 text-slate-400">{m.id}</td>
-                      <td className="py-3 font-semibold text-slate-900">
-                        {m.name}{" "}
-                        {m.holiday_status && (
-                          <Badge color="amber" className="ml-2">
-                            Holiday
+                    </tr>
+                  ) : (
+                    markets.map((m, idx) => (
+                      <tr
+                        key={m.id}
+                        className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-move transition-colors"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, idx)}
+                        onDragEnter={(e) => handleDragEnter(e, idx)}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => e.preventDefault()}
+                      >
+                        <td className="py-3 text-slate-400 pl-3">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <circle cx="9" cy="12" r="1" />
+                            <circle cx="9" cy="5" r="1" />
+                            <circle cx="9" cy="19" r="1" />
+                            <circle cx="15" cy="12" r="1" />
+                            <circle cx="15" cy="5" r="1" />
+                            <circle cx="15" cy="19" r="1" />
+                          </svg>
+                        </td>
+                        <td className="py-3 text-slate-400 font-mono text-xs">#{m.id}</td>
+                        <td className="py-3 font-semibold text-slate-900 dark:text-slate-100">
+                          {m.name}{" "}
+                          {m.holiday_status && (
+                            <Badge color="amber" className="ml-2">
+                              Holiday
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="py-3">
+                          <Badge color={m.market_type === "starline" ? "violet" : "slate"}>
+                            {m.market_type}
                           </Badge>
-                        )}
-                      </td>
-                      <td className="py-3">
-                        <Badge color={m.market_type === "starline" ? "violet" : "slate"}>
-                          {m.market_type}
-                        </Badge>
-                      </td>
-                      <td className="py-3">
+                        </td>
+                        <td className="py-3">
+                          <button
+                            type="button"
+                            onClick={() => toggleAutoFetch(m)}
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer border ${
+                              m.auto_fetch !== false
+                                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
+                                : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/20"
+                            }`}
+                            title={`Click to switch between Auto & Manual mode`}
+                          >
+                            <span
+                              className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
+                                m.auto_fetch !== false ? "bg-emerald-500" : "bg-amber-500"
+                              }`}
+                            />
+                            {m.auto_fetch !== false ? "Auto" : "Manual"}
+                          </button>
+                        </td>
+                        <td className="py-3">
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 text-brand-600 bg-gray-100 border-gray-300 rounded focus:ring-brand-500 cursor-pointer"
+                            checked={!!m.holiday_status}
+                            onChange={() => toggleHoliday(m)}
+                          />
+                        </td>
+                        <td className="py-3">
+                          <div className="text-xs font-mono text-slate-900 dark:text-slate-100 font-semibold">
+                            {m.open_time || "—"} - {m.close_time || "—"}
+                          </div>
+                          <div className="text-[11px] font-mono text-slate-500 mt-0.5">
+                            Bid: {m.open_bid_time ? m.open_bid_time.substring(0, 5) : subtractMinutes(m.open_time || "", 5)} - {m.close_bid_time ? m.close_bid_time.substring(0, 5) : subtractMinutes(m.close_time || "", 5)}
+                          </div>
+                        </td>
+                        <td className="py-3 text-right pr-3">
+                          <div className="flex flex-wrap justify-end gap-1.5">
+                            <Button size="sm" variant="outline" onClick={() => openEdit(m)}>
+                              Edit
+                            </Button>
+                            <Button size="sm" variant="danger" onClick={() => setConfirmDelete(m)}>
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Responsive Cards */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+              {markets.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-400">
+                  No active markets found.
+                </div>
+              ) : (
+                markets.map((m) => (
+                  <div key={m.id} className="p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs text-slate-400">#{m.id}</span>
+                        <span className="font-bold text-sm text-slate-900 dark:text-slate-100">{m.name}</span>
+                      </div>
+                      <Badge color={m.market_type === "starline" ? "violet" : "slate"}>
+                        {m.market_type}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs bg-slate-50 dark:bg-slate-850 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                      <div>
+                        <div className="text-[10px] text-slate-400 uppercase font-semibold">Open / Close</div>
+                        <div className="font-mono font-bold text-slate-900 dark:text-slate-100">
+                          {m.open_time || "—"} - {m.close_time || "—"}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[10px] text-slate-400 uppercase font-semibold">Bid Cutoff</div>
+                        <div className="font-mono text-xs text-slate-600 dark:text-slate-300">
+                          {m.open_bid_time ? m.open_bid_time.substring(0, 5) : subtractMinutes(m.open_time || "", 5)} - {m.close_bid_time ? m.close_bid_time.substring(0, 5) : subtractMinutes(m.close_time || "", 5)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => toggleAutoFetch(m)}
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer border ${
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
                             m.auto_fetch !== false
-                              ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 hover:bg-emerald-500/20"
-                              : "bg-amber-500/10 text-amber-700 border-amber-500/30 hover:bg-amber-500/20"
+                              ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                              : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
                           }`}
-                          title={`Click to switch between Auto & Manual mode (Current: ${m.auto_fetch !== false ? "Auto ON" : "Manual OFF"})`}
                         >
-                          <span
-                            className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
-                              m.auto_fetch !== false ? "bg-emerald-500" : "bg-amber-500"
-                            }`}
-                          />
-                          {m.auto_fetch !== false ? "Auto (ON)" : "Manual (OFF)"}
+                          {m.auto_fetch !== false ? "🟢 Auto ON" : "🟡 Manual"}
                         </button>
-                      </td>
-                      <td className="py-3">
-                        <input
-                          type="checkbox"
-                          className="w-4 h-4 text-brand-600 bg-gray-100 border-gray-300 rounded focus:ring-brand-500 cursor-pointer"
-                          checked={!!m.holiday_status}
-                          onChange={() => toggleHoliday(m)}
-                        />
-                      </td>
-                      <td className="py-3">
-                        <div className="text-xs font-mono text-slate-900 font-semibold">
-                          {m.open_time || "—"} - {m.close_time || "—"}
-                        </div>
-                        <div className="text-[11px] font-mono text-slate-500 mt-0.5">
-                          Bid: {m.open_bid_time ? m.open_bid_time.substring(0, 5) : subtractMinutes(m.open_time || "", 5)} - {m.close_bid_time ? m.close_bid_time.substring(0, 5) : subtractMinutes(m.close_time || "", 5)}
-                        </div>
-                      </td>
-                      <td className="py-3 text-right pr-3">
-                        <div className="flex flex-wrap justify-end gap-1.5">
-                          <Button size="sm" variant="outline" onClick={() => openEdit(m)}>
-                            Edit
-                          </Button>
-                          <Button size="sm" variant="danger" onClick={() => setConfirmDelete(m)}>
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+
+                        <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="rounded accent-brand-600"
+                            checked={!!m.holiday_status}
+                            onChange={() => toggleHoliday(m)}
+                          />
+                          <span>Holiday</span>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <Button size="sm" variant="outline" className="h-7 px-2.5 text-xs" onClick={() => openEdit(m)}>
+                          Edit
+                        </Button>
+                        <Button size="sm" variant="danger" className="h-7 px-2 text-xs" onClick={() => setConfirmDelete(m)}>
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
         )}
       </Card>
 

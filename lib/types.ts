@@ -44,6 +44,8 @@ export interface Bid {
   id: number;
   user_id: number;
   username?: string | null;
+  phone?: string | null;
+  mobile_number?: string | null;
   market_id: number;
   market_name: string;
   bet_type: string;
@@ -53,7 +55,8 @@ export interface Bid {
   status: string;
   session?: string | null;
   bid_date?: string | null;
-  placed_at: string;
+  placed_at?: string;
+  created_at?: string;
 }
 
 export interface AdminActionLog {

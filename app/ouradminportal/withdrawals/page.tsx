@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Card,
@@ -23,6 +23,9 @@ import {
 import { fmtMoney, fmtDateTime } from "@/lib/format";
 import { toast } from "@/components/Toast";
 import { parseApiError } from "@/lib/error-parser";
+import { DateRangeFilter } from "@/components/DateRangeFilter";
+import { UserCell } from "@/components/UserCell";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const STATUSES: { id: string; label: string; color: string }[] = [
   { id: "", label: "All", color: "slate" },
@@ -120,9 +123,34 @@ export default function WithdrawalsPage() {
   const [counts, setCounts] = useState<any>({ pending: 0, approved: 0, processed: 0, rejected: 0, total: 0 });
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [selected, setSelected] = useState<number[]>([]);
   const [confirm, setConfirm] = useState<{ id: number; action: string } | null>(null);
   const [detail, setDetail] = useState<any>(null);
+  const [selected, setSelected] = useState<number[]>([]);
+  const [search, setSearch] = useState("");
+
+  const filteredItems = useMemo(() => {
+    if (!search.trim()) return items;
+    const q = search.trim().toLowerCase();
+    return items.filter((w) => {
+      const username = (w.username || "").toLowerCase();
+      const phone = (w.phone || w.mobile_number || "").toLowerCase();
+      const idStr = String(w.id);
+      const amtStr = String(w.amount || "");
+      const pay = getPaymentInfo(w.payment_details || w.bank_details);
+      const upi = (pay.upiId || "").toLowerCase();
+      const acc = (pay.accountNumber || "").toLowerCase();
+      const holder = (pay.accountHolder || "").toLowerCase();
+      return (
+        username.includes(q) ||
+        phone.includes(q) ||
+        idStr.includes(q) ||
+        amtStr.includes(q) ||
+        upi.includes(q) ||
+        acc.includes(q) ||
+        holder.includes(q)
+      );
+    });
+  }, [items, search]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -202,7 +230,7 @@ export default function WithdrawalsPage() {
     }
   }
 
-  const payment = getPaymentInfo(detail?.bank_details);
+  const payment = getPaymentInfo(detail?.payment_details || detail?.bank_details);
 
   return (
     <div className="space-y-6">
@@ -210,13 +238,49 @@ export default function WithdrawalsPage() {
         title="Withdrawals"
         description="Send the money manually to the user's provided bank/UPI, then Mark as Done. Rejecting refunds the amount to the user's wallet."
         actions={
-          <div className="flex flex-wrap gap-2 items-center">
-            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-36 h-9 text-xs" />
-            <span className="text-slate-400">to</span>
-            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-36 h-9 text-xs" />
-          </div>
+          <Button variant="outline" size="sm" onClick={() => load()}>
+            🔄 Refresh
+          </Button>
         }
       />
+
+      {/* Search & Date Filter Card */}
+      <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
+        {/* Live Search Input */}
+        <div className="relative">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
+            🔍
+          </span>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by user, mobile, UPI ID, A/C number, amount, or ID…"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 py-2 pl-9 pr-9 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* Date Filter Bar */}
+        <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+          <DateRangeFilter
+            onFilterChange={({ dateFrom: df, dateTo: dt }) => {
+              setDateFrom(df);
+              setDateTo(dt);
+            }}
+            compact
+          />
+        </div>
+      </div>
+
       <ErrorMsg msg={error} />
 
       <div className="flex flex-wrap gap-1.5 overflow-x-auto no-scrollbar">
@@ -276,58 +340,130 @@ export default function WithdrawalsPage() {
           <>
             {/* Mobile Card List */}
             <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-              {items.map((w) => (
-                <div
-                  key={w.id}
-                  onClick={() => setDetail(w)}
-                  className={`p-3.5 transition-colors cursor-pointer space-y-2.5 ${
-                    selected.includes(w.id) ? "bg-brand-500/[0.08]" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        className="accent-brand-600 h-4 w-4 rounded"
-                        checked={selected.includes(w.id)}
-                        onChange={() => toggle(w.id)}
-                      />
-                      <span className="font-mono text-xs text-slate-400">#{w.id}</span>
-                      <span className="font-semibold text-sm text-slate-900 dark:text-white truncate">
-                        {w.username}
-                      </span>
-                    </div>
-                    <Badge color={statusColor[w.status] ?? "slate"}>{w.status}</Badge>
-                  </div>
+              {filteredItems.map((w) => {
+                const pay = getPaymentInfo(w.payment_details || w.bank_details);
+                const userPhone = w.phone || w.mobile_number;
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[11px] text-slate-400">Amount</p>
-                      <p className="text-lg font-bold text-slate-900 dark:text-emerald-400">{fmtMoney(w.amount)}</p>
+                return (
+                  <div
+                    key={w.id}
+                    onClick={() => setDetail(w)}
+                    className={`p-3.5 transition-colors cursor-pointer space-y-2.5 ${
+                      selected.includes(w.id) ? "bg-brand-500/[0.08]" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className="accent-brand-600 h-4 w-4 rounded shrink-0"
+                          checked={selected.includes(w.id)}
+                          onChange={() => toggle(w.id)}
+                        />
+                        <span className="font-mono text-xs text-slate-400 shrink-0">#{w.id}</span>
+                        <UserCell
+                          userId={w.user_id}
+                          username={w.username}
+                          phone={userPhone}
+                          avatarSize="sm"
+                        />
+                      </div>
+                      <Badge color={statusColor[w.status] ?? "slate"}>{w.status}</Badge>
                     </div>
-                    <div className="text-right">
-                      <p className="text-[11px] text-slate-400">Requested</p>
-                      <p className="text-xs text-slate-500">{fmtDateTime(w.requested_at)}</p>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center justify-end gap-1.5 pt-1" onClick={(e) => e.stopPropagation()}>
-                    <Button size="sm" variant="outline" className="text-xs px-2.5 py-1" onClick={() => setDetail(w)}>
-                      View & Pay
-                    </Button>
-                    {w.status === "pending" && (
-                      <>
-                        <Button size="sm" variant="success" className="text-xs px-2.5 py-1 font-bold" onClick={() => openConfirm(w.id, "process")}>
-                          Mark Done
-                        </Button>
-                        <Button size="sm" variant="danger" className="text-xs px-2 py-1" onClick={() => openConfirm(w.id, "reject")}>
-                          Reject
-                        </Button>
-                      </>
+                    {/* Amount & Time */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-400">Payout Amount</p>
+                        <p className="text-xl font-black text-slate-900 dark:text-emerald-400 leading-tight">
+                          {fmtMoney(w.amount)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] text-slate-400">Requested</p>
+                        <p className="text-xs text-slate-500">{fmtDateTime(w.requested_at)}</p>
+                      </div>
+                    </div>
+
+                    {/* Quick Payment Info Pill directly on mobile card */}
+                    {pay.hasUpi && (
+                      <div
+                        className="flex items-center justify-between gap-2 p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="min-w-0 flex items-center gap-1.5">
+                          <span className="text-[10px] font-black uppercase text-emerald-800 dark:text-emerald-400 shrink-0">
+                            UPI:
+                          </span>
+                          <span className="font-mono text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                            {pay.upiId}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => copyText(pay.upiId, "UPI ID")}
+                          className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 shadow-2xs hover:bg-emerald-100 transition active:scale-95 shrink-0"
+                        >
+                          📋 Copy UPI
+                        </button>
+                      </div>
                     )}
+
+                    {pay.hasBank && !pay.hasUpi && (
+                      <div
+                        className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-bold uppercase text-slate-500">
+                            A/C: {pay.accountNumber} {pay.ifsc ? `· ${pay.ifsc}` : ""}
+                          </span>
+                          {pay.accountHolder && (
+                            <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                              {pay.accountHolder}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => copyText(pay.accountNumber, "Account Number")}
+                          className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 shadow-2xs hover:bg-slate-200 transition active:scale-95 shrink-0"
+                        >
+                          📋 Copy A/C
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Action buttons on mobile */}
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+                      {userPhone && (
+                        <WhatsAppLink
+                          phone={userPhone}
+                          userName={w.username}
+                          variant="inline"
+                          message={`Hello ${w.username}, this is regarding your withdrawal request #${w.id} for ₹${w.amount}.`}
+                        />
+                      )}
+
+                      <div className="flex items-center gap-1.5 ml-auto">
+                        <Button size="sm" variant="outline" className="text-xs px-2.5 py-1" onClick={() => setDetail(w)}>
+                          Details
+                        </Button>
+                        {w.status === "pending" && (
+                          <>
+                            <Button size="sm" variant="success" className="text-xs px-3 py-1 font-bold shadow-xs" onClick={() => openConfirm(w.id, "process")}>
+                              Mark Done
+                            </Button>
+                            <Button size="sm" variant="danger" className="text-xs px-2 py-1" onClick={() => openConfirm(w.id, "reject")}>
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Desktop Table View */}
@@ -339,14 +475,14 @@ export default function WithdrawalsPage() {
                       <input
                         type="checkbox"
                         className="accent-brand-600"
-                        checked={items.length > 0 && items.every((i) => selected.includes(i.id))}
+                        checked={filteredItems.length > 0 && filteredItems.every((i) => selected.includes(i.id))}
                         onChange={(e) =>
-                          setSelected(e.target.checked ? items.map((i) => i.id) : [])
+                          setSelected(e.target.checked ? filteredItems.map((i) => i.id) : [])
                         }
                       />
                     </th>
                     <th>ID</th>
-                    <th>User</th>
+                    <th>User Details</th>
                     <th>Amount</th>
                     <th>Status</th>
                     <th>Requested</th>
@@ -354,7 +490,7 @@ export default function WithdrawalsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((w) => (
+                  {filteredItems.map((w) => (
                     <tr
                       key={w.id}
                       onClick={() => setDetail(w)}
@@ -371,9 +507,12 @@ export default function WithdrawalsPage() {
                         />
                       </td>
                       <td className="text-slate-400">#{w.id}</td>
-                      <td className="font-medium text-slate-900">
-                        {w.username}
-                        <span className="ml-1.5 text-xs text-slate-400">(#{w.user_id})</span>
+                      <td>
+                        <UserCell
+                          userId={w.user_id}
+                          username={w.username}
+                          phone={w.phone || w.mobile_number}
+                        />
                       </td>
                       <td className="font-semibold text-slate-900">{fmtMoney(w.amount)}</td>
                       <td>
@@ -403,7 +542,7 @@ export default function WithdrawalsPage() {
               </table>
             </div>
 
-            {items.length === 0 && <EmptyState title="No withdrawal requests found" hint="Try changing the status filter or date range" />}
+            {filteredItems.length === 0 && <EmptyState title="No withdrawal requests found" hint="Try changing the status filter or date range" />}
           </>
         )}
       </Card>
@@ -426,12 +565,24 @@ export default function WithdrawalsPage() {
             </div>
 
             {/* User & Request Info */}
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <div>
-                <p className="text-xs text-slate-400">User</p>
-                <p className="font-bold text-sm text-slate-900">{detail.username} <span className="text-xs text-slate-400 font-normal">(#{detail.user_id})</span></p>
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-4">
+              <UserCell
+                userId={detail.user_id}
+                username={detail.username}
+                phone={detail.phone || detail.mobile_number}
+                avatarSize="md"
+              />
+              <div className="flex items-center gap-1.5">
+                {(detail.phone || detail.mobile_number) && (
+                  <WhatsAppLink
+                    phone={detail.phone || detail.mobile_number}
+                    userName={detail.username}
+                    variant="pill"
+                    message={`Hello ${detail.username}, this is regarding your withdrawal request #${detail.id} for ₹${detail.amount}.`}
+                  />
+                )}
+                <Button size="sm" variant="ghost" onClick={() => copyText(detail.username, "Username")}>Copy</Button>
               </div>
-              <Button size="sm" variant="ghost" onClick={() => copyText(detail.username, "Username")}>Copy User</Button>
             </div>
 
             {/* UPI Details */}

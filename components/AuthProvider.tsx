@@ -1,13 +1,14 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { login as apiLogin, logout as apiLogout, isAuthenticated } from "@/lib/admin";
+import { login as apiLogin, logout as apiLogout, isAuthenticated, decodeToken } from "@/lib/admin";
+import { getToken } from "@/lib/api";
 
 interface AuthContextValue {
   authenticated: boolean;
   loading: boolean;
   username: string | null;
-  login: (credential: string, password: string) => Promise<void>;
+  login: (credential: string, password: string, remember?: boolean) => Promise<void>;
   logout: () => void;
 }
 
@@ -23,18 +24,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthenticated(ok);
     if (ok) {
       try {
-        const token = localStorage.getItem("satta_admin_token") || "";
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setUsername(payload.username || payload.full_name || "Admin");
+        const token = getToken() || "";
+        const payload = decodeToken(token);
+        if (payload) {
+          setUsername(payload.username || payload.full_name || "Admin");
+        }
       } catch {
         // ignore
       }
+    } else {
+      setUsername(null);
     }
     setLoading(false);
   }, []);
 
-  async function login(credential: string, password: string) {
-    await apiLogin(credential, password);
+  async function login(credential: string, password: string, remember: boolean = false) {
+    await apiLogin(credential, password, remember);
     setAuthenticated(true);
     setUsername(credential);
   }

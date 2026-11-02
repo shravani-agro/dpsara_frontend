@@ -17,6 +17,9 @@ import {
 import { listTransactions } from "@/lib/admin";
 import { fmtMoney, fmtDateTime, fmtNum } from "@/lib/format";
 import { parseApiError } from "@/lib/error-parser";
+import { DateRangeFilter } from "@/components/DateRangeFilter";
+import { UserCell } from "@/components/UserCell";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const TYPE_FILTERS = [
   { id: "all", label: "All Transactions", icon: "📋" },
@@ -211,10 +214,22 @@ export default function TransactionsPage() {
       </div>
 
       {/* Search and Date Filter Controls */}
-      <Card bodyClassName="p-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5 items-end">
+      <Card bodyClassName="p-4 space-y-3">
+        <div>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-2">
+            📅 Filter by Date
+          </span>
+          <DateRangeFilter
+            onFilterChange={({ dateFrom: df, dateTo: dt }) => {
+              setDateFrom(df);
+              setDateTo(dt);
+            }}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 items-end pt-2 border-t border-slate-100 dark:border-slate-800">
           <div className="lg:col-span-2">
-            <label className="block text-xs font-medium text-slate-600 mb-1">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
               Search User, Phone, or Reference
             </label>
             <Input
@@ -226,7 +241,7 @@ export default function TransactionsPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
               Status
             </label>
             <Select value={status} onChange={(e) => setStatus(e.target.value)}>
@@ -236,28 +251,6 @@ export default function TransactionsPage() {
                 </option>
               ))}
             </Select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
-              From Date
-            </label>
-            <Input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
-              To Date
-            </label>
-            <Input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-            />
           </div>
         </div>
 
@@ -303,6 +296,7 @@ export default function TransactionsPage() {
           <DataTable
             getRowKey={(t) => t.id}
             rows={items}
+            responsive={true}
             columns={[
               {
                 key: "id",
@@ -314,16 +308,12 @@ export default function TransactionsPage() {
                 key: "user",
                 header: "User Details",
                 render: (t) => (
-                  <div>
-                    <div className="font-semibold text-slate-900 text-xs">
-                      {t.full_name && t.full_name !== "—" ? t.full_name : t.username}
-                    </div>
-                    <div className="font-mono text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                      <span>📱 {t.phone || t.username}</span>
-                      <span className="text-slate-300">|</span>
-                      <span>ID #{t.user_id}</span>
-                    </div>
-                  </div>
+                  <UserCell
+                    userId={t.user_id}
+                    username={t.username}
+                    fullName={t.full_name}
+                    phone={t.phone}
+                  />
                 ),
               },
               {
@@ -440,17 +430,14 @@ export default function TransactionsPage() {
             </div>
 
             <div className="space-y-2 border-t border-slate-100 pt-3">
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">User</span>
-                <span className="font-semibold text-slate-800">
-                  {selectedTxn.full_name || selectedTxn.username} (ID: #{selectedTxn.user_id})
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Mobile Number</span>
-                <span className="font-mono font-semibold text-slate-800">
-                  {selectedTxn.phone || selectedTxn.username}
-                </span>
+              <div className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 font-medium">User Profile</span>
+                <UserCell
+                  userId={selectedTxn.user_id}
+                  username={selectedTxn.username}
+                  fullName={selectedTxn.full_name}
+                  phone={selectedTxn.phone}
+                />
               </div>
               <div className="flex justify-between py-1 border-b border-slate-100">
                 <span className="text-slate-500">Description</span>
