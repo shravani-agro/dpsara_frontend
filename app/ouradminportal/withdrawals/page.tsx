@@ -255,7 +255,7 @@ export default function WithdrawalsPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by user, mobile, UPI ID, A/C number, amount, or ID…"
+            placeholder="Search user by Name, Mobile, UPI ID, A/C number, or amount…"
             className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 py-2 pl-9 pr-9 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
           />
           {search && (

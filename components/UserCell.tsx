@@ -4,7 +4,13 @@ import React, { useState, useEffect } from "react";
 import { useUserModal } from "@/components/UserModalContext";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { cn } from "@/components/ui";
-import { getCachedUser, resolveUser } from "@/lib/user-cache";
+import {
+  getCachedUser,
+  resolveUser,
+  subscribeUserCache,
+  isRawId,
+  CachedUser,
+} from "@/lib/user-cache";
 
 interface UserCellProps {
   userId?: number | string | null;
@@ -26,50 +32,72 @@ export function UserCell({
   avatarSize = "sm",
   className = "",
   showPhone = true,
-  showId = false, // ID is hidden by default to prioritize direct user names
+  showId = false, // Never show raw ID tag by default
   clickable = true,
 }: UserCellProps) {
   const { openUser } = useUserModal();
 
   const idNum = userId ? Number(userId) : null;
-  const cached = idNum ? getCachedUser(idNum) : null;
 
-  const [resolvedName, setResolvedName] = useState<string | null>(
-    fullName || username || cached?.full_name || cached?.username || null
-  );
-  const [resolvedPhone, setResolvedPhone] = useState<string | null>(
-    phone ? String(phone) : cached?.phone || cached?.mobile_number ? String(cached?.phone || cached?.mobile_number) : null
-  );
+  // Determine if incoming props contain a real human name rather than a raw numeric ID
+  const candidateName = (fullName || username || "").trim();
+  const hasValidName = !isRawId(candidateName);
+
+  const [cachedUser, setCachedUser] = useState<CachedUser | null>(() => {
+    return idNum ? getCachedUser(idNum) : null;
+  });
 
   useEffect(() => {
-    const currentName = fullName || username;
-    if (idNum && (!currentName || currentName.trim() === "" || currentName.toLowerCase().startsWith("user #"))) {
-      resolveUser(idNum).then((u) => {
-        if (u) {
-          const name = u.full_name || u.username;
-          if (name) setResolvedName(name);
-          const ph = u.phone || u.mobile_number;
-          if (ph) setResolvedPhone(String(ph));
-        }
-      });
-    } else if (currentName) {
-      setResolvedName(currentName);
-    }
-    if (phone) {
-      setResolvedPhone(String(phone));
-    }
-  }, [idNum, fullName, username, phone]);
+    if (!idNum) return;
 
-  const displayName = resolvedName || (idNum ? `User` : "Unknown User");
-  const phoneStr = resolvedPhone ? String(resolvedPhone).trim() : "";
+    // Check if we already have a real name in cache
+    const existing = getCachedUser(idNum);
+    if (existing && !isRawId(existing.full_name || existing.username)) {
+      setCachedUser(existing);
+    }
+
+    // Subscribe to cache updates (triggers when prefetchAllUsers or other queries resolve)
+    const unsubscribe = subscribeUserCache(() => {
+      const updated = getCachedUser(idNum);
+      if (updated && !isRawId(updated.full_name || updated.username)) {
+        setCachedUser(updated);
+      }
+    });
+
+    // If incoming prop is missing or is just a raw numeric ID, resolve the real user
+    if (!hasValidName) {
+      resolveUser(idNum).then((u) => {
+        if (u) setCachedUser(u);
+      });
+    }
+
+    return () => {
+      unsubscribe();
+    };
+  }, [idNum, hasValidName]);
+
+  // Compute final display name: Never allow raw numeric ID to be displayed as user name
+  let displayName = "";
+  if (hasValidName && candidateName) {
+    displayName = candidateName;
+  } else if (cachedUser && !isRawId(cachedUser.full_name || cachedUser.username)) {
+    displayName = (cachedUser.full_name || cachedUser.username)!;
+  } else {
+    // While resolving or if completely unknown, show friendly label instead of raw digits
+    displayName = "User";
+  }
+
+  // Compute phone
+  const rawPhone = phone || cachedUser?.phone || cachedUser?.mobile_number;
+  const phoneStr = rawPhone ? String(rawPhone).trim() : "";
   const initial = (displayName[0] || "U").toUpperCase();
 
   const handleClick = (e: React.MouseEvent) => {
     if (!clickable || !idNum) return;
     e.stopPropagation();
     openUser(idNum, {
-      username: username || cached?.username || undefined,
-      full_name: fullName || resolvedName || cached?.full_name || undefined,
+      username: (username && !isRawId(username) ? username : cachedUser?.username) || undefined,
+      full_name: (fullName && !isRawId(fullName) ? fullName : cachedUser?.full_name || displayName) || undefined,
       phone: phoneStr || undefined,
     });
   };
@@ -136,4 +164,3 @@ export function UserCell({
     </div>
   );
 }
-

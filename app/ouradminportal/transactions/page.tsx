@@ -286,7 +286,7 @@ export default function TransactionsPage() {
               Search User, Phone, or Reference
             </label>
             <Input
-              placeholder="Username, 10-digit mobile, or Txn ID..."
+              placeholder="Name, Username, 10-digit mobile, or Txn ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && load()}

@@ -104,7 +104,7 @@ export default function AuditPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
           <Input
-            placeholder="Filter by Admin ID..."
+            placeholder="Filter by Admin Name..."
             value={adminId}
             onChange={(e) => setAdminId(e.target.value)}
           />

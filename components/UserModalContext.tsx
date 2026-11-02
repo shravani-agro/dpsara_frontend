@@ -17,6 +17,7 @@ import {
 import { fmtMoney, fmtNum, fmtDate, fmtDateTime } from "@/lib/format";
 import { toast } from "@/components/Toast";
 import { parseApiError } from "@/lib/error-parser";
+import { getCachedUser, isRawId } from "@/lib/user-cache";
 
 interface UserHint {
   username?: string;
@@ -165,8 +166,11 @@ export function UserModalProvider({ children }: { children: React.ReactNode }) {
     toast.success(`${label} copied!`);
   };
 
-  const uPhone = detail?.mobile_number || detail?.phone || userHint?.mobile_number || userHint?.phone || "";
-  const uName = detail?.full_name || detail?.username || userHint?.full_name || userHint?.username || `User #${userId}`;
+  const cachedUser = userId ? getCachedUser(userId) : null;
+  const rawName = (detail?.full_name || detail?.username || userHint?.full_name || userHint?.username || "").trim();
+  const uName = (!isRawId(rawName) ? rawName : null) || cachedUser?.full_name || cachedUser?.username || "Platform User";
+  const uHandle = detail?.username && !isRawId(detail.username) ? detail.username : cachedUser?.username && !isRawId(cachedUser.username) ? cachedUser.username : null;
+  const uPhone = detail?.mobile_number || detail?.phone || userHint?.mobile_number || userHint?.phone || cachedUser?.phone || cachedUser?.mobile_number || "";
   const uInitial = (uName[0] || "U").toUpperCase();
   const uBalance = Number(detail?.wallet_balance ?? 0);
 
@@ -192,7 +196,11 @@ export function UserModalProvider({ children }: { children: React.ReactNode }) {
             <div className="min-w-0">
               <div className="truncate font-bold text-slate-900 dark:text-slate-100 text-base">{uName}</div>
               <div className="flex items-center gap-2 text-xs text-slate-400">
-                <span>ID #{userId}</span>
+                {uHandle && uHandle !== uName ? (
+                  <span>@{uHandle}</span>
+                ) : (
+                  <span>User Profile</span>
+                )}
                 {detail?.is_active !== undefined && (
                   <Badge color={detail.is_active ? "emerald" : "red"}>
                     {detail.is_active ? "Active" : "Suspended"}

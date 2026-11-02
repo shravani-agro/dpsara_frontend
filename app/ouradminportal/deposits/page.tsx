@@ -233,7 +233,7 @@ export default function DepositsPage() {
           <div className="w-full sm:w-64">
             <input
               type="text"
-              placeholder="Search Txn ID, User or Phone..."
+              placeholder="Search Txn ID, User Name, or Phone..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand-500/20"

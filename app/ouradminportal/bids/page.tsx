@@ -213,7 +213,7 @@ export default function BidsPage() {
             <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Search User</label>
             <input
               type="text"
-              placeholder="Username, Phone or ID..."
+              placeholder="Search by Name, Username or Phone..."
               value={searchUser}
               onChange={(e) => setSearchUser(e.target.value)}
               className="mt-1 w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand-500/20"

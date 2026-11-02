@@ -260,7 +260,7 @@ export default function UsersPage() {
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">🔍</span>
             <input
               type="text"
-              placeholder="Search username, 10-digit mobile, full name, or ID…"
+              placeholder="Search user by Name, Username, or 10-digit Mobile..."
               value={filters.username}
               onChange={(e) => setFilters((prev) => ({ ...prev, username: e.target.value }))}
               onKeyDown={(e) => {
@@ -563,7 +563,7 @@ export default function UsersPage() {
                       <Card bodyClassName="p-4 flex flex-col items-center text-center">
                         <span className="text-xs text-slate-400 uppercase">Status</span>
                         <Badge color={selected.is_active ? "emerald" : "red"} className="mt-2">{selected.is_active ? "Active" : "Inactive"}</Badge>
-                        <span className="mt-1 text-[11px] text-slate-400">ID #{selected.id}</span>
+                        <span className="mt-1 text-[11px] text-slate-400">{selected.username ? `@${selected.username}` : "Verified Member"}</span>
                       </Card>
                       <Card bodyClassName="p-4 flex flex-col items-center text-center">
                         <span className="text-xs text-slate-400 uppercase">Role</span>
@@ -906,7 +906,7 @@ export default function UsersPage() {
         {deleteTarget && (
           <div className="space-y-4">
             <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
-              You are about to permanently delete <b>{deleteTarget.username}</b> (#{deleteTarget.id}) and ALL of
+              You are about to permanently delete <b>{deleteTarget.full_name || deleteTarget.username}</b> and ALL of
               their data. This cannot be undone.
             </div>
             <Field label={`Type the username "${deleteTarget.username}" to confirm`}>

@@ -1,4 +1,4 @@
-import { getUser, listUsers } from "./admin";
+import { getUser, getUserDetailed, listUsers } from "./admin";
 
 export interface CachedUser {
   id: number;
@@ -13,29 +13,70 @@ export interface CachedUser {
 const userCache = new Map<number, CachedUser>();
 const inFlightRequests = new Map<number, Promise<CachedUser | null>>();
 let bulkLoaded = false;
-let bulkPromise: Promise<void> | null = null;
+let bulkPromise: Promise<CachedUser[]> | null = null;
+
+type Listener = () => void;
+const listeners = new Set<Listener>();
+
+export function subscribeUserCache(fn: Listener): () => void {
+  listeners.add(fn);
+  return () => {
+    listeners.delete(fn);
+  };
+}
+
+function notifyListeners() {
+  for (const fn of listeners) {
+    try {
+      fn();
+    } catch {
+      // ignore listener errors
+    }
+  }
+}
+
+/**
+ * Check if a candidate name is a raw ID (e.g. "12", 12, "User #12", null, undefined)
+ */
+export function isRawId(val: any): boolean {
+  if (val === null || val === undefined) return true;
+  const s = String(val).trim();
+  if (s === "") return true;
+  if (/^user\s*#?\s*\d*$/i.test(s)) return true;
+  if (/^\d+$/.test(s)) return true; // pure digits like "12" or "45"
+  return false;
+}
 
 /**
  * Prime user cache from already loaded arrays (e.g. from users list, bets, etc.)
  */
 export function primeUserCache(users: CachedUser[] | any[]) {
   if (!Array.isArray(users)) return;
+  let changed = false;
   for (const u of users) {
     if (u && (u.id || u.user_id)) {
       const id = Number(u.id || u.user_id);
       if (!isNaN(id)) {
         const existing = userCache.get(id);
+        const username = !isRawId(u.username || u.user_name) ? (u.username || u.user_name) : existing?.username;
+        const full_name = !isRawId(u.full_name) ? u.full_name : existing?.full_name;
+        const phone = u.phone || u.mobile_number || existing?.phone;
+
         userCache.set(id, {
           id,
-          username: u.username || u.user_name || existing?.username,
-          full_name: u.full_name || existing?.full_name,
-          phone: u.phone || u.mobile_number || existing?.phone,
-          mobile_number: u.mobile_number || u.phone || existing?.mobile_number,
+          username,
+          full_name,
+          phone,
+          mobile_number: phone,
           wallet_balance: u.wallet_balance !== undefined ? u.wallet_balance : existing?.wallet_balance,
           is_active: u.is_active !== undefined ? u.is_active : existing?.is_active,
         });
+        changed = true;
       }
     }
+  }
+  if (changed) {
+    notifyListeners();
   }
 }
 
@@ -47,8 +88,7 @@ export async function prefetchAllUsers(): Promise<CachedUser[]> {
     return Array.from(userCache.values());
   }
   if (bulkPromise) {
-    await bulkPromise;
-    return Array.from(userCache.values());
+    return bulkPromise;
   }
   bulkPromise = (async () => {
     try {
@@ -62,9 +102,9 @@ export async function prefetchAllUsers(): Promise<CachedUser[]> {
     } finally {
       bulkPromise = null;
     }
+    return Array.from(userCache.values());
   })();
-  await bulkPromise;
-  return Array.from(userCache.values());
+  return bulkPromise;
 }
 
 /**
@@ -86,8 +126,17 @@ export async function resolveUser(id: number | string | null | undefined): Promi
   if (isNaN(num)) return null;
 
   const existing = userCache.get(num);
-  if (existing && (existing.full_name || existing.username)) {
+  if (existing && !isRawId(existing.full_name || existing.username)) {
     return existing;
+  }
+
+  // If bulk load hasn't finished, wait for it first
+  if (!bulkLoaded) {
+    await prefetchAllUsers();
+    const loaded = userCache.get(num);
+    if (loaded && !isRawId(loaded.full_name || loaded.username)) {
+      return loaded;
+    }
   }
 
   // Deduplicate inflight requests for the same user ID
@@ -97,18 +146,30 @@ export async function resolveUser(id: number | string | null | undefined): Promi
 
   const p = (async () => {
     try {
-      const u = await getUser(num);
+      // Try detailed first, then fallback to standard getUser
+      let u: any = null;
+      try {
+        u = await getUserDetailed(num);
+      } catch {
+        u = await getUser(num).catch(() => null);
+      }
+
       if (u) {
+        const username = !isRawId(u.username) ? u.username : undefined;
+        const full_name = !isRawId(u.full_name) ? u.full_name : undefined;
+        const phone = u.phone || u.mobile_number;
+
         const cached: CachedUser = {
           id: num,
-          username: u.username,
-          full_name: u.full_name,
-          phone: u.phone || u.mobile_number,
-          mobile_number: u.mobile_number || u.phone,
+          username,
+          full_name,
+          phone,
+          mobile_number: phone,
           wallet_balance: u.wallet_balance,
           is_active: u.is_active,
         };
         userCache.set(num, cached);
+        notifyListeners();
         return cached;
       }
     } catch {
@@ -116,7 +177,7 @@ export async function resolveUser(id: number | string | null | undefined): Promi
     } finally {
       inFlightRequests.delete(num);
     }
-    return existing || null;
+    return userCache.get(num) || null;
   })();
 
   inFlightRequests.set(num, p);
