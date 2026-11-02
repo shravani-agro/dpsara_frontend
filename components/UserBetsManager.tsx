@@ -292,89 +292,93 @@ export function UserBetsManager({ bids, loading = false }: UserBetsManagerProps)
           )}
         </div>
       ) : (
-        <div className="space-y-2">
-          {filteredBids.map((b) => {
-            const isWon = (b.status || "").toLowerCase() === "won";
-            const isLost = (b.status || "").toLowerCase() === "lost";
-            const winAmount = Number(b.win_amount || b.potential_win || 0);
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 shadow-xs">
+          {/* Header Bar */}
+          <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-850/90 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <span>Market & Bet Type ({filteredBids.length})</span>
+            <span>Digit · Stake · Status</span>
+          </div>
 
-            return (
-              <div
-                key={b.id}
-                className={cn(
-                  "p-3 rounded-xl border transition-all text-xs bg-white dark:bg-slate-900/80 shadow-xs",
-                  isWon
-                    ? "border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/20"
-                    : isLost
-                    ? "border-slate-200 dark:border-slate-800"
-                    : "border-amber-200 dark:border-amber-800/60 bg-amber-50/15"
-                )}
-              >
-                {/* Top Row: Market Name, Session, and Timestamp */}
-                <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/60 pb-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="font-bold text-slate-900 dark:text-slate-100 truncate text-xs sm:text-sm">
-                      {b.market_name || "Market"}
-                    </span>
-                    {b.session && (
-                      <span className="shrink-0 px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-[9px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                        {((b.bet_type || "").toLowerCase().includes("jodi") || (b.bet_type || "").toLowerCase().includes("sangam") || (b.session || "").toLowerCase() === "jodi") ? "Full / Jodi" : b.session}
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {filteredBids.map((b) => {
+              const isWon = (b.status || "").toLowerCase() === "won";
+              const isLost = (b.status || "").toLowerCase() === "lost";
+              const winAmount = Number(b.win_amount || b.potential_win || 0);
+              const isJodi = ((b.bet_type || "").toLowerCase().includes("jodi") || (b.bet_type || "").toLowerCase().includes("sangam") || (b.session || "").toLowerCase() === "jodi");
+
+              return (
+                <div
+                  key={b.id}
+                  className={cn(
+                    "flex items-center justify-between gap-2 px-3 py-2.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-850/50",
+                    isWon && "bg-emerald-500/[0.04]"
+                  )}
+                >
+                  {/* Left: Market, Session & Timestamp */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate">
+                        {b.market_name || "Market"}
                       </span>
-                    )}
+                      {isJodi ? (
+                        <span className="shrink-0 px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
+                          Full / Jodi
+                        </span>
+                      ) : b.session ? (
+                        <span className="shrink-0 uppercase text-[9px] font-bold text-slate-500">
+                          {b.session}
+                        </span>
+                      ) : null}
+                      <span className="text-[10px] text-slate-400">
+                        {b.bet_type}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">
+                      <span className="font-mono text-slate-400">#{b.id}</span>
+                      <span>•</span>
+                      <span>{fmtDateTime(b.placed_at || b.created_at)}</span>
+                    </div>
                   </div>
 
-                  <span className="text-[10px] text-slate-400 shrink-0 font-medium">
-                    {fmtDateTime(b.placed_at || b.created_at)}
-                  </span>
-                </div>
-
-                {/* Middle Row: Digit Chosen & Bet Type */}
-                <div className="flex items-center justify-between gap-2 pt-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1 border border-amber-500/25">
-                      <span className="text-[10px] font-bold uppercase text-amber-800 dark:text-amber-400">Digit</span>
-                      <span className="font-mono font-black text-sm text-amber-900 dark:text-amber-300">
+                  {/* Right: Digit, Stake & Status Badge */}
+                  <div className="shrink-0 text-right space-y-1">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <span
+                        className="font-mono font-black text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/25"
+                        title="Selected Digit"
+                      >
                         {b.selected_number}
                       </span>
+                      <span className="font-mono text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
+                        {fmtMoney(b.amount)}
+                      </span>
+                      {isWon && winAmount > 0 && (
+                        <span className="font-mono text-[11px] font-black text-emerald-600 dark:text-emerald-400">
+                          (+{fmtMoney(winAmount)})
+                        </span>
+                      )}
                     </div>
 
-                    <span className="text-slate-600 dark:text-slate-400 font-medium text-[11px]">
-                      {b.bet_type}
-                    </span>
-                  </div>
-
-                  {/* Bet Amount & Win Status */}
-                  <div className="text-right">
-                    <div className="font-mono text-xs font-extrabold text-slate-900 dark:text-slate-100">
-                      Points: {fmtMoney(b.amount)}
+                    <div className="flex items-center justify-end">
+                      <Badge
+                        color={isWon ? "emerald" : isLost ? "red" : "amber"}
+                        className="font-bold text-[9px] px-1.5 py-0.2 uppercase tracking-wide"
+                      >
+                        {isWon
+                          ? "WON 🎯"
+                          : isLost
+                          ? "LOST"
+                          : isJodi
+                          ? "Awaiting Close"
+                          : "PENDING ⏳"}
+                      </Badge>
                     </div>
-                    {isWon && winAmount > 0 && (
-                      <div className="font-mono text-[11px] font-black text-emerald-600 dark:text-emerald-400">
-                        Won: +{fmtMoney(winAmount)}
-                      </div>
-                    )}
                   </div>
                 </div>
-
-                {/* Bottom Row: Status Badge */}
-                <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/40 flex items-center justify-between text-[11px]">
-                  <span className="text-slate-400 font-mono text-[10px]">Bet #{b.id}</span>
-                  <Badge
-                    color={isWon ? "emerald" : isLost ? "red" : "amber"}
-                    className="font-bold text-[10px] tracking-wide"
-                  >
-                    {isWon
-                      ? "WON 🎯"
-                      : isLost
-                      ? "LOST"
-                      : ((b.bet_type || "").toLowerCase().includes("jodi") || (b.bet_type || "").toLowerCase().includes("sangam"))
-                      ? "Pending (Awaiting Close)"
-                      : "PENDING ⏳"}
-                  </Badge>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

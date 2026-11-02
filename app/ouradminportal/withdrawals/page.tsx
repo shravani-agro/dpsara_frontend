@@ -338,132 +338,137 @@ export default function WithdrawalsPage() {
           <div className="p-4"><Spinner /></div>
         ) : (
           <>
-            {/* Mobile Card List */}
-            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-              {filteredItems.map((w) => {
-                const pay = getPaymentInfo(w.payment_details || w.bank_details);
-                const userPhone = w.phone || w.mobile_number;
+            {/* Mobile High-Density Record Row View */}
+            <div className="md:hidden">
+              {/* Header Bar */}
+              <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-850/90 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    className="accent-brand-600 h-3.5 w-3.5 rounded shrink-0"
+                    checked={filteredItems.length > 0 && filteredItems.every((i) => selected.includes(i.id))}
+                    onChange={(e) =>
+                      setSelected(e.target.checked ? filteredItems.map((i) => i.id) : [])
+                    }
+                  />
+                  <span>Requests ({filteredItems.length})</span>
+                </div>
+                <span>Amount & Actions</span>
+              </div>
 
-                return (
-                  <div
-                    key={w.id}
-                    onClick={() => setDetail(w)}
-                    className={`p-3.5 transition-colors cursor-pointer space-y-2.5 ${
-                      selected.includes(w.id) ? "bg-brand-500/[0.08]" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          className="accent-brand-600 h-4 w-4 rounded shrink-0"
-                          checked={selected.includes(w.id)}
-                          onChange={() => toggle(w.id)}
-                        />
-                        <span className="font-mono text-xs text-slate-400 shrink-0">#{w.id}</span>
-                        <UserCell
-                          userId={w.user_id}
-                          username={w.username}
-                          phone={userPhone}
-                          avatarSize="sm"
-                        />
-                      </div>
-                      <Badge color={statusColor[w.status] ?? "slate"}>{w.status}</Badge>
-                    </div>
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredItems.map((w) => {
+                  const pay = getPaymentInfo(w.payment_details || w.bank_details);
+                  const userPhone = w.phone || w.mobile_number;
+                  const isPending = w.status === "pending";
 
-                    {/* Amount & Time */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-[10px] uppercase font-bold text-slate-400">Payout Amount</p>
-                        <p className="text-xl font-black text-slate-900 dark:text-emerald-400 leading-tight">
-                          {fmtMoney(w.amount)}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] text-slate-400">Requested</p>
-                        <p className="text-xs text-slate-500">{fmtDateTime(w.requested_at)}</p>
-                      </div>
-                    </div>
-
-                    {/* Quick Payment Info Pill directly on mobile card */}
-                    {pay.hasUpi && (
-                      <div
-                        className="flex items-center justify-between gap-2 p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="min-w-0 flex items-center gap-1.5">
-                          <span className="text-[10px] font-black uppercase text-emerald-800 dark:text-emerald-400 shrink-0">
-                            UPI:
-                          </span>
-                          <span className="font-mono text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
-                            {pay.upiId}
-                          </span>
+                  return (
+                    <div
+                      key={w.id}
+                      onClick={() => setDetail(w)}
+                      className={`flex items-center justify-between gap-2 px-3 py-2.5 transition-colors cursor-pointer select-none ${
+                        selected.includes(w.id)
+                          ? "bg-brand-500/[0.08]"
+                          : "hover:bg-slate-50 dark:hover:bg-slate-850/50 active:bg-slate-100"
+                      }`}
+                    >
+                      {/* Left: Checkbox + User + Payment info */}
+                      <div className="flex items-start gap-2 min-w-0 flex-1">
+                        <div onClick={(e) => e.stopPropagation()} className="pt-0.5 shrink-0">
+                          <input
+                            type="checkbox"
+                            className="accent-brand-600 h-3.5 w-3.5 rounded"
+                            checked={selected.includes(w.id)}
+                            onChange={() => toggle(w.id)}
+                          />
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => copyText(pay.upiId, "UPI ID")}
-                          className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 shadow-2xs hover:bg-emerald-100 transition active:scale-95 shrink-0"
-                        >
-                          📋 Copy UPI
-                        </button>
-                      </div>
-                    )}
 
-                    {pay.hasBank && !pay.hasUpi && (
-                      <div
-                        className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="min-w-0">
-                          <span className="text-[10px] font-bold uppercase text-slate-500">
-                            A/C: {pay.accountNumber} {pay.ifsc ? `· ${pay.ifsc}` : ""}
-                          </span>
-                          {pay.accountHolder && (
-                            <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-                              {pay.accountHolder}
-                            </p>
-                          )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-mono text-[11px] text-slate-400 shrink-0">#{w.id}</span>
+                            <span className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate">
+                              {w.username || `User #${w.user_id}`}
+                            </span>
+                            {userPhone && (
+                              <span
+                                onClick={(e) => e.stopPropagation()}
+                                className="shrink-0"
+                              >
+                                <WhatsAppLink
+                                  phone={userPhone}
+                                  userName={w.username}
+                                  variant="inline"
+                                  message={`Hello ${w.username}, this is regarding your withdrawal request #${w.id} for ₹${w.amount}.`}
+                                />
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 flex-wrap">
+                            {pay.hasUpi ? (
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  copyText(pay.upiId, "UPI ID");
+                                }}
+                                className="inline-flex items-center gap-1 font-mono font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.2 rounded border border-emerald-200 dark:border-emerald-800/60 truncate max-w-[180px]"
+                                title="Click to copy UPI"
+                              >
+                                UPI: {pay.upiId} 📋
+                              </span>
+                            ) : pay.hasBank ? (
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  copyText(pay.accountNumber, "A/C Number");
+                                }}
+                                className="inline-flex items-center gap-1 font-mono text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded border border-slate-200 dark:border-slate-700 truncate max-w-[180px]"
+                              >
+                                A/C: {pay.accountNumber} 📋
+                              </span>
+                            ) : null}
+                            <span>{fmtDateTime(w.requested_at)}</span>
+                          </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => copyText(pay.accountNumber, "Account Number")}
-                          className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 shadow-2xs hover:bg-slate-200 transition active:scale-95 shrink-0"
-                        >
-                          📋 Copy A/C
-                        </button>
                       </div>
-                    )}
 
-                    {/* Action buttons on mobile */}
-                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
-                      {userPhone && (
-                        <WhatsAppLink
-                          phone={userPhone}
-                          userName={w.username}
-                          variant="inline"
-                          message={`Hello ${w.username}, this is regarding your withdrawal request #${w.id} for ₹${w.amount}.`}
-                        />
-                      )}
+                      {/* Right: Amount + Status + Inline Action */}
+                      <div className="shrink-0 text-right space-y-1">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span className="font-mono text-xs sm:text-sm font-black text-slate-900 dark:text-emerald-400">
+                            {fmtMoney(w.amount)}
+                          </span>
+                          <Badge color={statusColor[w.status] ?? "slate"} className="text-[9px] px-1.5 py-0.2 font-bold uppercase">
+                            {w.status}
+                          </Badge>
+                        </div>
 
-                      <div className="flex items-center gap-1.5 ml-auto">
-                        <Button size="sm" variant="outline" className="text-xs px-2.5 py-1" onClick={() => setDetail(w)}>
-                          Details
-                        </Button>
-                        {w.status === "pending" && (
-                          <>
-                            <Button size="sm" variant="success" className="text-xs px-3 py-1 font-bold shadow-xs" onClick={() => openConfirm(w.id, "process")}>
-                              Mark Done
-                            </Button>
-                            <Button size="sm" variant="danger" className="text-xs px-2 py-1" onClick={() => openConfirm(w.id, "reject")}>
+                        {isPending && (
+                          <div
+                            className="flex items-center justify-end gap-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => openConfirm(w.id, "process")}
+                              className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-2xs active:scale-95"
+                            >
+                              Done
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openConfirm(w.id, "reject")}
+                              className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 active:scale-95"
+                            >
                               Reject
-                            </Button>
-                          </>
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
             {/* Desktop Table View */}

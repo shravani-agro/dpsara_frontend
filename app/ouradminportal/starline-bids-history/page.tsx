@@ -282,71 +282,101 @@ export default function StarlineBidsHistoryPage() {
               </table>
             </div>
 
-            {/* Mobile Cards */}
-            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-              {filteredItems.map((b) => (
-                <div key={b.id} className="p-3.5 space-y-2.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <UserCell
-                      userId={b.user_id}
-                      username={b.username}
-                      phone={b.phone || (b as any).mobile_number}
-                      avatarSize="sm"
-                    />
-                    <Badge color={statusColor[b.status] ?? "slate"}>{b.status}</Badge>
-                  </div>
+            {/* Mobile High-Density Record Row View */}
+            <div className="md:hidden">
+              {/* Header Bar */}
+              <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-850/90 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <span>Starline Bid & Event ({filteredItems.length})</span>
+                <span>Digit · Stake · Status</span>
+              </div>
 
-                  <div className="flex items-center justify-between text-xs bg-slate-50 dark:bg-slate-850 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
-                    <div>
-                      <div className="font-bold text-slate-900 dark:text-slate-100">
-                        {b.market_name} {b.session ? `· ${b.session}` : ""}
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredItems.map((b) => (
+                  <div
+                    key={b.id}
+                    className="flex items-center justify-between gap-2 px-3 py-2.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-850/50"
+                  >
+                    {/* Left: Market, Session & User */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate">
+                          {b.market_name}
+                        </span>
+                        {b.session && (
+                          <span className="shrink-0 uppercase text-[9px] font-bold text-slate-500">
+                            {b.session}
+                          </span>
+                        )}
+                        <span className="text-[10px] text-slate-400">
+                          {b.bet_type}
+                        </span>
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">
-                        {b.bet_type} | Digit:{" "}
-                        <strong className="font-mono text-slate-900 dark:text-slate-100">{b.selected_number}</strong>
+
+                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5 flex-wrap">
+                        <span className="font-mono text-slate-400">#{b.id}</span>
+                        <span>•</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300 truncate max-w-[120px]">
+                          {b.username || `User #${b.user_id}`}
+                        </span>
+                        <span>•</span>
+                        <span>{fmtDateTime(b.placed_at || b.created_at)}</span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{fmtMoney(b.amount)}</div>
-                      <div className="text-[10px] text-slate-400">Win: {fmtMoney(b.potential_win)}</div>
+
+                    {/* Right: Digit, Stake & Status/Actions */}
+                    <div className="shrink-0 text-right space-y-1">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <span
+                          className="font-mono font-black text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/25"
+                          title="Selected Digit"
+                        >
+                          {b.selected_number}
+                        </span>
+                        <span className="font-mono text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                          {fmtMoney(b.amount)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-1">
+                        <Badge color={statusColor[b.status] ?? "slate"} className="text-[9px] px-1.5 py-0.2 font-bold uppercase">
+                          {b.status}
+                        </Badge>
+
+                        {b.status !== "won" && (
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(b.id, "won")}
+                            className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 active:scale-95"
+                            title="Won"
+                          >
+                            Won
+                          </button>
+                        )}
+                        {b.status !== "lost" && (
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(b.id, "lost")}
+                            className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-500/30 active:scale-95"
+                            title="Lost"
+                          >
+                            Lost
+                          </button>
+                        )}
+                        {b.status !== "cancelled" && (
+                          <button
+                            type="button"
+                            onClick={() => handleCancel(b.id)}
+                            className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-600 hover:text-white border border-slate-200 dark:border-slate-700 active:scale-95"
+                            title="Cancel"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Bet #{b.id} · {fmtDateTime(b.placed_at || b.created_at)}</span>
-
-                    <div className="flex items-center gap-1.5">
-                      {b.status !== "won" && (
-                        <button
-                          type="button"
-                          onClick={() => handleStatusChange(b.id, "won")}
-                          className="px-2 py-1 rounded text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 active:scale-95"
-                        >
-                          Won
-                        </button>
-                      )}
-                      {b.status !== "lost" && (
-                        <button
-                          type="button"
-                          onClick={() => handleStatusChange(b.id, "lost")}
-                          className="px-2 py-1 rounded text-xs font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/30 active:scale-95"
-                        >
-                          Lost
-                        </button>
-                      )}
-                      {b.status !== "cancelled" && (
-                        <button
-                          type="button"
-                          onClick={() => handleCancel(b.id)}
-                          className="px-2 py-1 rounded text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 active:scale-95"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}
