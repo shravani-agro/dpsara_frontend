@@ -231,7 +231,7 @@ export default function SupportPage() {
           }
           bodyClassName="p-0"
         >
-          <div className="flex flex-col gap-2 border-b border-slate-100 p-3">
+          <div className="flex flex-col gap-2 border-b border-slate-100 dark:border-slate-800 p-3">
             <div className="flex gap-2">
               <Input
                 placeholder="Search user / message…"
@@ -256,11 +256,11 @@ export default function SupportPage() {
             {loading && conversations.length === 0 ? (
               <Spinner className="py-10" />
             ) : conversations.length === 0 ? (
-              <p className="px-4 py-10 text-center text-sm text-slate-400">
+              <p className="px-4 py-10 text-center text-sm text-slate-400 dark:text-slate-500">
                 No conversations yet.
               </p>
             ) : (
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
                 {conversations.map((c) => {
                   const active = c.id === selectedId;
                   const unread = c.unread_count ?? 0;
@@ -269,18 +269,20 @@ export default function SupportPage() {
                       <button
                         onClick={() => handleSelect(c.id)}
                         className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors ${
-                          active ? "bg-brand-50" : "hover:bg-slate-50"
+                          active
+                            ? "bg-brand-50 dark:bg-brand-500/10"
+                            : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
                         }`}
                       >
-                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-base">
+                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-base">
                           💬
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="truncate text-sm font-semibold text-slate-900">
+                            <span className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
                               {c.username}
                             </span>
-                            <span className="shrink-0 text-[11px] text-slate-400">
+                            <span className="shrink-0 text-[11px] text-slate-400 dark:text-slate-500">
                               {formatDate(c.last_message_at)}
                             </span>
                           </div>
@@ -301,8 +303,8 @@ export default function SupportPage() {
                           <p
                             className={`mt-1 truncate text-xs ${
                               unread > 0
-                                ? "font-medium text-slate-700"
-                                : "text-slate-500"
+                                ? "font-medium text-slate-700 dark:text-slate-200"
+                                : "text-slate-500 dark:text-slate-400"
                             }`}
                           >
                             {c.last_message || "No messages yet"}
@@ -349,17 +351,17 @@ export default function SupportPage() {
           bodyClassName="p-0"
         >
           {!thread ? (
-            <p className="px-4 py-16 text-center text-sm text-slate-400">
+            <p className="px-4 py-16 text-center text-sm text-slate-400 dark:text-slate-500">
               Select a conversation from the left to start replying.
             </p>
           ) : (
             <div className="flex h-[60vh] flex-col">
               <div
                 ref={scrollRef}
-                className="flex-1 space-y-3 overflow-y-auto bg-slate-50 p-4"
+                className="flex-1 space-y-3 overflow-y-auto bg-slate-50 dark:bg-slate-950/50 p-4"
               >
                 {messages.length === 0 && (
-                  <p className="py-10 text-center text-sm text-slate-400">
+                  <p className="py-10 text-center text-sm text-slate-400 dark:text-slate-500">
                     No messages yet.
                   </p>
                 )}
@@ -374,7 +376,7 @@ export default function SupportPage() {
                         className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 text-sm shadow-sm ${
                           isAdmin
                             ? "rounded-br-sm bg-brand-600 text-white"
-                            : "rounded-bl-sm bg-white text-slate-800 ring-1 ring-slate-200"
+                            : "rounded-bl-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 ring-1 ring-slate-200 dark:ring-slate-700"
                         }`}
                       >
                         {m.attachment_url && (
@@ -394,7 +396,7 @@ export default function SupportPage() {
                         {m.message && <p className="whitespace-pre-wrap">{m.message}</p>}
                         <p
                           className={`mt-1 text-[10px] ${
-                            isAdmin ? "text-white/70" : "text-slate-400"
+                            isAdmin ? "text-white/70" : "text-slate-400 dark:text-slate-400"
                           }`}
                         >
                           {formatDate(m.created_at)}
@@ -405,7 +407,7 @@ export default function SupportPage() {
                 })}
               </div>
 
-              <div className="border-t border-slate-100 bg-white p-3">
+              <div className="border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
                 <div className="mb-2 flex items-center gap-2">
                   <input
                     ref={fileInputRef}
@@ -474,18 +476,18 @@ function Stat({
   accent?: "slate" | "amber" | "brand";
 }) {
   const accents: Record<string, string> = {
-    slate: "from-slate-500/20 to-slate-400/5 text-slate-700",
-    amber: "from-amber-500/20 to-amber-400/5 text-amber-700",
-    brand: "from-brand-500/20 to-brand-400/5 text-brand-700",
+    slate: "from-slate-500/20 to-slate-400/5 text-slate-700 dark:text-slate-300",
+    amber: "from-amber-500/20 to-amber-400/5 text-amber-700 dark:text-amber-300",
+    brand: "from-brand-500/20 to-brand-400/5 text-brand-700 dark:text-brand-300",
   };
   return (
     <div
-      className={`rounded-2xl border border-slate-100 bg-gradient-to-br p-4 ${accents[accent]}`}
+      className={`rounded-2xl border border-slate-100 dark:border-slate-800 bg-gradient-to-br p-4 ${accents[accent]} dark:bg-slate-900/60`}
     >
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {label}
       </p>
-      <p className="mt-1 text-2xl font-bold text-slate-900">{value ?? 0}</p>
+      <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">{value ?? 0}</p>
     </div>
   );
 }

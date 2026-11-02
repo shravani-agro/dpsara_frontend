@@ -1,31 +1,92 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/components/ui";
+import { useUserModal } from "@/components/UserModalContext";
+import { useTheme } from "@/components/useTheme";
+import { listUsers, autoRejectExpiredDeposits } from "@/lib/admin";
+import { fmtMoney } from "@/lib/format";
+import { toast } from "@/components/Toast";
 
-const ACTIONS = [
-  { href: "/ouradminportal", label: "Dashboard", icon: "▦", section: "Navigation" },
-  { href: "/ouradminportal/users", label: "Users", icon: "👤", section: "Navigation" },
-  { href: "/ouradminportal/markets", label: "Markets", icon: "📈", section: "Navigation" },
-  { href: "/ouradminportal/starline", label: "Starline", icon: "⭐", section: "Navigation" },
-  { href: "/ouradminportal/results", label: "Results", icon: "🎯", section: "Navigation" },
-  { href: "/ouradminportal/deposits", label: "Deposits", icon: "➕", section: "Navigation" },
-  { href: "/ouradminportal/bids", label: "Regular Bids", icon: "🎲", section: "Navigation" },
-  { href: "/ouradminportal/starline-bids-history", label: "Starline Bids", icon: "🎲", section: "Navigation" },
-  { href: "/ouradminportal/withdrawals", label: "Withdrawals", icon: "💸", section: "Navigation" },
-  { href: "/ouradminportal/game-rates", label: "Game Rates", icon: "💰", section: "Navigation" },
-  { href: "/ouradminportal/audit", label: "Audit Logs", icon: "🛡", section: "Navigation" },
-  { href: "/ouradminportal/settings", label: "Settings", icon: "⚙", section: "Navigation" },
+interface ActionItem {
+  id: string;
+  label: string;
+  icon: string;
+  section: "Actions" | "Users" | "Navigation";
+  shortcut?: string;
+  badge?: string;
+  perform?: () => void;
+  href?: string;
+  subtitle?: string;
+}
+
+const STATIC_ACTIONS: ActionItem[] = [
+  // Quick Actions
+  {
+    id: "action-auto-reject",
+    label: "Auto-Reject Expired Deposits (>30m)",
+    icon: "⚡",
+    section: "Actions",
+    shortcut: "A",
+    subtitle: "Clean up unverified deposits older than 30 mins",
+  },
+  {
+    id: "action-withdrawals",
+    label: "Process Pending Withdrawals",
+    icon: "💸",
+    section: "Actions",
+    shortcut: "W",
+    href: "/ouradminportal/withdrawals",
+    subtitle: "Review UPI & Bank payout requests",
+  },
+  {
+    id: "action-declare",
+    label: "Declare Market Results",
+    icon: "🎯",
+    section: "Actions",
+    shortcut: "D",
+    href: "/ouradminportal/results",
+    subtitle: "Input winning pana & ank for today",
+  },
+  {
+    id: "action-theme",
+    label: "Toggle Theme (Dark / Light)",
+    icon: "🌓",
+    section: "Actions",
+    shortcut: "T",
+    subtitle: "Switch between dark and light appearance",
+  },
+  // Navigation
+  { id: "nav-dash", href: "/ouradminportal", label: "Dashboard Overview", icon: "▦", section: "Navigation" },
+  { id: "nav-users", href: "/ouradminportal/users", label: "Users Directory", icon: "👥", section: "Navigation" },
+  { id: "nav-markets", href: "/ouradminportal/markets", label: "Markets Management", icon: "📈", section: "Navigation" },
+  { id: "nav-starline", href: "/ouradminportal/starline", label: "Starline Markets", icon: "⭐", section: "Navigation" },
+  { id: "nav-jackpot", href: "/ouradminportal/jackpot", label: "Jackpot Games", icon: "💰", section: "Navigation" },
+  { id: "nav-bids", href: "/ouradminportal/bids", label: "Regular Bids History", icon: "🎲", section: "Navigation" },
+  { id: "nav-starline-bids", href: "/ouradminportal/starline-bids-history", label: "Starline Bids History", icon: "🎲", section: "Navigation" },
+  { id: "nav-deposits", href: "/ouradminportal/deposits", label: "Deposits Manager", icon: "➕", section: "Navigation" },
+  { id: "nav-txns", href: "/ouradminportal/transactions", label: "Transactions & Passbook", icon: "💳", section: "Navigation" },
+  { id: "nav-rates", href: "/ouradminportal/game-rates", label: "Game Rates & Odds", icon: "🏷️", section: "Navigation" },
+  { id: "nav-support", href: "/ouradminportal/support", label: "Live Support Chat", icon: "💬", section: "Navigation" },
+  { id: "nav-audit", href: "/ouradminportal/audit", label: "Security & Audit Logs", icon: "🛡️", section: "Navigation" },
+  { id: "nav-settings", href: "/ouradminportal/settings", label: "Platform Settings", icon: "⚙️", section: "Navigation" },
 ];
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const router = useRouter();
+  const [userResults, setUserResults] = useState<any[]>([]);
+  const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+  const searchTimeoutRef = useRef<any>(null);
 
+  const router = useRouter();
+  const { openUser } = useUserModal();
+  const { theme, setTheme } = useTheme();
+
+  // Listen for Ctrl+K, Cmd+K, Escape, and custom trigger events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -45,104 +106,251 @@ export function CommandPalette() {
     };
   }, []);
 
-  const filtered = ACTIONS.filter((a) => a.label.toLowerCase().includes(query.toLowerCase()));
+  // Debounced live user search when typing 2+ chars
+  useEffect(() => {
+    const clean = query.trim();
+    if (clean.length >= 2) {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+      searchTimeoutRef.current = setTimeout(async () => {
+        setIsSearchingUsers(true);
+        try {
+          const res = await listUsers({ search: clean, limit: 5 });
+          setUserResults(Array.isArray(res) ? res : []);
+        } catch {
+          setUserResults([]);
+        } finally {
+          setIsSearchingUsers(false);
+        }
+      }, 250);
+    } else {
+      setUserResults([]);
+      setIsSearchingUsers(false);
+    }
+
+    return () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    };
+  }, [query]);
+
+  // Combine static actions + live user results into a single navigable list
+  const combinedItems: ActionItem[] = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+
+    // Map matched users
+    const mappedUsers: ActionItem[] = userResults.map((u) => ({
+      id: `user-${u.id}`,
+      label: u.username || u.phone || `User #${u.id}`,
+      subtitle: `${u.phone || "No phone"} · Balance: ${fmtMoney(u.wallet_balance || 0)}`,
+      icon: "👤",
+      section: "Users" as const,
+      badge: `#${u.id}`,
+      perform: () => {
+        openUser(u.id, {
+          username: u.username,
+          phone: u.phone,
+          full_name: u.full_name,
+        });
+      },
+    }));
+
+    const filteredStatic = STATIC_ACTIONS.filter(
+      (a) =>
+        a.label.toLowerCase().includes(q) ||
+        (a.subtitle && a.subtitle.toLowerCase().includes(q)) ||
+        a.section.toLowerCase().includes(q)
+    );
+
+    return [...mappedUsers, ...filteredStatic];
+  }, [query, userResults, openUser]);
 
   useEffect(() => {
     setSelectedIndex(0);
-  }, [query]);
+  }, [combinedItems.length, query]);
+
+  const executeItem = useCallback(
+    async (item: ActionItem) => {
+      setOpen(false);
+      setQuery("");
+
+      if (item.id === "action-auto-reject") {
+        toast.info("Auto-rejecting expired deposits (>30m)...");
+        try {
+          const res = await autoRejectExpiredDeposits(30);
+          toast.success(`Complete: ${res?.auto_rejected || 0} expired deposits rejected`);
+        } catch {
+          toast.error("Failed to run auto-reject. Check audit logs.");
+        }
+        return;
+      }
+
+      if (item.id === "action-theme") {
+        setTheme(theme === "dark" ? "light" : "dark");
+        toast.success(`Theme switched to ${theme === "dark" ? "Light" : "Dark"} mode`);
+        return;
+      }
+
+      if (item.perform) {
+        item.perform();
+        return;
+      }
+
+      if (item.href) {
+        router.push(item.href);
+      }
+    },
+    [router, setTheme, theme]
+  );
 
   useEffect(() => {
     if (!open) return;
-    const handleNavigation = (e: KeyboardEvent) => {
+    const handleKeyNav = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedIndex((i) => Math.min(i + 1, filtered.length - 1));
+        setSelectedIndex((i) => Math.min(i + 1, combinedItems.length - 1));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setSelectedIndex((i) => Math.max(i - 1, 0));
-      } else if (e.key === "Enter" && filtered.length > 0) {
+      } else if (e.key === "Enter" && combinedItems.length > 0) {
         e.preventDefault();
-        router.push(filtered[selectedIndex].href);
-        setOpen(false);
-        setQuery("");
+        const selected = combinedItems[selectedIndex];
+        if (selected) executeItem(selected);
       }
     };
-    window.addEventListener("keydown", handleNavigation);
-    return () => window.removeEventListener("keydown", handleNavigation);
-  }, [open, filtered, selectedIndex, router]);
+    window.addEventListener("keydown", handleKeyNav);
+    return () => window.removeEventListener("keydown", handleKeyNav);
+  }, [open, combinedItems, selectedIndex, executeItem]);
 
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4 sm:px-0">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] sm:pt-[14vh] px-3 sm:px-0">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-md"
             onClick={() => setOpen(false)}
           />
+
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -20 }}
+            initial={{ opacity: 0, scale: 0.96, y: -16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 bg-white/95 dark:bg-ink-900/95 shadow-2xl backdrop-blur-xl"
+            exit={{ opacity: 0, scale: 0.96, y: -16 }}
+            transition={{ type: "spring", damping: 28, stiffness: 380 }}
+            className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 shadow-2xl backdrop-blur-xl"
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
-            <div className="flex items-center border-b border-slate-100 dark:border-white/10 px-5 relative">
-              <span className="text-slate-400 text-lg">🔍</span>
+            {/* Search Input Bar */}
+            <div className="flex items-center border-b border-slate-100 dark:border-slate-800 px-4 sm:px-5 relative">
+              <span className="text-brand-500 text-lg mr-2 shrink-0">⚡</span>
               <input
                 autoFocus
-                className="w-full bg-transparent p-4 sm:p-5 text-base sm:text-xl font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none"
-                placeholder="Type a command or search pages..."
+                className="w-full bg-transparent py-4 text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none"
+                placeholder="Search users by name/phone, jump to pages, or run smart actions..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
-              <div className="absolute right-5 flex gap-2">
-                <span className="text-[10px] font-bold tracking-widest text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded border border-slate-200 dark:border-white/5 shadow-xs">ESC</span>
+              <div className="flex items-center gap-1.5 shrink-0 pl-2">
+                {isSearchingUsers && (
+                  <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-brand-500 border-t-transparent mr-1" />
+                )}
+                <kbd className="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                  ESC
+                </kbd>
               </div>
             </div>
-            
-            <div className="max-h-[60vh] min-h-[260px] overflow-y-auto p-3 bg-slate-50/60 dark:bg-ink-950/40">
-              {filtered.length === 0 ? (
-                <div className="py-16 text-center flex flex-col items-center">
-                  <span className="text-4xl opacity-30 mb-3">📭</span>
-                  <div className="text-slate-500 dark:text-slate-400 text-sm">No results found for <span className="text-slate-900 dark:text-slate-200 font-medium">&quot;{query}&quot;</span></div>
+
+            {/* Results List */}
+            <div className="max-h-[60vh] min-h-[220px] overflow-y-auto p-2 sm:p-3 space-y-1">
+              {combinedItems.length === 0 ? (
+                <div className="py-12 text-center flex flex-col items-center">
+                  <span className="text-3xl opacity-40 mb-2">🔍</span>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    No results found for &quot;{query}&quot;
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Try searching by a phone number, username, or page title
+                  </p>
                 </div>
               ) : (
-                <div className="space-y-1">
-                  {filtered.map((action, i) => (
+                combinedItems.map((item, i) => {
+                  const isSelected = selectedIndex === i;
+                  return (
                     <button
-                      key={action.href}
-                      onClick={() => {
-                        router.push(action.href);
-                        setOpen(false);
-                        setQuery("");
-                      }}
+                      key={item.id}
+                      type="button"
+                      onClick={() => executeItem(item)}
                       onMouseEnter={() => setSelectedIndex(i)}
                       className={cn(
-                        "flex w-full items-center gap-3.5 rounded-xl px-4 py-2.5 text-left transition-all duration-150",
-                        selectedIndex === i 
-                          ? "bg-brand-500/15 text-brand-700 dark:text-brand-300 border border-brand-500/30 shadow-sm" 
-                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent"
+                        "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left transition-all duration-100",
+                        isSelected
+                          ? "bg-brand-500/10 dark:bg-brand-500/15 text-brand-900 dark:text-brand-200 border border-brand-500/30 shadow-xs"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-transparent"
                       )}
                     >
-                      <span className={cn(
-                        "flex h-9 w-9 items-center justify-center rounded-lg text-base transition-colors",
-                        selectedIndex === i ? "bg-brand-500/20 text-brand-600 dark:text-brand-400" : "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400"
-                      )}>{action.icon}</span>
-                      <div className="flex flex-col">
-                        <span className={cn("text-sm font-semibold", selectedIndex === i ? "text-brand-800 dark:text-white" : "text-slate-800 dark:text-slate-200")}>{action.label}</span>
-                        <span className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">{action.section}</span>
+                      <span
+                        className={cn(
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base font-bold transition-colors",
+                          isSelected
+                            ? "bg-brand-500/20 text-brand-600 dark:text-brand-400"
+                            : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                        )}
+                      >
+                        {item.icon}
+                      </span>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "text-xs sm:text-sm font-bold truncate",
+                              isSelected ? "text-brand-700 dark:text-brand-300" : "text-slate-900 dark:text-slate-100"
+                            )}
+                          >
+                            {item.label}
+                          </span>
+                          {item.badge && (
+                            <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                        {item.subtitle && (
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                            {item.subtitle}
+                          </p>
+                        )}
                       </div>
-                      
-                      {selectedIndex === i && (
-                         <span className="ml-auto text-xs text-brand-600 dark:text-brand-400 font-semibold tracking-wide">Jump to →</span>
-                      )}
+
+                      <div className="shrink-0 flex items-center gap-2">
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">
+                          {item.section}
+                        </span>
+                        {isSelected && (
+                          <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
+                            ↵
+                          </span>
+                        )}
+                      </div>
                     </button>
-                  ))}
-                </div>
+                  );
+                })
               )}
+            </div>
+
+            {/* Smart Footer Bar */}
+            <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 bg-slate-50/80 dark:bg-slate-950/50">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-1">
+                  <kbd className="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-[10px] font-mono">↑↓</kbd> Navigate
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <kbd className="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-[10px] font-mono">↵</kbd> Select
+                </span>
+              </div>
+              <span className="font-medium text-slate-500">
+                Tip: Press <kbd className="px-1 py-0.5 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 font-mono text-[10px]">Ctrl+K</kbd> anywhere
+              </span>
             </div>
           </motion.div>
         </div>

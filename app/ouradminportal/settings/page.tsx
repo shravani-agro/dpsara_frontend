@@ -152,7 +152,7 @@ export default function SettingsPage() {
 
       <ErrorMsg msg={error} />
       {msg && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-300">
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-700 dark:text-emerald-300 font-medium">
           {msg}
         </div>
       )}
@@ -206,10 +206,10 @@ export default function SettingsPage() {
               </thead>
               <tbody>
                 {settings.map((s: any) => (
-                  <tr key={s.key} className="border-t border-slate-100 hover:bg-slate-50">
-                    <td className="py-3 font-mono text-slate-900">{s.key}</td>
-                    <td className="py-3 text-slate-700 max-w-[200px] truncate">{s.value ?? "—"}</td>
-                    <td className="py-3 text-slate-400 text-xs max-w-[300px] truncate">{s.description ?? "—"}</td>
+                  <tr key={s.key} className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td className="py-3 font-mono text-slate-900 dark:text-slate-100">{s.key}</td>
+                    <td className="py-3 text-slate-700 dark:text-slate-300 max-w-[200px] truncate">{s.value ?? "—"}</td>
+                    <td className="py-3 text-slate-400 dark:text-slate-500 text-xs max-w-[300px] truncate">{s.description ?? "—"}</td>
                     <td className="py-3 text-right">
                       <Button size="sm" variant="outline" onClick={() => openEdit(s)}>Edit</Button>
                     </td>

@@ -490,7 +490,7 @@ export default function MarketsPage() {
             <form onSubmit={saveMarket} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-400">Game Name</label>
+                  <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">Game Name</label>
                   <Input
                     required
                     value={formData.name}
@@ -499,7 +499,7 @@ export default function MarketsPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-400">Game Days</label>
+                  <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">Game Days</label>
                   <Select
                     value={formData.game_days}
                     onChange={(e) => setFormData({ ...formData, game_days: e.target.value })}
@@ -512,7 +512,7 @@ export default function MarketsPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-400">Type</label>
+                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">Type</label>
                 <Select
                   value={formData.market_type}
                   onChange={(e) => setFormData({ ...formData, market_type: e.target.value })}
@@ -526,7 +526,7 @@ export default function MarketsPage() {
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-400">Open Time</label>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">Open Time</label>
                       <TimePicker
                         value={formData.open_time}
                         onChange={(val) => {
@@ -539,7 +539,7 @@ export default function MarketsPage() {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-400">Close Time</label>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">Close Time</label>
                       <TimePicker
                         value={formData.close_time}
                         onChange={(val) => {
@@ -570,16 +570,16 @@ export default function MarketsPage() {
                         setFormData({ ...formData, ...updates });
                       }}
                     />
-                    <label htmlFor="auto_calc_bid_times" className="text-xs text-slate-600 font-medium cursor-pointer">
+                    <label htmlFor="auto_calc_bid_times" className="text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer">
                       Auto calculate Bid Times (5 min before Open & Close time)
                     </label>
                   </div>
 
                   {/* Open Bid Time and Close Bid Time inputs */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-200 dark:border-slate-800">
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="block text-xs font-semibold text-slate-700">Open Bid Time</label>
+                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200">Open Bid Time</label>
                         <span className="text-[10px] text-slate-400 font-mono">-5 min</span>
                       </div>
                       <TimePicker
@@ -590,7 +590,7 @@ export default function MarketsPage() {
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="block text-xs font-semibold text-slate-700">Close Bid Time</label>
+                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200">Close Bid Time</label>
                         <span className="text-[10px] text-slate-400 font-mono">-5 min</span>
                       </div>
                       <TimePicker
@@ -602,10 +602,10 @@ export default function MarketsPage() {
                   </div>
 
                   {/* Auto Fetch / Manual Mode Toggle */}
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 p-3.5">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-xs font-semibold text-slate-800">Result Mode (Auto / Manual Fetching)</div>
+                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">Result Mode (Auto / Manual Fetching)</div>
                         <div className="text-[11px] text-slate-500 mt-0.5">
                           {formData.auto_fetch
                             ? "Auto Fetch ON: Results are scraped and declared automatically by the system."
