@@ -10,6 +10,7 @@ import {
   PageHeader,
   Button,
   EmptyState,
+  Modal,
 } from "@/components/ui";
 import { toast } from "@/components/Toast";
 import { listStarlineBids, listStarlineMarkets, cancelStarlineBet, updateStarlineBidStatus } from "@/lib/admin";
@@ -37,6 +38,7 @@ export default function StarlineBidsHistoryPage() {
   const [dateTo, setDateTo] = useState("");
   const [searchUser, setSearchUser] = useState("");
   const [markets, setMarkets] = useState<any[]>([]);
+  const [selectedBid, setSelectedBid] = useState<Bid | null>(null);
 
   const loadMarkets = useCallback(async () => {
     try {
@@ -294,7 +296,8 @@ export default function StarlineBidsHistoryPage() {
                 {filteredItems.map((b) => (
                   <div
                     key={b.id}
-                    className="flex items-center justify-between gap-2 px-3 py-2.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-850/50"
+                    onClick={() => setSelectedBid(b)}
+                    className="flex items-center justify-between gap-2 px-3 py-2.5 transition-colors cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-850/50 active:bg-slate-100 dark:active:bg-slate-800"
                   >
                     {/* Left: Market, Session & User */}
                     <div className="min-w-0 flex-1">
@@ -323,7 +326,7 @@ export default function StarlineBidsHistoryPage() {
                       </div>
                     </div>
 
-                    {/* Right: Digit, Stake & Status/Actions */}
+                    {/* Right: Digit, Stake & Status Badge (Clean: Won/Lost/Cancel kept inside) */}
                     <div className="shrink-0 text-right space-y-1">
                       <div className="flex items-center justify-end gap-1.5">
                         <span
@@ -341,37 +344,7 @@ export default function StarlineBidsHistoryPage() {
                         <Badge color={statusColor[b.status] ?? "slate"} className="text-[9px] px-1.5 py-0.2 font-bold uppercase">
                           {b.status}
                         </Badge>
-
-                        {b.status !== "won" && (
-                          <button
-                            type="button"
-                            onClick={() => handleStatusChange(b.id, "won")}
-                            className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 active:scale-95"
-                            title="Won"
-                          >
-                            Won
-                          </button>
-                        )}
-                        {b.status !== "lost" && (
-                          <button
-                            type="button"
-                            onClick={() => handleStatusChange(b.id, "lost")}
-                            className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-500/30 active:scale-95"
-                            title="Lost"
-                          >
-                            Lost
-                          </button>
-                        )}
-                        {b.status !== "cancelled" && (
-                          <button
-                            type="button"
-                            onClick={() => handleCancel(b.id)}
-                            className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-600 hover:text-white border border-slate-200 dark:border-slate-700 active:scale-95"
-                            title="Cancel"
-                          >
-                            Cancel
-                          </button>
-                        )}
+                        <span className="text-slate-400 text-xs ml-0.5">›</span>
                       </div>
                     </div>
                   </div>
@@ -381,6 +354,118 @@ export default function StarlineBidsHistoryPage() {
           </div>
         )}
       </Card>
+
+      {/* Starline Bet Details & Actions Modal (Kept Safely Inside) */}
+      <Modal
+        open={!!selectedBid}
+        onClose={() => setSelectedBid(null)}
+        title={`Starline Bet #${selectedBid?.id || ""}`}
+      >
+        {selectedBid && (
+          <div className="space-y-4 text-xs">
+            <div className="grid grid-cols-2 gap-3 rounded-xl bg-slate-50 dark:bg-slate-850 p-3.5 border border-slate-200 dark:border-slate-800">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Market & Time</span>
+                <div className="mt-0.5 font-bold text-sm text-slate-900 dark:text-slate-100">{selectedBid.market_name}</div>
+                <div className="text-[11px] text-slate-500 uppercase">{selectedBid.session || "—"}</div>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Current Status</span>
+                <div className="mt-1">
+                  <Badge color={statusColor[selectedBid.status] ?? "slate"}>
+                    {selectedBid.status}
+                  </Badge>
+                </div>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Bet Type</span>
+                <div className="mt-0.5 font-semibold text-slate-800 dark:text-slate-200">
+                  {selectedBid.bet_type}
+                </div>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Chosen Digit / Pana</span>
+                <div className="mt-0.5 font-mono font-black text-base text-amber-600 dark:text-amber-400">
+                  {selectedBid.selected_number}
+                </div>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Stake Amount</span>
+                <div className="mt-0.5 font-mono font-bold text-sm text-slate-900 dark:text-slate-100">
+                  {fmtMoney(selectedBid.amount)}
+                </div>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Potential Win</span>
+                <div className="mt-0.5 font-mono font-bold text-sm text-emerald-600 dark:text-emerald-400">
+                  {fmtMoney(selectedBid.potential_win)}
+                </div>
+              </div>
+            </div>
+
+            {/* User & Timestamp */}
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-850 p-3 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <div className="text-[10px] uppercase font-bold text-slate-400">Placed By</div>
+                <div className="font-semibold text-slate-900 dark:text-slate-100 mt-0.5">
+                  {selectedBid.username || `User #${selectedBid.user_id}`}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Date & Time</div>
+                <div className="text-slate-600 dark:text-slate-300 mt-0.5">
+                  {fmtDateTime(selectedBid.placed_at || selectedBid.created_at)}
+                </div>
+              </div>
+            </div>
+
+            {/* Actions Inside Modal */}
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                Update Bet Result / Action
+              </span>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  size="sm"
+                  variant="success"
+                  disabled={selectedBid.status === "won"}
+                  onClick={async () => {
+                    await handleStatusChange(selectedBid.id, "won");
+                    setSelectedBid(null);
+                  }}
+                  className="font-bold text-xs"
+                >
+                  ✓ Mark Won
+                </Button>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  disabled={selectedBid.status === "lost"}
+                  onClick={async () => {
+                    await handleStatusChange(selectedBid.id, "lost");
+                    setSelectedBid(null);
+                  }}
+                  className="font-bold text-xs"
+                >
+                  ✗ Mark Lost
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={selectedBid.status === "cancelled"}
+                  onClick={async () => {
+                    await handleCancel(selectedBid.id);
+                    setSelectedBid(null);
+                  }}
+                  className="font-bold text-xs"
+                >
+                  ⊘ Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
