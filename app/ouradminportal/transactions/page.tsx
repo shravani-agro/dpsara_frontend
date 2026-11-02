@@ -20,6 +20,7 @@ import { parseApiError } from "@/lib/error-parser";
 import { DateRangeFilter } from "@/components/DateRangeFilter";
 import { UserCell } from "@/components/UserCell";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+import { toast } from "@/components/Toast";
 
 const TYPE_FILTERS = [
   { id: "all", label: "All Transactions", icon: "📋" },
@@ -133,6 +134,49 @@ export default function TransactionsPage() {
     return { credits, debits, count, totalVolume: credits + debits };
   }, [items]);
 
+  const exportToCsv = () => {
+    if (items.length === 0) {
+      toast.error("No transactions to export");
+      return;
+    }
+    const headers = [
+      "ID",
+      "Transaction ID",
+      "User ID",
+      "Username",
+      "Phone",
+      "Type",
+      "Amount",
+      "Balance After",
+      "Status",
+      "Date (IST)",
+      "Description",
+    ];
+    const rows = items.map((t) => [
+      t.id,
+      `"${t.txn_id || t.id}"`,
+      t.user_id,
+      `"${t.username || ""}"`,
+      `"${t.phone || ""}"`,
+      t.type,
+      t.amount,
+      t.balance_after ?? "",
+      t.status,
+      `"${fmtDateTime(t.created_at)}"`,
+      `"${(t.description || "").replace(/"/g, '""')}"`,
+    ]);
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `transactions_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success(`${items.length} transactions exported to CSV`);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -140,6 +184,15 @@ export default function TransactionsPage() {
         description="Complete financial audit trail: inspect every debit, deposit, withdrawal, and stake adjustment"
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportToCsv}
+              disabled={items.length === 0}
+              className="text-xs font-semibold"
+            >
+              📥 Export CSV
+            </Button>
             <Button variant="outline" size="sm" onClick={() => load()}>
               🔄 Refresh
             </Button>

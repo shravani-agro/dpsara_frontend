@@ -343,7 +343,7 @@ export default function UsersPage() {
         title={
           <div className="flex items-center gap-2">
             <span>Users</span>
-            <span className="rounded-full bg-slate-200/80 px-2 py-0.5 text-xs font-bold text-slate-700">
+            <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-300">
               {users.length}
             </span>
           </div>
@@ -369,7 +369,7 @@ export default function UsersPage() {
                     key: "username",
                     header: "Username",
                     render: (u) => (
-                      <span className="font-medium text-slate-900">
+                      <span className="font-medium text-slate-900 dark:text-slate-100">
                         {u.full_name || u.username}
                         {u.username === "admin" && <Badge color="brand" className="ml-2">Owner</Badge>}
                         {u.auth_provider === "google" && <Badge color="blue" className="ml-2">Google signed in</Badge>}
@@ -412,10 +412,10 @@ export default function UsersPage() {
             {/* Mobile Compact High-Density Row View */}
             <div className="md:hidden">
               {/* Mobile Table Header */}
-              <div className="flex items-center justify-between border-b border-slate-200/80 bg-slate-50/90 px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-850/90 px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 <div className="flex items-center gap-1.5">
                   <span>User</span>
-                  <span className="rounded-full bg-slate-200 px-1.5 py-0.2 text-[9px] font-semibold text-slate-700">
+                  <span className="rounded-full bg-slate-200 dark:bg-slate-700 px-1.5 py-0.2 text-[9px] font-semibold text-slate-700 dark:text-slate-300">
                     {users.length}
                   </span>
                 </div>
@@ -427,7 +427,7 @@ export default function UsersPage() {
                   <EmptyState title="No users found" hint="Try changing the search filter above" />
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {users.map((u) => {
                     const displayName = u.full_name || u.username;
                     const initial = (displayName?.[0] || "U").toUpperCase();
@@ -438,7 +438,7 @@ export default function UsersPage() {
                       <div
                         key={u.id}
                         onClick={() => openDetail(u)}
-                        className="flex items-center justify-between gap-2.5 px-3 py-2.5 transition-colors active:bg-amber-500/10 hover:bg-slate-50 cursor-pointer select-none"
+                        className="flex items-center justify-between gap-2.5 px-3 py-2.5 transition-colors active:bg-amber-500/10 hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer select-none"
                       >
                         {/* Left: Avatar & Info */}
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -447,7 +447,7 @@ export default function UsersPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
-                              <span className="truncate text-xs sm:text-sm font-semibold text-slate-900 leading-tight">
+                              <span className="truncate text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 leading-tight">
                                 {displayName}
                               </span>
                               {u.username === "admin" && (
