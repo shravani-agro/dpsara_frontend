@@ -43,6 +43,8 @@ export default function OurAdminPortalLoginPage() {
       const detail = err?.response?.data?.detail;
       if (err?.message === "NOT_ADMIN") {
         setError("This account does not have administrator privileges.");
+      } else if (err?.message && !err?.response) {
+        setError(err.message);
       } else if (typeof detail === "string") {
         setError(detail);
       } else {

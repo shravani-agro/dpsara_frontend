@@ -368,7 +368,7 @@ export default function StarlinePage() {
                 <div className="table-wrap">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700">
+                      <tr className="text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                         <th className="py-2.5 px-4">Time Slot</th>
                         <th className="py-2.5 px-4">Schedule Time</th>
                         <th className="text-right px-4">Action</th>
@@ -376,9 +376,9 @@ export default function StarlinePage() {
                     </thead>
                     <tbody>
                       {market.schedules.map((s: any, idx: number) => (
-                        <tr key={idx} className="border-b border-slate-800 hover:bg-slate-800/30">
-                          <td className="py-3 px-4 font-semibold text-white">{s.session_label}</td>
-                          <td className="px-4 text-slate-400 font-mono">{s.result_time || "—"}</td>
+                        <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white">{s.session_label}</td>
+                          <td className="px-4 text-slate-500 dark:text-slate-400 font-mono">{s.result_time || "—"}</td>
                           <td className="px-4 text-right">
                             <Button size="sm" variant="danger" onClick={() => handleRemoveSlot(idx)}>
                               Delete
@@ -404,7 +404,7 @@ export default function StarlinePage() {
                 <div className="table-wrap">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700">
+                      <tr className="text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                         <th className="py-2.5 px-3">Date</th>
                         <th className="px-3">Time Slot</th>
                         <th className="px-3 text-center">Pana</th>
@@ -424,17 +424,17 @@ export default function StarlinePage() {
                         const parsed = parseStarlineResult(r.open_result || r.total_result);
 
                         return (
-                          <tr key={r.id} className="border-b border-slate-800 hover:bg-slate-800/30">
-                            <td className="py-3 px-3 text-slate-300 font-medium">{dateStr}</td>
-                            <td className="px-3 font-semibold text-white">{r.session_label}</td>
-                            <td className="px-3 text-center font-mono font-bold text-emerald-400">
+                          <tr key={r.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td className="py-3 px-3 text-slate-600 dark:text-slate-300 font-medium">{dateStr}</td>
+                            <td className="px-3 font-semibold text-slate-900 dark:text-white">{r.session_label}</td>
+                            <td className="px-3 text-center font-mono font-bold text-emerald-600 dark:text-emerald-400">
                               {parsed.pana || "—"}
                             </td>
-                            <td className="px-3 text-center font-mono font-bold text-amber-300">
+                            <td className="px-3 text-center font-mono font-bold text-amber-700 dark:text-amber-300">
                               {parsed.ank || "—"}
                             </td>
                             <td className="px-3 text-center">
-                              <span className="inline-block rounded-md bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 font-mono font-black text-emerald-300 text-sm">
+                              <span className="inline-block rounded-md bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 font-mono font-black text-emerald-700 dark:text-emerald-300 text-sm">
                                 {r.open_result || r.total_result || "—"}
                               </span>
                             </td>

@@ -92,8 +92,8 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-5 sm:space-y-6 relative mesh-bg p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 dark:border-slate-800 shadow-2xl">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-ink-950/80 pointer-events-none rounded-2xl sm:rounded-3xl" />
+    <div className="space-y-5 sm:space-y-6 relative mesh-bg p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl">
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-ink-950/80 pointer-events-none rounded-2xl sm:rounded-3xl hidden dark:block" />
       <div className="relative z-10 space-y-5 sm:space-y-6">
         <PageHeader
         title="Dashboard"
@@ -277,7 +277,7 @@ export default function DashboardPage() {
               return (
                 <div
                   key={m.market_id}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 transition-colors hover:border-slate-300 hover:bg-slate-100"
+                  className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 p-3.5 transition-colors hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
@@ -289,20 +289,20 @@ export default function DashboardPage() {
                         {i + 1}
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-slate-900">{m.market_name}</p>
-                        <p className="text-xs text-slate-400">
+                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{m.market_name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {fmtNum(m.total_bets)} bets · {fmtMoney(m.total_payouts)} paid out
                         </p>
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="text-sm font-bold text-slate-900">{fmtMoney(m.total_stakes)}</p>
-                      <p className={`text-xs font-medium ${m.net_pl >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{fmtMoney(m.total_stakes)}</p>
+                      <p className={`text-xs font-semibold ${m.net_pl >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                         {m.net_pl >= 0 ? "+" : ""}{fmtMoney(m.net_pl)}
                       </p>
                     </div>
                   </div>
-                  <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                  <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${pct}%` }}

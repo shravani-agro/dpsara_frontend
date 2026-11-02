@@ -146,6 +146,24 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Early Theme Initializer to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var savedTheme = localStorage.getItem('dpsara_theme');
+                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.remove('light');
+                } else {
+                  document.documentElement.classList.add('light');
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
         {/* Strip browser-extension attributes (Google Translate / Grammarly)
             that get injected onto <html>/<body> and trigger a hydration warning. */}
         <script

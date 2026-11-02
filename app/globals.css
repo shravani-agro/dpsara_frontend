@@ -9,6 +9,11 @@
   --foreground: #0f172a; /* Dark slate */
 }
 
+.dark {
+  --background: #090d16; /* Deep dark slate navy */
+  --foreground: #f8fafc; /* Crisp clean light text */
+}
+
 html,
 body {
   padding: 0;
@@ -17,6 +22,7 @@ body {
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   font-family: 'Inter', sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 * {
@@ -86,43 +92,43 @@ html {
     background-color: var(--background);
     background-image: 
       radial-gradient(ellipse at 15% 0%, rgba(249, 177, 43, 0.1), transparent 45%),
-      radial-gradient(ellipse at 85% 20%, rgba(234, 179, 8, 0.15), transparent 50%), /* Gold */
+      radial-gradient(ellipse at 85% 20%, rgba(234, 179, 8, 0.12), transparent 50%),
       radial-gradient(ellipse at 50% 80%, rgba(228, 146, 14, 0.08), transparent 50%),
       radial-gradient(ellipse at 80% 100%, rgba(249, 177, 43, 0.05), transparent 50%);
     background-attachment: fixed;
   }
 
   .card {
-    @apply relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300;
+    @apply relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-slate-900/90 shadow-sm transition-all duration-300;
   }
   .card::before {
     content: "";
-    @apply pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent;
+    @apply pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-100 dark:via-slate-800 to-transparent;
   }
   .card:hover {
-    @apply border-slate-300 shadow-md;
+    @apply border-slate-300 dark:border-slate-700 shadow-md;
   }
 
   .input-base {
-    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20;
+    @apply w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 sm:py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20;
   }
 
   /* Navigation links with a refined active indicator (left accent bar) */
   .nav-link {
-    @apply relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-all duration-200 hover:bg-slate-100 hover:text-slate-900;
+    @apply relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-100;
   }
   .nav-link-active {
-    @apply bg-brand-50 text-brand-600 shadow-[inset_0_0_0_1px_rgba(249,177,43,0.15)];
+    @apply bg-brand-50 dark:bg-brand-500/15 text-brand-700 dark:text-brand-400 shadow-[inset_0_0_0_1px_rgba(249,177,43,0.2)];
   }
   .nav-link-active::before {
     content: "";
-    @apply absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-brand-400;
+    @apply absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-brand-500;
     box-shadow: 0 0 12px rgba(249, 177, 43, 0.6);
   }
 
   /* Small uppercase label used to group nav sections */
   .section-label {
-    @apply px-3 pb-1.5 pt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 first:pt-0;
+    @apply px-3 pb-1.5 pt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400 first:pt-0;
   }
 
   /* Hide scrollbar but keep scrollability (e.g. filter chips rows) */

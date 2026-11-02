@@ -313,9 +313,9 @@ export default function JackpotPage() {
                     </thead>
                     <tbody>
                       {market.schedules.map((s: any, idx: number) => (
-                        <tr key={idx} className="border-b border-slate-800 hover:bg-slate-800/30">
-                          <td className="py-3 px-4 font-semibold text-white">{s.session_label}</td>
-                          <td className="px-4 text-slate-400 font-mono">{s.result_time || "—"}</td>
+                        <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white">{s.session_label}</td>
+                          <td className="px-4 text-slate-500 dark:text-slate-400 font-mono">{s.result_time || "—"}</td>
                           <td className="px-4 text-right">
                             <Button size="sm" variant="danger" onClick={() => handleRemoveSlot(idx)}>
                               Delete
@@ -340,7 +340,7 @@ export default function JackpotPage() {
                 <div className="table-wrap">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700">
+                      <tr className="text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                         <th className="py-2.5 px-3">Date</th>
                         <th className="px-3">Time Slot</th>
                         <th className="px-3 text-center">Jackpot Panna Number</th>
@@ -358,11 +358,11 @@ export default function JackpotPage() {
                         const pannaVal = cleanPannaDisplay(r.open_result || r.total_result);
 
                         return (
-                          <tr key={r.id} className="border-b border-slate-800 hover:bg-slate-800/30">
-                            <td className="py-3 px-3 text-slate-300 font-medium">{dateStr}</td>
-                            <td className="px-3 font-semibold text-white">{r.session_label}</td>
+                          <tr key={r.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td className="py-3 px-3 text-slate-600 dark:text-slate-300 font-medium">{dateStr}</td>
+                            <td className="px-3 font-semibold text-slate-900 dark:text-white">{r.session_label}</td>
                             <td className="px-3 text-center">
-                              <span className="inline-block rounded-lg bg-amber-500/10 border border-amber-500/40 px-3.5 py-1 font-mono font-black text-amber-300 text-lg tracking-widest">
+                              <span className="inline-block rounded-lg bg-amber-500/10 border border-amber-500/40 px-3.5 py-1 font-mono font-black text-amber-700 dark:text-amber-300 text-lg tracking-widest">
                                 {pannaVal}
                               </span>
                             </td>
@@ -480,15 +480,15 @@ export default function JackpotPage() {
                 </div>
 
                 {/* Live Jackpot Preview Card */}
-                <div className="rounded-xl border border-slate-700 bg-slate-900 p-4 text-center">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold block mb-2">
+                <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4 text-center">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold block mb-2">
                     Jackpot Winning Card Preview
                   </span>
-                  <div className="inline-block rounded-xl border border-amber-500/50 bg-amber-500/10 px-8 py-3 font-mono text-3xl font-black text-amber-300 tracking-widest shadow-inner">
+                  <div className="inline-block rounded-xl border border-amber-500/50 bg-amber-500/10 px-8 py-3 font-mono text-3xl font-black text-amber-700 dark:text-amber-300 tracking-widest shadow-inner">
                     ♠ {pannaNumber || "***"} ♠
                   </div>
-                  <span className="text-xs text-slate-400 block mt-2">
-                    Slot: <strong className="text-white">{sessionLabel || "Not Selected"}</strong>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 block mt-2">
+                    Slot: <strong className="text-slate-900 dark:text-white font-bold">{sessionLabel || "Not Selected"}</strong>
                   </span>
                 </div>
 

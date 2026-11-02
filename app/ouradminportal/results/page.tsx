@@ -496,11 +496,11 @@ export default function ResultsPage() {
           {/* Existing Result Notification Banner */}
           {existingResult && (
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 flex flex-wrap items-center justify-between gap-2">
-              <div className="text-xs text-amber-200">
-                <span className="font-semibold text-amber-300">Existing Result Found: </span>
-                Open: <span className="font-mono font-bold text-white">{existingResult.open_result || "None"}</span> | 
-                Close: <span className="font-mono font-bold text-white">{existingResult.close_result || "None"}</span> | 
-                Combined: <span className="font-mono font-bold text-amber-300">{existingResult.total_result || "—"}</span>
+              <div className="text-xs text-amber-900 dark:text-amber-200">
+                <span className="font-semibold text-amber-800 dark:text-amber-300">Existing Result Found: </span>
+                Open: <span className="font-mono font-bold text-slate-900 dark:text-white">{existingResult.open_result || "None"}</span> | 
+                Close: <span className="font-mono font-bold text-slate-900 dark:text-white">{existingResult.close_result || "None"}</span> | 
+                Combined: <span className="font-mono font-bold text-amber-800 dark:text-amber-300">{existingResult.total_result || "—"}</span>
               </div>
               <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => applyExistingResult(existingResult)}>
                 Reload into Fields
@@ -706,20 +706,20 @@ export default function ResultsPage() {
       {preview && (
         <Card title={`Pending Bets Preview — Market #${preview.market_id}`}>
           <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="rounded-xl bg-slate-800/50 p-3 border border-slate-700">
-              <div className="text-xs text-slate-400">Total Pending Bets</div>
-              <div className="text-lg font-semibold text-white">{preview.total_pending_bets}</div>
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 border border-slate-200 dark:border-slate-700">
+              <div className="text-xs text-slate-500 dark:text-slate-400">Total Pending Bets</div>
+              <div className="text-lg font-bold text-slate-900 dark:text-white">{preview.total_pending_bets}</div>
             </div>
-            <div className="rounded-xl bg-slate-800/50 p-3 border border-slate-700">
-              <div className="text-xs text-slate-400">Total Stakes Pending Settlement</div>
-              <div className="text-lg font-semibold text-emerald-400">₹{preview.total_stakes}</div>
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 border border-slate-200 dark:border-slate-700">
+              <div className="text-xs text-slate-500 dark:text-slate-400">Total Stakes Pending Settlement</div>
+              <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">₹{preview.total_stakes}</div>
             </div>
           </div>
           {preview.bets?.length ? (
             <div className="table-wrap max-h-60 overflow-y-auto">
               <table className="w-full min-w-[640px] text-sm">
                 <thead>
-                  <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                  <tr className="text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                     <th className="py-2.5">Bet ID</th>
                     <th>User</th>
                     <th>Session</th>
@@ -731,18 +731,18 @@ export default function ResultsPage() {
                 </thead>
                 <tbody>
                   {preview.bets.map((b: any) => (
-                    <tr key={b.id} className="border-t border-slate-800">
+                    <tr key={b.id} className="border-t border-slate-100 dark:border-slate-800">
                       <td className="py-2.5 text-slate-400 font-mono">#{b.id}</td>
-                      <td className="text-white">{b.user_id}</td>
+                      <td className="font-medium text-slate-900 dark:text-white">{b.user_id}</td>
                       <td>
                         <Badge color={b.session === "open" ? "emerald" : "blue"}>
                           {b.session || "Open"}
                         </Badge>
                       </td>
-                      <td>{b.bet_type}</td>
-                      <td className="font-mono font-bold text-amber-300">{b.selected_number}</td>
-                      <td>₹{b.amount}</td>
-                      <td className="text-emerald-400 font-semibold">₹{b.potential_win}</td>
+                      <td className="text-slate-700 dark:text-slate-300">{b.bet_type}</td>
+                      <td className="font-mono font-bold text-amber-700 dark:text-amber-300">{b.selected_number}</td>
+                      <td className="text-slate-700 dark:text-slate-300">₹{b.amount}</td>
+                      <td className="text-emerald-600 dark:text-emerald-400 font-semibold">₹{b.potential_win}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -808,7 +808,7 @@ export default function ResultsPage() {
           <div className="table-wrap">
             <table className="w-full min-w-[760px] text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700">
+                <tr className="text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                   <th className="py-3 px-3">Date</th>
                   <th className="px-3">Market</th>
                   <th className="px-3 text-center">Open Result</th>
@@ -831,34 +831,34 @@ export default function ResultsPage() {
                   const isFullyDeclared = hasOpen && hasClose;
 
                   return (
-                    <tr key={r.id} className="border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors">
-                      <td className="py-3 px-3 text-slate-300 font-medium">{dateStr}</td>
-                      <td className="px-3 font-semibold text-white">{r.market_name}</td>
+                    <tr key={r.id} className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="py-3 px-3 text-slate-600 dark:text-slate-300 font-medium">{dateStr}</td>
+                      <td className="px-3 font-semibold text-slate-900 dark:text-white">{r.market_name}</td>
 
                       {/* Open Result */}
                       <td className="px-3 text-center">
                         {hasOpen ? (
-                          <span className="inline-block rounded-md bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 font-mono font-bold text-emerald-300 text-xs">
+                          <span className="inline-block rounded-md bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 font-mono font-bold text-emerald-700 dark:text-emerald-300 text-xs">
                             {r.open_result}
                           </span>
                         ) : (
-                          <span className="text-slate-500 font-mono text-xs">Pending</span>
+                          <span className="text-slate-400 font-mono text-xs">Pending</span>
                         )}
                       </td>
 
                       {/* Close Result */}
                       <td className="px-3 text-center">
                         {hasClose ? (
-                          <span className="inline-block rounded-md bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 font-mono font-bold text-blue-300 text-xs">
+                          <span className="inline-block rounded-md bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 font-mono font-bold text-blue-700 dark:text-blue-300 text-xs">
                             {r.close_result}
                           </span>
                         ) : (
-                          <span className="text-slate-500 font-mono text-xs">Pending</span>
+                          <span className="text-slate-400 font-mono text-xs">Pending</span>
                         )}
                       </td>
 
                       {/* Full Result */}
-                      <td className="px-3 text-center font-mono font-black text-amber-300 text-base">
+                      <td className="px-3 text-center font-mono font-black text-amber-700 dark:text-amber-300 text-base">
                         {r.total_result || "—"}
                       </td>
 
@@ -901,8 +901,8 @@ export default function ResultsPage() {
       </Card>
 
       <Modal open={!!confirmRollback} onClose={() => setConfirmRollback(null)} title="Rollback Result">
-        <p className="text-sm text-slate-300">
-          Are you sure you want to rollback this result for <b className="text-white">{confirmRollback?.market_name}</b>?
+        <p className="text-sm text-slate-700 dark:text-slate-300">
+          Are you sure you want to rollback this result for <b className="font-bold text-slate-900 dark:text-white">{confirmRollback?.market_name}</b>?
           This will revert all settled bets to pending and safely deduct any winnings paid to users.
         </p>
         <div className="mt-5 flex justify-end gap-2">
@@ -916,8 +916,8 @@ export default function ResultsPage() {
       </Modal>
 
       <Modal open={!!confirmDelete} onClose={() => setConfirmDelete(null)} title="Delete Result">
-        <p className="text-sm text-slate-300">
-          Are you sure you want to delete this result for <b className="text-white">{confirmDelete?.market_name}</b>?
+        <p className="text-sm text-slate-700 dark:text-slate-300">
+          Are you sure you want to delete this result for <b className="font-bold text-slate-900 dark:text-white">{confirmDelete?.market_name}</b>?
         </p>
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setConfirmDelete(null)}>

@@ -126,15 +126,15 @@ export default function StarlineBidDataPage() {
         }
       />
       
-      <div className="flex flex-wrap gap-4 items-center bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-wrap gap-4 items-center bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div className="flex flex-col gap-1 w-full sm:w-48">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-slate-400">Date</label>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Date</label>
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => setBidDate(format(new Date(), "yyyy-MM-dd"))}
-                className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 hover:bg-brand-50 hover:text-brand-600 text-slate-600 transition"
+                className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-400 text-slate-600 dark:text-slate-300 transition"
               >
                 Today
               </button>
@@ -145,7 +145,7 @@ export default function StarlineBidDataPage() {
                   y.setDate(y.getDate() - 1);
                   setBidDate(format(y, "yyyy-MM-dd"));
                 }}
-                className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 hover:bg-brand-50 hover:text-brand-600 text-slate-600 transition"
+                className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-400 text-slate-600 dark:text-slate-300 transition"
               >
                 Yesterday
               </button>
@@ -159,7 +159,7 @@ export default function StarlineBidDataPage() {
           />
         </div>
         <div className="flex flex-col gap-1 w-full sm:w-48">
-          <label className="text-xs font-medium text-slate-400">Market</label>
+          <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Market</label>
           <Select value={marketId} onChange={(e) => {
             setMarketId(e.target.value);
             setSession("");
@@ -170,7 +170,7 @@ export default function StarlineBidDataPage() {
           </Select>
         </div>
         <div className="flex flex-col gap-1 w-full sm:w-48">
-          <label className="text-xs font-medium text-slate-400">Time Slot (Optional)</label>
+          <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Time Slot (Optional)</label>
           <Select value={session} onChange={(e) => setSession(e.target.value)}>
             <option value="">All Slots</option>
             {selectedMarket?.schedules?.map((s: any) => (
@@ -192,18 +192,18 @@ export default function StarlineBidDataPage() {
             {BET_TYPES.map((bt) => {
               const items = getGroupedData(bt.key);
               return (
-                <div key={bt.key} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                  <h4 className="text-sm font-semibold text-slate-700 mb-3 border-b border-slate-200 pb-2">
+                <div key={bt.key} className="bg-slate-50 dark:bg-slate-850 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">
                     {bt.label}
                   </h4>
                   {items.length === 0 ? (
-                    <div className="text-slate-400 text-sm">0</div>
+                    <div className="text-slate-400 dark:text-slate-500 text-sm">0</div>
                   ) : (
                     <div className="space-y-1">
                       {items.map((item) => (
-                        <div key={item.selected_number} className="flex justify-between items-center text-sm border-b border-slate-100 pb-1 last:border-0 last:pb-0">
-                          <span className="text-slate-600 font-medium">{item.selected_number}</span>
-                          <span className="text-brand-400 font-semibold">{item.total_amount}</span>
+                        <div key={item.selected_number} className="flex justify-between items-center text-sm border-b border-slate-100 dark:border-slate-800 pb-1 last:border-0 last:pb-0">
+                          <span className="text-slate-700 dark:text-slate-300 font-medium">{item.selected_number}</span>
+                          <span className="text-brand-600 dark:text-brand-400 font-bold">{item.total_amount}</span>
                         </div>
                       ))}
                     </div>
