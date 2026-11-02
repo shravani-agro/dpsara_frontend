@@ -473,46 +473,33 @@ export default function TransactionsPage() {
                     <div
                       key={t.id}
                       onClick={() => setSelectedTxn(t)}
-                      className="flex items-center justify-between gap-2 px-3 py-2.5 transition-colors cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-850/50 active:bg-slate-100"
+                      className="flex items-center justify-between gap-2 px-3 py-2.5 transition-colors cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-850/50 active:bg-slate-100 dark:active:bg-slate-800"
                     >
-                      {/* Left: Txn ID, Type, User & Ref */}
+                      {/* Left: User & Type / Time */}
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-mono text-[11px] text-slate-400 shrink-0">#{t.id}</span>
-                          <span className="shrink-0">{getTypeBadge(t.type)}</span>
-                          <span className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate">
-                            {username}
-                          </span>
+                        <div className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">
+                          {username}
                         </div>
-
-                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5 flex-wrap">
-                          {t.description && (
-                            <span className="truncate max-w-[160px] text-slate-600 dark:text-slate-400 font-medium" title={t.description}>
-                              {t.description}
-                            </span>
-                          )}
-                          {t.description && <span>•</span>}
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
+                          <span className="shrink-0">{getTypeBadge(t.type)}</span>
+                          <span>•</span>
                           <span>{fmtDateTime(t.created_at)}</span>
                         </div>
                       </div>
 
-                      {/* Right: Amount & Balance After */}
+                      {/* Right: Amount & Status Badge */}
                       <div className="shrink-0 text-right space-y-0.5">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <span
-                            className={`font-mono text-xs sm:text-sm font-bold ${
-                              isDebit ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
-                            }`}
-                          >
-                            {isDebit ? "-" : "+"}
-                            {fmtMoney(amt)}
-                          </span>
-                          <span className="shrink-0">{getStatusBadge(t.status)}</span>
+                        <div
+                          className={`font-mono text-sm font-black ${
+                            isDebit ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
+                          }`}
+                        >
+                          {isDebit ? "-" : "+"}
+                          {fmtMoney(amt)}
                         </div>
-
-                        <div className="flex items-center justify-end gap-1 text-[10px] text-slate-400 font-mono">
-                          <span>Bal: {fmtMoney(t.balance_after)}</span>
-                          <span className="text-slate-300 dark:text-slate-600">›</span>
+                        <div className="flex items-center justify-end gap-1">
+                          <span className="shrink-0">{getStatusBadge(t.status)}</span>
+                          <span className="text-slate-400 text-xs">›</span>
                         </div>
                       </div>
                     </div>

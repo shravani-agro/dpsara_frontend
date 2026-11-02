@@ -9,6 +9,7 @@ import {
   PageHeader,
   Button,
   EmptyState,
+  Modal,
 } from "@/components/ui";
 import {
   listDeposits,
@@ -23,6 +24,7 @@ import { toast } from "@/components/Toast";
 import { parseApiError } from "@/lib/error-parser";
 import { DateRangeFilter } from "@/components/DateRangeFilter";
 import { UserCell } from "@/components/UserCell";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const STATUSES: { id: string; label: string; color: string }[] = [
   { id: "", label: "All", color: "slate" },
@@ -58,6 +60,7 @@ export default function DepositsPage() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("");
   const [counts, setCounts] = useState<any>({ pending: 0, completed: 0, rejected: 0, total: 0 });
+  const [selectedDeposit, setSelectedDeposit] = useState<DepositRequest | null>(null);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [search, setSearch] = useState("");
@@ -353,91 +356,41 @@ export default function DepositsPage() {
 
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredItems.map((d) => {
-                  const isPending = d.status === "pending";
-                  const expired = isPending && isDepositExpired(d.created_at);
                   const username = (d as any).username || `User #${d.user_id}`;
-                  const userPhone = (d as any).phone || (d as any).mobile_number;
 
                   return (
                     <div
                       key={d.id}
-                      className="flex items-center justify-between gap-2 px-3 py-2.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-850/50"
+                      onClick={() => setSelectedDeposit(d)}
+                      className="flex items-center justify-between gap-2 px-3 py-2.5 transition-colors cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-850/50 active:bg-slate-100 dark:active:bg-slate-800"
                     >
-                      {/* Left: User & Txn Details */}
+                      {/* Left: User & Method / Time */}
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate">
-                            {username}
-                          </span>
+                        <div className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">
+                          {username}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
                           {d.method && (
-                            <span className="shrink-0 rounded bg-slate-100 dark:bg-slate-800 px-1 py-0.2 text-[9px] font-bold uppercase text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                            <span className="shrink-0 uppercase font-bold text-slate-500">
                               {d.method}
                             </span>
                           )}
-                          {userPhone && (
-                            <WhatsAppLink
-                              phone={userPhone}
-                              userName={username}
-                              variant="inline"
-                            />
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                          <span className="font-mono text-slate-500 dark:text-slate-400 truncate max-w-[150px]" title={d.txn_id}>
-                            #{d.txn_id}
-                          </span>
-                          <span>•</span>
+                          {d.method && <span>•</span>}
                           <span>{fmtDateTime(d.created_at)}</span>
                         </div>
                       </div>
 
-                      {/* Right: Amount & Status & Inline Actions */}
-                      <div className="shrink-0 text-right space-y-1">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <span className="font-mono text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400">
-                            +{fmtMoney(d.amount)}
-                          </span>
+                      {/* Right: Amount & Status Badge */}
+                      <div className="shrink-0 text-right space-y-0.5">
+                        <div className="font-mono text-sm font-black text-emerald-600 dark:text-emerald-400">
+                          +{fmtMoney(d.amount)}
+                        </div>
+                        <div className="flex items-center justify-end gap-1">
                           <Badge color={statusColor[d.status] ?? "slate"} className="text-[9px] px-1.5 py-0.2 font-bold uppercase">
                             {d.status}
                           </Badge>
+                          <span className="text-slate-400 text-xs">›</span>
                         </div>
-
-                        {isPending && (
-                          <div className="flex items-center justify-end gap-1">
-                            {expired ? (
-                              <>
-                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-                                  Expired
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleReject(d.id)}
-                                  className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 active:scale-95"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => handleApprove(d.id)}
-                                  className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-2xs active:scale-95"
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleReject(d.id)}
-                                  className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 active:scale-95"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        )}
                       </div>
                     </div>
                   );
@@ -447,6 +400,124 @@ export default function DepositsPage() {
           </div>
         )}
       </Card>
+
+      {/* Deposit Details & Action Modal (Kept Safely Inside) */}
+      <Modal
+        open={!!selectedDeposit}
+        onClose={() => setSelectedDeposit(null)}
+        title={`Deposit Request #${selectedDeposit?.id || ""}`}
+      >
+        {selectedDeposit && (
+          <div className="space-y-4 text-xs">
+            {/* Amount Banner */}
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
+                  Deposit Amount
+                </span>
+                <div className="text-2xl font-black font-mono text-emerald-700 dark:text-emerald-300 mt-0.5">
+                  +{fmtMoney(selectedDeposit.amount)}
+                </div>
+              </div>
+              <Badge color={statusColor[selectedDeposit.status] ?? "slate"} className="text-xs px-2.5 py-1 uppercase font-bold">
+                {selectedDeposit.status}
+              </Badge>
+            </div>
+
+            {/* User & Request Info */}
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-850 p-3.5 border border-slate-200 dark:border-slate-800 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">User</span>
+                  <div className="font-bold text-sm text-slate-900 dark:text-slate-100 mt-0.5">
+                    {(selectedDeposit as any).username || `User #${selectedDeposit.user_id}`}
+                  </div>
+                </div>
+                {((selectedDeposit as any).phone || (selectedDeposit as any).mobile_number) && (
+                  <WhatsAppLink
+                    phone={(selectedDeposit as any).phone || (selectedDeposit as any).mobile_number}
+                    userName={(selectedDeposit as any).username}
+                    variant="pill"
+                  />
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Txn / UTR ID</span>
+                  <div className="font-mono font-bold text-xs text-slate-900 dark:text-slate-100 truncate mt-0.5">
+                    {selectedDeposit.txn_id}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Method</span>
+                  <div className="font-semibold text-xs text-slate-900 dark:text-slate-100 uppercase mt-0.5">
+                    {selectedDeposit.method || "—"}
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Submitted At</span>
+                  <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                    {fmtDateTime(selectedDeposit.created_at)}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions Inside Modal */}
+            {selectedDeposit.status === "pending" && (
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                  Action Required
+                </span>
+                {isDepositExpired(selectedDeposit.created_at) ? (
+                  <div className="space-y-2">
+                    <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-center font-bold text-xs">
+                      ⚠️ Request has been pending for more than 30 minutes (Expired)
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      className="w-full font-bold"
+                      onClick={async () => {
+                        await handleReject(selectedDeposit.id);
+                        setSelectedDeposit(null);
+                      }}
+                    >
+                      Reject Expired Deposit
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant="success"
+                      className="font-bold text-xs"
+                      onClick={async () => {
+                        await handleApprove(selectedDeposit.id);
+                        setSelectedDeposit(null);
+                      }}
+                    >
+                      ✓ Approve & Credit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      className="font-bold text-xs"
+                      onClick={async () => {
+                        await handleReject(selectedDeposit.id);
+                        setSelectedDeposit(null);
+                      }}
+                    >
+                      ✗ Reject
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
