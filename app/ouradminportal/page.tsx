@@ -229,6 +229,63 @@ export default function DashboardPage() {
           )}
         </AnimatePresence>
 
+        {/* Today Collection & Plus/Minus Live Highlight Banner */}
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-brand-500/10 via-emerald-500/10 to-transparent border border-brand-500/20 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center text-lg font-bold shadow-md shadow-brand-600/30">
+              📊
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  Today Collection & Plus/Minus
+                </h3>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                  LIVE
+                </span>
+              </div>
+              <p className="text-xs text-slate-500">
+                आजचा एकूण धंदा (Collection) आणि अंतिम प्लस/मायनस (Net P&L Settlement)
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="px-3 py-1.5 rounded-xl bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-right">
+              <span className="text-[10px] text-slate-500 block uppercase font-bold">
+                Total Collection
+              </span>
+              <span className="text-sm font-black text-slate-900 dark:text-white">
+                {fmtMoney(stats?.total_revenue || 0)}
+              </span>
+            </div>
+
+            <div className="px-3 py-1.5 rounded-xl bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-right">
+              <span className="text-[10px] text-slate-500 block uppercase font-bold">
+                Plus / Minus (P&L)
+              </span>
+              <span
+                className={`text-sm font-black ${
+                  Number(stats?.net_pl || 0) >= 0
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-rose-600 dark:text-rose-400"
+                }`}
+              >
+                {Number(stats?.net_pl || 0) >= 0 ? "+" : ""}
+                {fmtMoney(stats?.net_pl || 0)}
+              </span>
+            </div>
+
+            <Link
+              href="/ouradminportal/collection"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs shadow-md transition active:scale-95"
+            >
+              <span>View Settlement</span>
+              <span>→</span>
+            </Link>
+          </div>
+        </div>
+
         {/* Intelligent Date Range Filter Bar */}
         <div className="p-3 sm:p-4 rounded-2xl bg-white/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 backdrop-blur-md shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-2">
