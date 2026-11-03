@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import Link from "next/link";
 import { SlideOver, Card, Badge, Button, Spinner, Tabs, Field } from "@/components/ui";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { UserBetsManager } from "@/components/UserBetsManager";
@@ -251,6 +252,17 @@ export function UserModalProvider({ children }: { children: React.ReactNode }) {
                     <span className="hidden sm:inline">Call</span>
                   </a>
                 </>
+              )}
+              {userId && (
+                <Link
+                  href={`/ouradminportal/user-bid-data?userId=${userId}`}
+                  onClick={closeUser}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 border border-brand-300 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/40 transition active:scale-95"
+                  title="View Consolidated Bid Data for this user"
+                >
+                  <span>📊</span>
+                  <span className="hidden sm:inline">Bid Data</span>
+                </Link>
               )}
             </div>
           </div>
