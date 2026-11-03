@@ -58,7 +58,8 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/ouradminportal/bids", label: "Regular Bids History", icon: "🎲" },
       { href: "/ouradminportal/starline-bids-history", label: "Starline Bids History", icon: "🎲" },
       { href: "/ouradminportal/regular-bids", label: "Regular Bid Data", icon: "📊" },
-      { href: "/ouradminportal/starline-bids", label: "Starline Bid Data", icon: "📈" },
+      { href: "/ouradminportal/starline-bids", label: "Starline Bid Data", icon: "📈" },
+      { href: "/ouradminportal/user-bid-data", label: "User Bid Data", icon: "👤" },
     ],
   },
   {
