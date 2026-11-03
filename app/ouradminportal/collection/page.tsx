@@ -937,7 +937,7 @@ DPSARA 777 Admin`;
           {activeTab === "users" && (
             <Card
               title={`User Collection & Plus/Minus Breakdown (${userStats.length} Players)`}
-              action={
+              actions={
                 <Link href={`/ouradminportal/user-bid-data?date=${selectedDate}`}>
                   <Button variant="outline" size="sm">
                     👤 Detailed User Bid Data →
