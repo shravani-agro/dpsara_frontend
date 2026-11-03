@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { format } from "@/lib/format";
 import {
@@ -136,9 +137,14 @@ export default function RegularBidDataPage() {
         title="Regular Bid Data"
         description="View and copy formatted accumulated bid data."
         actions={
-          <Button variant="primary" onClick={copyToClipboard} disabled={loading || !marketId}>
-            Copy to Clipboard 📋
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link href="/ouradminportal/user-bid-data?mode=regular">
+              <Button variant="outline">User Bid Data 👤</Button>
+            </Link>
+            <Button variant="primary" onClick={copyToClipboard} disabled={loading || !marketId}>
+              Copy to Clipboard 📋
+            </Button>
+          </div>
         }
       />
 
