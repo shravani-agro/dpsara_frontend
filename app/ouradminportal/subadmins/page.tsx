@@ -447,9 +447,10 @@ export default function SubAdminsPage() {
                             <span>{assignedCount} Assigned User{assignedCount !== 1 ? "s" : ""}</span>
                           </div>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500 italic">
-                            All Users (Unrestricted)
-                          </span>
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40 text-xs font-semibold">
+                            <span>🌐</span>
+                            <span>All Users (Unrestricted)</span>
+                          </div>
                         )}
                       </td>
 
@@ -590,20 +591,33 @@ export default function SubAdminsPage() {
               {/* Assign Users Section (Matching Kalyan36Bazar UserMultiSelect) */}
               <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 bg-slate-50/50 dark:bg-slate-850/30 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <span>👤</span>
-                      <span>Assign Users to Sub-Admin</span>
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      When users are assigned, this sub-admin will ONLY see and manage these specific users. (Leave unselected for unrestricted access).
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>👤</span>
+                        <span>Assign Users to Sub-Admin</span>
+                      </h4>
+                      {selectedUserIds.length === 0 ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                          <span>🌐</span>
+                          <span>Shows All Users (When Not Selected)</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-100 text-brand-800 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-300 dark:border-brand-800">
+                          <span>👤</span>
+                          <span>{selectedUserIds.length} Specific Users Assigned</span>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      When no users are selected, this sub-admin sees <strong>ALL users</strong> across the portal. Check specific users below only if you want to restrict them.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 text-xs font-medium">
+                  <div className="flex items-center gap-2 text-xs font-medium shrink-0">
                     <button
                       type="button"
                       onClick={selectFilteredUsers}
-                      className="text-brand-600 hover:underline"
+                      className="text-brand-600 dark:text-brand-400 hover:underline"
                     >
                       Select Filtered
                     </button>
@@ -619,12 +633,22 @@ export default function SubAdminsPage() {
                     <button
                       type="button"
                       onClick={() => setSelectedUserIds([])}
-                      className="text-rose-500 hover:underline"
+                      className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
+                      title="Clear selection to allow access to all users"
                     >
-                      Clear All
+                      🌐 Allow All Users (Clear)
                     </button>
                   </div>
                 </div>
+
+                {selectedUserIds.length === 0 && (
+                  <div className="px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                    <span>💡</span>
+                    <span>
+                      <strong>Notice:</strong> Currently no users are selected. This sub-admin will have full access to view and manage <strong>ALL players</strong>.
+                    </span>
+                  </div>
+                )}
 
                 <div className="relative">
                   <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">🔍</span>
