@@ -194,6 +194,20 @@ export default function DashboardLayout({
   const [showWithdrawalPopup, setShowWithdrawalPopup] = useState(false);
   const prevPendingRef = React.useRef<number | null>(null);
 
+  const activeItem = React.useMemo(
+    () => ALL_NAV.find((n) => isActive(n, pathname)),
+    [pathname]
+  );
+
+  const isAllowed = React.useMemo(() => {
+    if (!isSubAdmin) return true;
+    const match = ALL_NAV.find((n) => isActive(n, pathname));
+    if (!match) return true;
+    if (match.superAdminOnly) return false;
+    if (match.permKey && !hasPermission(match.permKey)) return false;
+    return true;
+  }, [isSubAdmin, pathname, hasPermission]);
+
   useEffect(() => {
     if (isLoginPage || !authenticated) return;
     let mounted = true;
@@ -258,17 +272,6 @@ export default function DashboardLayout({
       </div>
     );
   }
-
-  const activeItem = ALL_NAV.find((n) => isActive(n, pathname));
-
-  const isAllowed = React.useMemo(() => {
-    if (!isSubAdmin) return true;
-    const match = ALL_NAV.find((n) => isActive(n, pathname));
-    if (!match) return true;
-    if (match.superAdminOnly) return false;
-    if (match.permKey && !hasPermission(match.permKey)) return false;
-    return true;
-  }, [isSubAdmin, pathname, hasPermission]);
 
   return (
     <UserModalProvider>
