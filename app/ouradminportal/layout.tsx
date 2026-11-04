@@ -34,55 +34,62 @@ function playWithdrawalChime() {
   }
 }
 
-type NavItem = { href: string; label: string; icon: string };
+type NavItem = {
+  href: string;
+  label: string;
+  icon: string;
+  permKey?: string;
+  superAdminOnly?: boolean;
+};
 type NavGroup = { label: string; items: NavItem[] };
 
 const NAV_GROUPS: NavGroup[] = [
   {
     label: "Overview",
-    items: [{ href: "/ouradminportal", label: "Dashboard", icon: "▦" }],
+    items: [{ href: "/ouradminportal", label: "Dashboard", icon: "▦", permKey: "show_overview" }],
   },
   {
     label: "Operations",
     items: [
-      { href: "/ouradminportal/users", label: "Users", icon: "👤" },
-      { href: "/ouradminportal/markets", label: "Markets", icon: "📈" },
-      { href: "/ouradminportal/starline", label: "Starline", icon: "⭐" },
-      { href: "/ouradminportal/jackpot", label: "Jackpot", icon: "💰" },
-      { href: "/ouradminportal/results", label: "Results", icon: "🎯" },
+      { href: "/ouradminportal/users", label: "Users", icon: "👤", permKey: "can_manage_users" },
+      { href: "/ouradminportal/markets", label: "Markets", icon: "📈", permKey: "show_markets" },
+      { href: "/ouradminportal/starline", label: "Starline", icon: "⭐", permKey: "show_starline" },
+      { href: "/ouradminportal/jackpot", label: "Jackpot", icon: "💰", permKey: "show_jackpot" },
+      { href: "/ouradminportal/results", label: "Results", icon: "🎯", permKey: "show_result" },
     ],
   },
   {
     label: "Bids",
     items: [
-      { href: "/ouradminportal/bids", label: "Regular Bids History", icon: "🎲" },
-      { href: "/ouradminportal/starline-bids-history", label: "Starline Bids History", icon: "🎲" },
-      { href: "/ouradminportal/regular-bids", label: "Regular Bid Data", icon: "📊" },
-      { href: "/ouradminportal/starline-bids", label: "Starline Bid Data", icon: "📈" },
-      { href: "/ouradminportal/user-bid-data", label: "User Bid Data", icon: "👤" },
+      { href: "/ouradminportal/bids", label: "Regular Bids History", icon: "🎲", permKey: "show_bids" },
+      { href: "/ouradminportal/starline-bids-history", label: "Starline Bids History", icon: "🎲", permKey: "show_bids" },
+      { href: "/ouradminportal/regular-bids", label: "Regular Bid Data", icon: "📊", permKey: "show_bid_data" },
+      { href: "/ouradminportal/starline-bids", label: "Starline Bid Data", icon: "📈", permKey: "show_bid_data" },
+      { href: "/ouradminportal/user-bid-data", label: "User Bid Data", icon: "👤", permKey: "show_bid_data" },
     ],
   },
   {
     label: "Finance",
     items: [
-      { href: "/ouradminportal/transactions", label: "Transactions", icon: "💳" },
-      { href: "/ouradminportal/collection", label: "Today Collection & P/L", icon: "📊" },
-      { href: "/ouradminportal/deposits", label: "Deposits", icon: "➕" },
-      { href: "/ouradminportal/withdrawals", label: "Withdrawals", icon: "💸" },
-      { href: "/ouradminportal/game-rates", label: "Game Rates", icon: "💰" },
+      { href: "/ouradminportal/transactions", label: "Transactions", icon: "💳", permKey: "show_commission" },
+      { href: "/ouradminportal/collection", label: "Today Collection & P/L", icon: "📊", permKey: "show_overview" },
+      { href: "/ouradminportal/deposits", label: "Deposits", icon: "➕", permKey: "show_deposits" },
+      { href: "/ouradminportal/withdrawals", label: "Withdrawals", icon: "💸", permKey: "show_withdrawals" },
+      { href: "/ouradminportal/game-rates", label: "Game Rates", icon: "💰", permKey: "show_markets" },
     ],
   },
   {
     label: "Engagement",
     items: [
-      { href: "/ouradminportal/support", label: "Support Chat", icon: "💬" },
+      { href: "/ouradminportal/support", label: "Support Chat", icon: "💬", permKey: "show_support" },
     ],
   },
   {
     label: "System",
     items: [
-      { href: "/ouradminportal/audit", label: "Audit Logs", icon: "🛡" },
-      { href: "/ouradminportal/settings", label: "Settings", icon: "⚙" },
+      { href: "/ouradminportal/subadmins", label: "Sub Admins", icon: "👥", superAdminOnly: true },
+      { href: "/ouradminportal/audit", label: "Audit Logs", icon: "🛡", superAdminOnly: true },
+      { href: "/ouradminportal/settings", label: "Settings", icon: "⚙", superAdminOnly: true },
     ],
   },
 ];
@@ -106,10 +113,32 @@ function NavContent({
   onNavigate?: () => void;
   pendingWithdrawals?: number;
 }) {
+  const { isSubAdmin, hasPermission, assignedUserIds } = useAuth();
   const q = query.trim().toLowerCase();
-  const groups = q
+
+  const isAllowed = (item: NavItem) => {
+    if (!isSubAdmin) return true;
+    if (item.superAdminOnly) return false;
+    if (item.permKey && !hasPermission(item.permKey)) return false;
+    return true;
+  };
+
+  const groups = (q
     ? [{ label: "", items: ALL_NAV.filter((i) => i.label.toLowerCase().includes(q)) }]
-    : NAV_GROUPS;
+    : NAV_GROUPS
+  )
+    .map((group) => ({
+      ...group,
+      items: group.items
+        .filter(isAllowed)
+        .map((item) => {
+          if (item.href === "/ouradminportal/users" && isSubAdmin && (assignedUserIds?.length ?? 0) > 0) {
+            return { ...item, label: "My Users" };
+          }
+          return item;
+        }),
+    }))
+    .filter((group) => group.items.length > 0);
 
   return (
     <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-3">
@@ -152,7 +181,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { authenticated, loading, username, logout } = useAuth();
+  const { authenticated, loading, username, isSubAdmin, hasPermission, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const isLoginPage = pathname === "/ouradminportal/login";
@@ -232,6 +261,15 @@ export default function DashboardLayout({
     n.href === "/ouradminportal" ? pathname === "/ouradminportal" : (pathname === n.href || pathname.startsWith(n.href + "/"))
   );
 
+  const isAllowed = React.useMemo(() => {
+    if (!isSubAdmin) return true;
+    const match = ALL_NAV.find((n) => isActive(n, pathname));
+    if (!match) return true;
+    if (match.superAdminOnly) return false;
+    if (match.permKey && !hasPermission(match.permKey)) return false;
+    return true;
+  }, [isSubAdmin, pathname, hasPermission]);
+
   return (
     <UserModalProvider>
       <div className="app-bg flex min-h-screen">
@@ -258,10 +296,20 @@ export default function DashboardLayout({
         </div>
         <NavContent pathname={pathname} query={navQuery} pendingWithdrawals={pendingWithdrawals} />
         <div className="border-t border-slate-200 dark:border-slate-800 p-3 bg-slate-50/50 dark:bg-slate-850/30">
-          <div className="px-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
-            Signed in as
+          <div className="flex items-center justify-between px-2 pb-1">
+            <span className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              Signed in as
+            </span>
+            <span className={cn(
+              "px-1.5 py-0.5 text-[10px] font-bold rounded",
+              isSubAdmin
+                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300"
+                : "bg-brand-100 text-brand-800 dark:bg-brand-900/60 dark:text-brand-300"
+            )}>
+              {isSubAdmin ? "Sub-Admin" : "Super Admin"}
+            </span>
           </div>
-          <div className="px-2 pb-3 text-sm font-semibold text-slate-800 dark:text-slate-200">{username || "OurAdmin_777"}</div>
+          <div className="px-2 pb-3 text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{username || (isSubAdmin ? "Sub-Admin" : "OurAdmin_777")}</div>
           <Button variant="outline" size="sm" className="w-full" onClick={logout}>
             Logout
           </Button>
@@ -416,7 +464,22 @@ export default function DashboardLayout({
 
         {/* Main Content Area - Optimized Space Utilization */}
         <main className="flex-1 w-full max-w-7xl mx-auto px-3.5 py-4 sm:px-6 lg:px-8 lg:py-6 pb-24 lg:pb-10 transition-all">
-          {children}
+          {!isAllowed ? (
+            <div className="flex flex-col items-center justify-center p-12 text-center min-h-[60vh] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mt-4">
+              <div className="h-16 w-16 rounded-2xl bg-rose-100 dark:bg-rose-950/60 flex items-center justify-center text-3xl mb-4 shadow-inner">
+                🚫
+              </div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Access Denied</h2>
+              <p className="text-sm text-slate-500 max-w-md mb-6 leading-relaxed">
+                Your sub-admin account does not have permission to view or manage this section. Please contact your Super Administrator to request access.
+              </p>
+              <Link href="/ouradminportal">
+                <Button variant="outline">Back to Dashboard</Button>
+              </Link>
+            </div>
+          ) : (
+            children
+          )}
         </main>
       </div>
 

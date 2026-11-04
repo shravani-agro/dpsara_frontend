@@ -609,3 +609,79 @@ export async function setSupportStatus(conversationId: number, status: string) {
   );
   return res.data;
 }
+
+
+/* ---------------- Admin: Sub-Admins Management ---------------- */
+
+export interface SubAdmin {
+  id: number;
+  username: string;
+  password?: string;
+  assigned_user_ids: string;
+  can_add_result: boolean;
+  can_update_result: boolean;
+  can_delete_result: boolean;
+  show_commission: boolean;
+  show_overview: boolean;
+  show_bid_data: boolean;
+  show_result: boolean;
+  show_agent_report: boolean;
+  can_approve_deposit: boolean;
+  can_approve_withdrawal: boolean;
+  can_manage_users: boolean;
+  show_markets: boolean;
+  show_starline: boolean;
+  show_jackpot: boolean;
+  show_support: boolean;
+  show_settings: boolean;
+  show_deposits: boolean;
+  show_withdrawals: boolean;
+  show_bids: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SubAdminPayload {
+  username: string;
+  password?: string;
+  assigned_user_ids?: string;
+  can_add_result?: boolean;
+  can_update_result?: boolean;
+  can_delete_result?: boolean;
+  show_commission?: boolean;
+  show_overview?: boolean;
+  show_bid_data?: boolean;
+  show_result?: boolean;
+  show_agent_report?: boolean;
+  can_approve_deposit?: boolean;
+  can_approve_withdrawal?: boolean;
+  can_manage_users?: boolean;
+  show_markets?: boolean;
+  show_starline?: boolean;
+  show_jackpot?: boolean;
+  show_support?: boolean;
+  show_settings?: boolean;
+  show_deposits?: boolean;
+  show_withdrawals?: boolean;
+  show_bids?: boolean;
+}
+
+export async function getSubAdmins(): Promise<SubAdmin[]> {
+  const res = await client.get<SubAdmin[]>("/admin/subadmins");
+  return res.data;
+}
+
+export async function createSubAdmin(data: SubAdminPayload): Promise<SubAdmin> {
+  const res = await client.post<SubAdmin>("/admin/subadmins", data);
+  return res.data;
+}
+
+export async function updateSubAdmin(id: number, data: SubAdminPayload): Promise<SubAdmin> {
+  const res = await client.put<SubAdmin>(`/admin/subadmins/${id}`, data);
+  return res.data;
+}
+
+export async function deleteSubAdmin(id: number): Promise<{ message: string }> {
+  const res = await client.delete<{ message: string }>(`/admin/subadmins/${id}`);
+  return res.data;
+}

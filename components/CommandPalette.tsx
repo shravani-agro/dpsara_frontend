@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/components/ui";
 import { useUserModal } from "@/components/UserModalContext";
+import { useAuth } from "@/components/AuthProvider";
 import { useTheme } from "@/components/useTheme";
 import { listUsers, autoRejectExpiredDeposits } from "@/lib/admin";
 import { fmtMoney } from "@/lib/format";
@@ -20,6 +21,8 @@ interface ActionItem {
   perform?: () => void;
   href?: string;
   subtitle?: string;
+  permKey?: string;
+  superAdminOnly?: boolean;
 }
 
 const STATIC_ACTIONS: ActionItem[] = [
@@ -31,6 +34,7 @@ const STATIC_ACTIONS: ActionItem[] = [
     section: "Actions",
     shortcut: "A",
     subtitle: "Clean up unverified deposits older than 30 mins",
+    permKey: "can_approve_deposit",
   },
   {
     id: "action-withdrawals",
@@ -40,6 +44,7 @@ const STATIC_ACTIONS: ActionItem[] = [
     shortcut: "W",
     href: "/ouradminportal/withdrawals",
     subtitle: "Review UPI & Bank payout requests",
+    permKey: "show_withdrawals",
   },
   {
     id: "action-declare",
@@ -49,6 +54,7 @@ const STATIC_ACTIONS: ActionItem[] = [
     shortcut: "D",
     href: "/ouradminportal/results",
     subtitle: "Input winning pana & ank for today",
+    permKey: "can_add_result",
   },
   {
     id: "action-theme",
@@ -59,19 +65,20 @@ const STATIC_ACTIONS: ActionItem[] = [
     subtitle: "Switch between dark and light appearance",
   },
   // Navigation
-  { id: "nav-dash", href: "/ouradminportal", label: "Dashboard Overview", icon: "▦", section: "Navigation" },
-  { id: "nav-users", href: "/ouradminportal/users", label: "Users Directory", icon: "👥", section: "Navigation" },
-  { id: "nav-markets", href: "/ouradminportal/markets", label: "Markets Management", icon: "📈", section: "Navigation" },
-  { id: "nav-starline", href: "/ouradminportal/starline", label: "Starline Markets", icon: "⭐", section: "Navigation" },
-  { id: "nav-jackpot", href: "/ouradminportal/jackpot", label: "Jackpot Games", icon: "💰", section: "Navigation" },
-  { id: "nav-bids", href: "/ouradminportal/bids", label: "Regular Bids History", icon: "🎲", section: "Navigation" },
-  { id: "nav-starline-bids", href: "/ouradminportal/starline-bids-history", label: "Starline Bids History", icon: "🎲", section: "Navigation" },
-  { id: "nav-deposits", href: "/ouradminportal/deposits", label: "Deposits Manager", icon: "➕", section: "Navigation" },
-  { id: "nav-txns", href: "/ouradminportal/transactions", label: "Transactions & Passbook", icon: "💳", section: "Navigation" },
-  { id: "nav-rates", href: "/ouradminportal/game-rates", label: "Game Rates & Odds", icon: "🏷️", section: "Navigation" },
-  { id: "nav-support", href: "/ouradminportal/support", label: "Live Support Chat", icon: "💬", section: "Navigation" },
-  { id: "nav-audit", href: "/ouradminportal/audit", label: "Security & Audit Logs", icon: "🛡️", section: "Navigation" },
-  { id: "nav-settings", href: "/ouradminportal/settings", label: "Platform Settings", icon: "⚙️", section: "Navigation" },
+  { id: "nav-dash", href: "/ouradminportal", label: "Dashboard Overview", icon: "▦", section: "Navigation", permKey: "show_overview" },
+  { id: "nav-users", href: "/ouradminportal/users", label: "Users Directory", icon: "👥", section: "Navigation", permKey: "can_manage_users" },
+  { id: "nav-markets", href: "/ouradminportal/markets", label: "Markets Management", icon: "📈", section: "Navigation", permKey: "show_markets" },
+  { id: "nav-starline", href: "/ouradminportal/starline", label: "Starline Markets", icon: "⭐", section: "Navigation", permKey: "show_starline" },
+  { id: "nav-jackpot", href: "/ouradminportal/jackpot", label: "Jackpot Games", icon: "💰", section: "Navigation", permKey: "show_jackpot" },
+  { id: "nav-bids", href: "/ouradminportal/bids", label: "Regular Bids History", icon: "🎲", section: "Navigation", permKey: "show_bids" },
+  { id: "nav-starline-bids", href: "/ouradminportal/starline-bids-history", label: "Starline Bids History", icon: "🎲", section: "Navigation", permKey: "show_bids" },
+  { id: "nav-deposits", href: "/ouradminportal/deposits", label: "Deposits Manager", icon: "➕", section: "Navigation", permKey: "show_deposits" },
+  { id: "nav-txns", href: "/ouradminportal/transactions", label: "Transactions & Passbook", icon: "💳", section: "Navigation", permKey: "show_commission" },
+  { id: "nav-rates", href: "/ouradminportal/game-rates", label: "Game Rates & Odds", icon: "🏷️", section: "Navigation", permKey: "show_markets" },
+  { id: "nav-support", href: "/ouradminportal/support", label: "Live Support Chat", icon: "💬", section: "Navigation", permKey: "show_support" },
+  { id: "nav-subadmins", href: "/ouradminportal/subadmins", label: "Sub Admins Directory", icon: "👥", section: "Navigation", superAdminOnly: true },
+  { id: "nav-audit", href: "/ouradminportal/audit", label: "Security & Audit Logs", icon: "🛡️", section: "Navigation", superAdminOnly: true },
+  { id: "nav-settings", href: "/ouradminportal/settings", label: "Platform Settings", icon: "⚙️", section: "Navigation", superAdminOnly: true },
 ];
 
 export function CommandPalette() {
@@ -85,6 +92,7 @@ export function CommandPalette() {
   const router = useRouter();
   const { openUser } = useUserModal();
   const { theme, setTheme } = useTheme();
+  const { isSubAdmin, hasPermission } = useAuth();
 
   // Listen for Ctrl+K, Cmd+K, Escape, and custom trigger events
   useEffect(() => {
@@ -153,12 +161,17 @@ export function CommandPalette() {
       },
     }));
 
-    const filteredStatic = STATIC_ACTIONS.filter(
-      (a) =>
+    const filteredStatic = STATIC_ACTIONS.filter((a) => {
+      if (isSubAdmin) {
+        if (a.superAdminOnly) return false;
+        if (a.permKey && !hasPermission(a.permKey)) return false;
+      }
+      return (
         a.label.toLowerCase().includes(q) ||
         (a.subtitle && a.subtitle.toLowerCase().includes(q)) ||
         a.section.toLowerCase().includes(q)
-    );
+      );
+    });
 
     return [...mappedUsers, ...filteredStatic];
   }, [query, userResults, openUser]);
