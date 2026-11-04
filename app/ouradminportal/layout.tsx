@@ -81,6 +81,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Engagement",
     items: [
+      { href: "/ouradminportal/whatsapp", label: "WhatsApp Marketing", icon: "📱", permKey: "show_support" },
       { href: "/ouradminportal/support", label: "Support Chat", icon: "💬", permKey: "show_support" },
     ],
   },

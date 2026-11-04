@@ -132,10 +132,9 @@ export default function DepositsPage() {
   };
 
   const handleReject = async (id: number) => {
-    const reason = prompt("Enter reason for rejection (optional):", "Invalid payment reference / payment not received");
-    if (reason === null) return;
+    if (!confirm(`Are you sure you want to REJECT deposit #${id}?`)) return;
     try {
-      const res = await rejectDeposit(id, reason);
+      const res = await rejectDeposit(id, "Rejected by administrator / expired");
       toast.success(res.message || `Deposit #${id} rejected`);
       load();
     } catch (e: any) {

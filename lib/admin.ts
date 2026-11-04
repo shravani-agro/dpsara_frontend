@@ -685,3 +685,68 @@ export async function deleteSubAdmin(id: number): Promise<{ message: string }> {
   const res = await client.delete<{ message: string }>(`/admin/subadmins/${id}`);
   return res.data;
 }
+
+export interface WhatsAppSettings {
+  url: string;
+  session_id: string;
+  api_key: string;
+  api_key_masked?: string;
+  master_enabled: boolean;
+  notify_deposit: boolean;
+  notify_withdrawal: boolean;
+  notify_welcome: boolean;
+  morning_enabled: boolean;
+  night_enabled: boolean;
+  morning_time: string;
+  night_time: string;
+}
+
+export interface WhatsAppStatus {
+  online: boolean;
+  state?: string;
+  gateway_url: string;
+  session_id: string;
+  master_enabled: boolean;
+  error?: string;
+  data?: any;
+}
+
+export async function getWhatsAppStatus(): Promise<WhatsAppStatus> {
+  const res = await client.get<WhatsAppStatus>("/admin/whatsapp/status");
+  return res.data;
+}
+
+export async function getWhatsAppSettings(): Promise<WhatsAppSettings> {
+  const res = await client.get<WhatsAppSettings>("/admin/whatsapp/settings");
+  return res.data;
+}
+
+export async function updateWhatsAppSettings(payload: Partial<WhatsAppSettings> & Record<string, any>): Promise<any> {
+  const res = await client.put("/admin/whatsapp/settings", payload);
+  return res.data;
+}
+
+export async function getWhatsAppTemplates(): Promise<Record<string, string>> {
+  const res = await client.get<Record<string, string>>("/admin/whatsapp/templates");
+  return res.data;
+}
+
+export async function testWhatsAppMessage(phone: string, message?: string): Promise<any> {
+  const res = await client.post("/admin/whatsapp/test", { phone, message });
+  return res.data;
+}
+
+export async function broadcastWhatsAppMessage(payload: { text: string; target?: string; user_ids?: number[] }): Promise<any> {
+  const res = await client.post("/admin/whatsapp/broadcast", payload);
+  return res.data;
+}
+
+export async function triggerMorningWhatsApp(): Promise<any> {
+  const res = await client.post("/admin/whatsapp/trigger-morning");
+  return res.data;
+}
+
+export async function triggerNightWhatsApp(): Promise<any> {
+  const res = await client.post("/admin/whatsapp/trigger-night");
+  return res.data;
+}
