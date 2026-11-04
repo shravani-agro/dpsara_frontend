@@ -12,6 +12,7 @@ import {
   ErrorMsg,
   PageHeader,
   Field,
+  cn,
 } from "@/components/ui";
 import { parseApiError } from "@/lib/error-parser";
 import {
@@ -31,6 +32,10 @@ export default function SettingsPage() {
   const [whatsapp, setWhatsapp] = useState("");
   const [callUs, setCallUs] = useState("");
   const [contactSaving, setContactSaving] = useState(false);
+
+  const [welcomeBonusEnabled, setWelcomeBonusEnabled] = useState(true);
+  const [welcomeBonusAmount, setWelcomeBonusAmount] = useState("50");
+  const [bonusSaving, setBonusSaving] = useState(false);
 
   const [editSetting, setEditSetting] = useState<any>(null);
   const [editValue, setEditValue] = useState("");
@@ -55,6 +60,15 @@ export default function SettingsPage() {
       const ca = data.find((s: any) => s.key === "admin_call_us_number");
       if (wa?.value) setWhatsapp(wa.value);
       if (ca?.value) setCallUs(ca.value);
+
+      const wbEnabled = data.find((s: any) => s.key === "welcome_bonus_enabled");
+      const wbAmount = data.find((s: any) => s.key === "welcome_bonus_amount");
+      if (wbEnabled?.value !== undefined) {
+        setWelcomeBonusEnabled(wbEnabled.value === "true" || wbEnabled.value === "1");
+      }
+      if (wbAmount?.value) {
+        setWelcomeBonusAmount(wbAmount.value);
+      }
     } catch (e: any) {
       setError(parseApiError(e, "Failed to load settings"));
     } finally {
@@ -65,6 +79,31 @@ export default function SettingsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function submitWelcomeBonus(e: React.FormEvent) {
+    e.preventDefault();
+    setBonusSaving(true);
+    setError(null);
+    setMsg(null);
+    try {
+      await updateSetting(
+        "welcome_bonus_enabled",
+        welcomeBonusEnabled ? "true" : "false",
+        "Enable welcome bonus for new registrations (true/false)"
+      );
+      await updateSetting(
+        "welcome_bonus_amount",
+        welcomeBonusAmount || "50",
+        "Welcome bonus amount credited strictly to new registrations"
+      );
+      setMsg("Welcome Registration Bonus settings saved successfully!");
+      load();
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || "Failed to update bonus settings");
+    } finally {
+      setBonusSaving(false);
+    }
+  }
 
   async function submitContactNumbers(e: React.FormEvent) {
     e.preventDefault();
@@ -157,6 +196,65 @@ export default function SettingsPage() {
           {msg}
         </div>
       )}
+
+      <Card title="🎁 New User Registration Bonus" subtitle="Configure automatic welcome cash credited strictly on new registrations">
+        <form onSubmit={submitWelcomeBonus} className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850/70">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                  Welcome Registration Bonus Status
+                </span>
+                <Badge color={welcomeBonusEnabled ? "emerald" : "slate"}>
+                  {welcomeBonusEnabled ? "ACTIVE (ON)" : "DISABLED (OFF)"}
+                </Badge>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl">
+                When enabled, every brand-new registration strictly receives ₹{welcomeBonusAmount || "50"} credited into their wallet. When turned OFF, no welcome bonus is given.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setWelcomeBonusEnabled(!welcomeBonusEnabled)}
+              className={cn(
+                "relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500",
+                welcomeBonusEnabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-700"
+              )}
+              title={welcomeBonusEnabled ? "Click to Disable" : "Click to Enable"}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                  welcomeBonusEnabled ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Registration Bonus Amount (₹)</label>
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                value={welcomeBonusAmount}
+                onChange={(e) => setWelcomeBonusAmount(e.target.value)}
+                placeholder="50"
+                required
+              />
+              <p className="text-[11px] text-slate-500 mt-1">Default is ₹50 credited strictly on first registration.</p>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button type="submit" disabled={bonusSaving} className="w-full sm:w-auto">
+              {bonusSaving ? "Saving..." : "Save Bonus Settings"}
+            </Button>
+          </div>
+        </form>
+      </Card>
 
       <Card title="Support Contact Numbers (App Homepage)">
         <form onSubmit={submitContactNumbers} className="space-y-4">
