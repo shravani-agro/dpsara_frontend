@@ -750,3 +750,28 @@ export async function triggerNightWhatsApp(): Promise<any> {
   const res = await client.post("/admin/whatsapp/trigger-night");
   return res.data;
 }
+
+export async function startWhatsAppSession(): Promise<any> {
+  const res = await client.post("/admin/whatsapp/session/start");
+  return res.data;
+}
+
+export async function restartWhatsAppSession(): Promise<any> {
+  const res = await client.post("/admin/whatsapp/session/restart");
+  return res.data;
+}
+
+export async function stopWhatsAppSession(): Promise<any> {
+  const res = await client.post("/admin/whatsapp/session/stop");
+  return res.data;
+}
+
+export async function getWhatsAppQR(): Promise<{ success: boolean; qr_data_url?: string; qr_raw?: string; format?: string; error?: string }> {
+  const res = await client.get("/admin/whatsapp/session/qr");
+  return res.data;
+}
+
+export async function getWhatsAppBroadcastHistory(): Promise<any[]> {
+  const res = await client.get<any[]>("/admin/whatsapp/history");
+  return res.data;
+}
