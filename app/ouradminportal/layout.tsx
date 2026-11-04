@@ -96,7 +96,8 @@ const NAV_GROUPS: NavGroup[] = [
 
 const ALL_NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
-function isActive(item: NavItem, pathname: string) {
+function isActive(item: NavItem, pathname?: string | null) {
+  if (!pathname) return false;
   return item.href === "/ouradminportal"
     ? pathname === "/ouradminportal"
     : pathname === item.href || pathname.startsWith(item.href + "/");
@@ -169,7 +170,7 @@ function NavContent({
           })}
         </div>
       ))}
-      {q && groups[0].items.length === 0 && (
+      {q && groups.length === 0 && (
         <p className="px-3 py-6 text-center text-sm text-slate-400">No matching pages</p>
       )}
     </nav>
@@ -183,7 +184,8 @@ export default function DashboardLayout({
 }) {
   const { authenticated, loading, username, isSubAdmin, hasPermission, logout } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const pathname = rawPathname || "";
   const isLoginPage = pathname === "/ouradminportal/login";
   const [open, setOpen] = useState(false);
   const [navQuery, setNavQuery] = useState("");
@@ -257,9 +259,7 @@ export default function DashboardLayout({
     );
   }
 
-  const activeItem = ALL_NAV.find((n) =>
-    n.href === "/ouradminportal" ? pathname === "/ouradminportal" : (pathname === n.href || pathname.startsWith(n.href + "/"))
-  );
+  const activeItem = ALL_NAV.find((n) => isActive(n, pathname));
 
   const isAllowed = React.useMemo(() => {
     if (!isSubAdmin) return true;
@@ -505,7 +505,7 @@ export default function DashboardLayout({
             href="/ouradminportal/withdrawals"
             className={cn(
               "relative flex flex-col items-center justify-center h-full gap-0.5 transition-all text-[11px] font-semibold active:scale-95",
-              pathname.startsWith("/ouradminportal/withdrawals")
+              pathname?.startsWith("/ouradminportal/withdrawals")
                 ? "text-rose-600 dark:text-rose-400 font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
             )}
@@ -526,7 +526,7 @@ export default function DashboardLayout({
             href="/ouradminportal/results"
             className={cn(
               "flex flex-col items-center justify-center h-full gap-0.5 transition-all text-[11px] font-semibold active:scale-95",
-              pathname.startsWith("/ouradminportal/results")
+              pathname?.startsWith("/ouradminportal/results")
                 ? "text-brand-600 dark:text-brand-400 font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
             )}
@@ -540,7 +540,7 @@ export default function DashboardLayout({
             href="/ouradminportal/users"
             className={cn(
               "flex flex-col items-center justify-center h-full gap-0.5 transition-all text-[11px] font-semibold active:scale-95",
-              pathname.startsWith("/ouradminportal/users")
+              pathname?.startsWith("/ouradminportal/users")
                 ? "text-brand-600 dark:text-brand-400 font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
             )}

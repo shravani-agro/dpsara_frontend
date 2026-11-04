@@ -54,6 +54,7 @@ export default function DashboardPage() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [countdown, setCountdown] = useState(30);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const load = useCallback(async (isSilent = false) => {
     if (!isSilent) setLoading(true);
@@ -82,6 +83,7 @@ export default function DashboardPage() {
   }, [dateFrom, dateTo, period]);
 
   useEffect(() => {
+    setMounted(true);
     load();
   }, [load]);
 
@@ -351,6 +353,7 @@ export default function DashboardPage() {
           className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2"
         >
           <Card title="Deposits vs Withdrawals" subtitle={`Platform cashflow trends, grouped by ${period}`}>
+            {mounted && (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={depWit}>
                 <defs>
@@ -372,9 +375,11 @@ export default function DashboardPage() {
                 <Bar dataKey="withdrawals" name="Withdrawals" fill="url(#wit)" radius={[6, 6, 0, 0]} maxBarSize={24} animationDuration={1500} />
               </BarChart>
             </ResponsiveContainer>
+            )}
           </Card>
 
           <Card title="User Acquisition Growth" subtitle="New platform registrations over last 30 days">
+            {mounted && (
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={growth}>
                 <defs>
@@ -390,6 +395,7 @@ export default function DashboardPage() {
                 <Area type="monotone" dataKey="count" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#growthGrad)" animationDuration={1500} />
               </AreaChart>
             </ResponsiveContainer>
+            )}
           </Card>
         </motion.div>
 

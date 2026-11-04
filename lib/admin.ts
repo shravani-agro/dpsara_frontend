@@ -130,7 +130,7 @@ export function decodeToken(token: string): any | null {
 export function isAdminToken(token: string | null): boolean {
   if (!token) return false;
   const payload = decodeToken(token);
-  if (!payload || payload.admin !== true) return false;
+  if (!payload || (payload.admin !== true && payload.role !== "subadmin" && payload.role !== "admin")) return false;
 
   // Validate JWT expiration claim
   if (payload.exp && typeof payload.exp === "number") {

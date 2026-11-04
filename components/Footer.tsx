@@ -1,9 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 
 export default function Footer() {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/ouradminportal") || pathname?.startsWith("/admin")) {
+    return null;
+  }
   return (
     <footer className="bg-transparent border-t border-slate-200/50">
       {/* Full-width video */}
