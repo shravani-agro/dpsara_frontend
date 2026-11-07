@@ -387,6 +387,31 @@ export async function updateSetting(key: string, value: string, description?: st
   return res.data;
 }
 
+export async function getPaymentGatewaySettings() {
+  const res = await client.get("/admin/payment-gateway");
+  return res.data;
+}
+
+export async function updatePaymentGatewaySettings(payload: {
+  active_gateway?: string;
+  pay100_client_id?: string;
+  pay100_encrypted_key?: string;
+  pay100_secret_key?: string;
+  pay100_base_url?: string;
+  pay100_expiry_minutes?: number;
+  cashfree_deposit_client_id?: string;
+  cashfree_deposit_secret_key?: string;
+  cashfree_env?: string;
+}) {
+  const res = await client.put("/admin/payment-gateway", payload);
+  return res.data;
+}
+
+export async function testPay100Connection() {
+  const res = await client.post("/admin/payment-gateway/test-pay100");
+  return res.data;
+}
+
 /* ---------------- Admin: Jackpot ---------------- */
 
 export async function listJackpotMarkets(params: any = {}) {

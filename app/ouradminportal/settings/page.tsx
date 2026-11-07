@@ -20,6 +20,9 @@ import {
   updateSetting,
   broadcastNotification,
   sendUserNotification,
+  getPaymentGatewaySettings,
+  updatePaymentGatewaySettings,
+  testPay100Connection,
 } from "@/lib/admin";
 import { UserSelect } from "@/components/UserSelect";
 
@@ -50,6 +53,25 @@ export default function SettingsPage() {
   const [userNotifMessage, setUserNotifMessage] = useState("");
   const [userNotifSending, setUserNotifSending] = useState(false);
 
+  // Payment Gateway states
+  const [activeGateway, setActiveGateway] = useState<"cashfree" | "pay100">("cashfree");
+  const [p100ClientId, setP100ClientId] = useState("");
+  const [p100EncryptedKey, setP100EncryptedKey] = useState("");
+  const [p100SecretKey, setP100SecretKey] = useState("");
+  const [p100BaseUrl, setP100BaseUrl] = useState("https://pay100.in");
+  const [p100ExpiryMinutes, setP100ExpiryMinutes] = useState("10");
+  const [p100HasEncryptedKey, setP100HasEncryptedKey] = useState(false);
+  const [p100HasSecretKey, setP100HasSecretKey] = useState(false);
+
+  const [cfClientId, setCfClientId] = useState("");
+  const [cfSecretKey, setCfSecretKey] = useState("");
+  const [cfHasSecretKey, setCfHasSecretKey] = useState(false);
+  const [cfEnv, setCfEnv] = useState("production");
+
+  const [gatewaySaving, setGatewaySaving] = useState(false);
+  const [testRunning, setTestRunning] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -68,6 +90,28 @@ export default function SettingsPage() {
       }
       if (wbAmount?.value) {
         setWelcomeBonusAmount(wbAmount.value);
+      }
+
+      // Load Payment Gateway Configuration
+      try {
+        const gw = await getPaymentGatewaySettings();
+        if (gw.active_gateway) {
+          setActiveGateway(gw.active_gateway === "pay100" ? "pay100" : "cashfree");
+        }
+        if (gw.pay100) {
+          setP100ClientId(gw.pay100.client_id || "");
+          setP100BaseUrl(gw.pay100.base_url || "https://pay100.in");
+          setP100ExpiryMinutes(String(gw.pay100.expiry_minutes || 10));
+          setP100HasEncryptedKey(Boolean(gw.pay100.has_encrypted_key));
+          setP100HasSecretKey(Boolean(gw.pay100.has_secret_key));
+        }
+        if (gw.cashfree) {
+          setCfClientId(gw.cashfree.client_id || "");
+          setCfEnv(gw.cashfree.env || "production");
+          setCfHasSecretKey(Boolean(gw.cashfree.has_secret_key));
+        }
+      } catch (err) {
+        console.warn("Could not load gateway settings:", err);
       }
     } catch (e: any) {
       setError(parseApiError(e, "Failed to load settings"));
@@ -119,6 +163,54 @@ export default function SettingsPage() {
       setError(err?.response?.data?.detail || "Failed to update contact numbers");
     } finally {
       setContactSaving(false);
+    }
+  }
+
+  async function submitGatewaySettings(e: React.FormEvent) {
+    e.preventDefault();
+    setGatewaySaving(true);
+    setError(null);
+    setMsg(null);
+    setTestResult(null);
+    try {
+      const payload: any = {
+        active_gateway: activeGateway,
+        pay100_client_id: p100ClientId,
+        pay100_base_url: p100BaseUrl,
+        pay100_expiry_minutes: parseInt(p100ExpiryMinutes) || 10,
+        cashfree_deposit_client_id: cfClientId,
+        cashfree_env: cfEnv,
+      };
+      if (p100EncryptedKey.trim()) payload.pay100_encrypted_key = p100EncryptedKey.trim();
+      if (p100SecretKey.trim()) payload.pay100_secret_key = p100SecretKey.trim();
+      if (cfSecretKey.trim()) payload.cashfree_deposit_secret_key = cfSecretKey.trim();
+
+      await updatePaymentGatewaySettings(payload);
+      setMsg(`Payment Gateway settings saved! Active gateway is now: ${activeGateway.toUpperCase()}`);
+      setP100EncryptedKey("");
+      setP100SecretKey("");
+      setCfSecretKey("");
+      load();
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || "Failed to update payment gateway settings");
+    } finally {
+      setGatewaySaving(false);
+    }
+  }
+
+  async function handleTestPay100() {
+    setTestRunning(true);
+    setTestResult(null);
+    try {
+      const res = await testPay100Connection();
+      setTestResult(res);
+    } catch (err: any) {
+      setTestResult({
+        success: false,
+        message: err?.response?.data?.detail || "Failed to test Pay100 connection",
+      });
+    } finally {
+      setTestRunning(false);
     }
   }
 
@@ -251,6 +343,220 @@ export default function SettingsPage() {
           <div className="flex justify-end">
             <Button type="submit" disabled={bonusSaving} className="w-full sm:w-auto">
               {bonusSaving ? "Saving..." : "Save Bonus Settings"}
+            </Button>
+          </div>
+        </form>
+      </Card>
+
+      <Card
+        title="💳 Deposit Payment Gateway"
+        subtitle="Dynamically toggle between Cashfree PG and Pay100 Collection (UPI Intent), or update API credentials."
+      >
+        <form onSubmit={submitGatewaySettings} className="space-y-6">
+          {/* Active Gateway Selection */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Active Payment Gateway
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div
+                onClick={() => setActiveGateway("cashfree")}
+                className={cn(
+                  "cursor-pointer rounded-2xl border-2 p-4 transition-all duration-200",
+                  activeGateway === "cashfree"
+                    ? "border-brand-500 bg-brand-500/10 shadow-sm"
+                    : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 hover:border-slate-300 dark:hover:border-slate-700"
+                )}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">💳</span>
+                    <span className="font-bold text-slate-900 dark:text-slate-100">Cashfree PG</span>
+                  </div>
+                  <Badge color={activeGateway === "cashfree" ? "emerald" : "slate"}>
+                    {activeGateway === "cashfree" ? "ACTIVE" : "STANDBY"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Traditional web checkout with Cards, Netbanking, Wallets & Cashfree UPI SDK.
+                </p>
+              </div>
+
+              <div
+                onClick={() => setActiveGateway("pay100")}
+                className={cn(
+                  "cursor-pointer rounded-2xl border-2 p-4 transition-all duration-200",
+                  activeGateway === "pay100"
+                    ? "border-brand-500 bg-brand-500/10 shadow-sm"
+                    : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 hover:border-slate-300 dark:hover:border-slate-700"
+                )}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">⚡</span>
+                    <span className="font-bold text-slate-900 dark:text-slate-100">Pay100 (UPI Intent)</span>
+                  </div>
+                  <Badge color={activeGateway === "pay100" ? "emerald" : "slate"}>
+                    {activeGateway === "pay100" ? "ACTIVE" : "STANDBY"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Fast UPI Payment Intent opening PhonePe, GPay, Paytm with instant QR fallback and auto-approval.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Pay100 Configuration */}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/40 dark:bg-slate-850/40 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <span>⚡</span> Pay100 Credentials (https://pay100.in)
+                </h4>
+                <p className="text-xs text-slate-500">Required for UPI Intent creation and webhook signature validation.</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleTestPay100}
+                disabled={testRunning}
+              >
+                {testRunning ? "Testing..." : "Test Pay100 Connection"}
+              </Button>
+            </div>
+
+            {testResult && (
+              <div
+                className={cn(
+                  "p-3 rounded-xl text-xs font-medium border",
+                  testResult.success
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                    : "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400"
+                )}
+              >
+                {testResult.success ? "✓ " : "✗ "}
+                {testResult.message}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Pay100 Client ID (X-Client-ID)">
+                <Input
+                  value={p100ClientId}
+                  onChange={(e) => setP100ClientId(e.target.value)}
+                  placeholder="e.g. 1000000000000000"
+                />
+              </Field>
+
+              <Field label="Pay100 API Base URL">
+                <Input
+                  value={p100BaseUrl}
+                  onChange={(e) => setP100BaseUrl(e.target.value)}
+                  placeholder="https://pay100.in"
+                />
+              </Field>
+
+              <Field
+                label={`Pay100 Encrypted Key (X-Encrypted-Key) ${
+                  p100HasEncryptedKey ? "• [Saved in Server]" : ""
+                }`}
+              >
+                <Input
+                  type="password"
+                  value={p100EncryptedKey}
+                  onChange={(e) => setP100EncryptedKey(e.target.value)}
+                  placeholder={
+                    p100HasEncryptedKey
+                      ? "•••••••• (Leave blank to keep unchanged)"
+                      : "Enter encrypted production key"
+                  }
+                />
+              </Field>
+
+              <Field
+                label={`Pay100 Secret Key (X-Secret-Key) ${
+                  p100HasSecretKey ? "• [Saved in Server]" : ""
+                }`}
+              >
+                <Input
+                  type="password"
+                  value={p100SecretKey}
+                  onChange={(e) => setP100SecretKey(e.target.value)}
+                  placeholder={
+                    p100HasSecretKey
+                      ? "•••••••• (Leave blank to keep unchanged)"
+                      : "Enter active secret key"
+                  }
+                />
+              </Field>
+
+              <Field label="Pay100 Request Validity (Minutes)">
+                <Input
+                  type="number"
+                  min="1"
+                  max="60"
+                  value={p100ExpiryMinutes}
+                  onChange={(e) => setP100ExpiryMinutes(e.target.value)}
+                  placeholder="10"
+                />
+              </Field>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Webhook URL for Pay100: <code className="font-mono text-slate-700 dark:text-slate-300">https://backend.dpsara777.com/api/mobile/deposit/pay100/webhook</code>
+            </p>
+          </div>
+
+          {/* Cashfree Configuration */}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/40 dark:bg-slate-850/40 space-y-4">
+            <div className="border-b border-slate-200 dark:border-slate-800 pb-2">
+              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <span>💳</span> Cashfree PG Credentials
+              </h4>
+              <p className="text-xs text-slate-500">Configured credentials for Cashfree Payment Gateway.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Field label="Cashfree Deposit App ID">
+                <Input
+                  value={cfClientId}
+                  onChange={(e) => setCfClientId(e.target.value)}
+                  placeholder="Cashfree App ID"
+                />
+              </Field>
+
+              <Field
+                label={`Cashfree Secret Key ${cfHasSecretKey ? "• [Saved]" : ""}`}
+              >
+                <Input
+                  type="password"
+                  value={cfSecretKey}
+                  onChange={(e) => setCfSecretKey(e.target.value)}
+                  placeholder={
+                    cfHasSecretKey
+                      ? "•••••••• (Leave blank to keep unchanged)"
+                      : "Enter secret key"
+                  }
+                />
+              </Field>
+
+              <Field label="Cashfree Environment">
+                <select
+                  value={cfEnv}
+                  onChange={(e) => setCfEnv(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                >
+                  <option value="production">Production</option>
+                  <option value="sandbox">Sandbox / Testing</option>
+                </select>
+              </Field>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button type="submit" disabled={gatewaySaving} className="w-full sm:w-auto">
+              {gatewaySaving ? "Saving..." : "Save Payment Gateway Settings"}
             </Button>
           </div>
         </form>
