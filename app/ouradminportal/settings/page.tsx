@@ -23,6 +23,7 @@ import {
   getPaymentGatewaySettings,
   updatePaymentGatewaySettings,
   testPay100Connection,
+  distributeMassBonus,
 } from "@/lib/admin";
 import { UserSelect } from "@/components/UserSelect";
 
@@ -40,6 +41,23 @@ export default function SettingsPage() {
   const [welcomeBonusAmount, setWelcomeBonusAmount] = useState("50");
   const [bonusSaving, setBonusSaving] = useState(false);
 
+  // Mass Bonus Distribution states
+  const [massBonusAmount, setMassBonusAmount] = useState("50");
+  const [massBonusTitle, setMassBonusTitle] = useState("🎁 You Have ₹50 Free Bonus in Your Wallet!");
+  const [massBonusMessage, setMassBonusMessage] = useState(
+    "Play your favorite games starting from just ₹1! All winnings you make from your bonus are 100% withdrawable to your bank account."
+  );
+  const [massBonusSending, setMassBonusSending] = useState(false);
+  const [massBonusResult, setMassBonusResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+  const [showBonusConfirmModal, setShowBonusConfirmModal] = useState(false);
+
+  // Support Chat Intelligent Auto-Responder states
+  const [supportBotEnabled, setSupportBotEnabled] = useState(true);
+  const [supportBotSaving, setSupportBotSaving] = useState(false);
+
   const [editSetting, setEditSetting] = useState<any>(null);
   const [editValue, setEditValue] = useState("");
   const [editDesc, setEditDesc] = useState("");
@@ -53,21 +71,8 @@ export default function SettingsPage() {
   const [userNotifMessage, setUserNotifMessage] = useState("");
   const [userNotifSending, setUserNotifSending] = useState(false);
 
-  // Payment Gateway states
-  const [activeGateway, setActiveGateway] = useState<"cashfree" | "pay100">("cashfree");
-  const [p100ClientId, setP100ClientId] = useState("");
-  const [p100EncryptedKey, setP100EncryptedKey] = useState("");
-  const [p100SecretKey, setP100SecretKey] = useState("");
-  const [p100BaseUrl, setP100BaseUrl] = useState("https://pay100.in");
-  const [p100ExpiryMinutes, setP100ExpiryMinutes] = useState("10");
-  const [p100HasEncryptedKey, setP100HasEncryptedKey] = useState(false);
-  const [p100HasSecretKey, setP100HasSecretKey] = useState(false);
-
-  const [cfClientId, setCfClientId] = useState("");
-  const [cfSecretKey, setCfSecretKey] = useState("");
-  const [cfHasSecretKey, setCfHasSecretKey] = useState(false);
-  const [cfEnv, setCfEnv] = useState("production");
-
+  // Payment Gateway states (No credentials taken from Admin Panel - all in .env)
+  const [activeGateway, setActiveGateway] = useState<"cashfree" | "pay100">("pay100");
   const [gatewaySaving, setGatewaySaving] = useState(false);
   const [testRunning, setTestRunning] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -92,23 +97,16 @@ export default function SettingsPage() {
         setWelcomeBonusAmount(wbAmount.value);
       }
 
-      // Load Payment Gateway Configuration
+      const botSetting = data.find((s: any) => s.key === "support_bot_enabled");
+      if (botSetting?.value !== undefined) {
+        setSupportBotEnabled(botSetting.value !== "false" && botSetting.value !== "0");
+      }
+
+      // Load Payment Gateway Selection
       try {
         const gw = await getPaymentGatewaySettings();
         if (gw.active_gateway) {
           setActiveGateway(gw.active_gateway === "pay100" ? "pay100" : "cashfree");
-        }
-        if (gw.pay100) {
-          setP100ClientId(gw.pay100.client_id || "");
-          setP100BaseUrl(gw.pay100.base_url || "https://pay100.in");
-          setP100ExpiryMinutes(String(gw.pay100.expiry_minutes || 10));
-          setP100HasEncryptedKey(Boolean(gw.pay100.has_encrypted_key));
-          setP100HasSecretKey(Boolean(gw.pay100.has_secret_key));
-        }
-        if (gw.cashfree) {
-          setCfClientId(gw.cashfree.client_id || "");
-          setCfEnv(gw.cashfree.env || "production");
-          setCfHasSecretKey(Boolean(gw.cashfree.has_secret_key));
         }
       } catch (err) {
         console.warn("Could not load gateway settings:", err);
@@ -138,14 +136,75 @@ export default function SettingsPage() {
       await updateSetting(
         "welcome_bonus_amount",
         welcomeBonusAmount || "50",
-        "Welcome bonus amount credited strictly to new registrations"
+        "Welcome bonus amount credited to new user wallet (₹)"
       );
-      setMsg("Welcome Registration Bonus settings saved successfully!");
+      setMsg("Registration Welcome Bonus settings saved successfully!");
       load();
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Failed to update bonus settings");
+      setError(err?.response?.data?.detail || "Failed to save bonus settings");
     } finally {
       setBonusSaving(false);
+    }
+  }
+
+  async function handleDistributeMassBonus() {
+    setShowBonusConfirmModal(false);
+    const amt = parseFloat(massBonusAmount);
+    if (isNaN(amt) || amt <= 0) {
+      setError("Please enter a valid bonus amount greater than zero.");
+      return;
+    }
+    if (!massBonusMessage.trim()) {
+      setError("Please write an announcement message for the bonus.");
+      return;
+    }
+
+    setMassBonusSending(true);
+    setMassBonusResult(null);
+    setError(null);
+    setMsg(null);
+
+    try {
+      const res = await distributeMassBonus({
+        amount: amt,
+        title: massBonusTitle.trim() || `🎁 You Have ₹${amt} Free Bonus in Your Wallet!`,
+        message: massBonusMessage.trim(),
+      });
+      setMassBonusResult({
+        success: true,
+        message: res.message || `Successfully credited ₹${amt} bonus to ${res.users_credited} users!`,
+      });
+      setMsg(res.message);
+      load();
+    } catch (err: any) {
+      const errorMsg = parseApiError(err, "Failed to distribute bonus to users");
+      setMassBonusResult({
+        success: false,
+        message: errorMsg,
+      });
+      setError(errorMsg);
+    } finally {
+      setMassBonusSending(false);
+    }
+  }
+
+  async function handleToggleSupportBot(enabled: boolean) {
+    setSupportBotSaving(true);
+    setError(null);
+    setMsg(null);
+    try {
+      await updateSetting(
+        "support_bot_enabled",
+        enabled ? "true" : "false",
+        "Intelligent Support Chat Auto-Responder (true/false)"
+      );
+      setSupportBotEnabled(enabled);
+      setMsg(`Support Chat Intelligent Auto-Responder ${enabled ? "enabled" : "disabled"} successfully!`);
+      load();
+    } catch (err: any) {
+      setError(parseApiError(err, "Failed to update support bot setting"));
+    } finally {
+      setSupportBotSaving(false);
     }
   }
 
@@ -173,26 +232,17 @@ export default function SettingsPage() {
     setMsg(null);
     setTestResult(null);
     try {
-      const payload: any = {
+      await updatePaymentGatewaySettings({
         active_gateway: activeGateway,
-        pay100_client_id: p100ClientId,
-        pay100_base_url: p100BaseUrl,
-        pay100_expiry_minutes: parseInt(p100ExpiryMinutes) || 10,
-        cashfree_deposit_client_id: cfClientId,
-        cashfree_env: cfEnv,
-      };
-      if (p100EncryptedKey.trim()) payload.pay100_encrypted_key = p100EncryptedKey.trim();
-      if (p100SecretKey.trim()) payload.pay100_secret_key = p100SecretKey.trim();
-      if (cfSecretKey.trim()) payload.cashfree_deposit_secret_key = cfSecretKey.trim();
-
-      await updatePaymentGatewaySettings(payload);
-      setMsg(`Payment Gateway settings saved! Active gateway is now: ${activeGateway.toUpperCase()}`);
-      setP100EncryptedKey("");
-      setP100SecretKey("");
-      setCfSecretKey("");
+      });
+      setMsg(
+        `Active payment gateway successfully switched to: ${
+          activeGateway === "pay100" ? "Pay100 (Instant UPI Intent)" : "Cashfree PG"
+        }!`
+      );
       load();
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Failed to update payment gateway settings");
+      setError(err?.response?.data?.detail || "Failed to update payment gateway");
     } finally {
       setGatewaySaving(false);
     }
@@ -258,7 +308,7 @@ export default function SettingsPage() {
       setUserNotifMessage("");
       setMsg("Notification sent to user");
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Failed to send notification");
+      setError(err?.response?.data?.detail || "Failed to send notification to user");
     } finally {
       setUserNotifSending(false);
     }
@@ -266,54 +316,307 @@ export default function SettingsPage() {
 
   function openEdit(s: any) {
     setEditSetting(s);
-    setEditValue(s.value ?? "");
-    setEditDesc(s.description ?? "");
-    setError(null);
+    setEditValue(s.value || "");
+    setEditDesc(s.description || "");
   }
 
   function openCreate() {
-    setEditSetting({ key: "", isNew: true });
+    setEditSetting({ key: "", value: "", description: "", isNew: true });
     setEditValue("");
     setEditDesc("");
-    setError(null);
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Settings" description="System configuration and notifications" />
+    <div className="space-y-6 max-w-4xl">
+      <PageHeader
+        title="Settings & Configurations"
+        description="Manage payment gateways, user bonuses, intelligent support bot, contact numbers and app parameters."
+      />
 
-      <ErrorMsg msg={error} />
+      {error && <ErrorMsg message={error} onDismiss={() => setError(null)} />}
       {msg && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-700 dark:text-emerald-300 font-medium">
-          {msg}
+        <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-4 text-emerald-600 dark:text-emerald-400 text-sm font-semibold flex items-center justify-between">
+          <span>✓ {msg}</span>
+          <button onClick={() => setMsg(null)} className="text-emerald-500 hover:text-emerald-600 font-bold ml-4">
+            ✕
+          </button>
         </div>
       )}
 
-      <Card title="🎁 New User Registration Bonus" subtitle="Configure automatic welcome cash credited strictly on new registrations">
-        <form onSubmit={submitWelcomeBonus} className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850/70">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                  Welcome Registration Bonus Status
-                </span>
-                <Badge color={welcomeBonusEnabled ? "emerald" : "slate"}>
-                  {welcomeBonusEnabled ? "ACTIVE (ON)" : "DISABLED (OFF)"}
-                </Badge>
+      {/* 1. Deposit Payment Gateway Switcher (No Credentials Input) */}
+      <Card
+        title="💳 Deposit Payment Gateway"
+        subtitle="Switch between Pay100 (Instant UPI Intent) and Cashfree PG. All credentials and keys are securely loaded from backend (.env)."
+      >
+        <form onSubmit={submitGatewaySettings} className="space-y-6">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Active Deposit Gateway
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div
+                onClick={() => setActiveGateway("pay100")}
+                className={cn(
+                  "cursor-pointer rounded-2xl border-2 p-5 transition-all duration-200 relative overflow-hidden",
+                  activeGateway === "pay100"
+                    ? "border-brand-500 bg-brand-500/10 shadow-sm"
+                    : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 hover:border-slate-300 dark:hover:border-slate-700"
+                )}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">⚡</span>
+                    <div>
+                      <span className="font-bold text-slate-900 dark:text-slate-100 block">
+                        Pay100 (UPI Intent)
+                      </span>
+                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                        Recommended • 1-Tap UPI
+                      </span>
+                    </div>
+                  </div>
+                  <Badge color={activeGateway === "pay100" ? "emerald" : "slate"}>
+                    {activeGateway === "pay100" ? "ACTIVE" : "STANDBY"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
+                  Instant UPI intent launching PhonePe, Google Pay, and Paytm directly on the player&apos;s phone with auto-approval.
+                </p>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl">
-                When enabled, every brand-new registration strictly receives ₹{welcomeBonusAmount || "50"} credited into their wallet. When turned OFF, no welcome bonus is given.
-              </p>
+
+              <div
+                onClick={() => setActiveGateway("cashfree")}
+                className={cn(
+                  "cursor-pointer rounded-2xl border-2 p-5 transition-all duration-200 relative overflow-hidden",
+                  activeGateway === "cashfree"
+                    ? "border-brand-500 bg-brand-500/10 shadow-sm"
+                    : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 hover:border-slate-300 dark:hover:border-slate-700"
+                )}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">💳</span>
+                    <div>
+                      <span className="font-bold text-slate-900 dark:text-slate-100 block">Cashfree PG</span>
+                      <span className="text-[11px] text-slate-500">Standard Payment Gateway</span>
+                    </div>
+                  </div>
+                  <Badge color={activeGateway === "cashfree" ? "emerald" : "slate"}>
+                    {activeGateway === "cashfree" ? "ACTIVE" : "STANDBY"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
+                  Standard checkout flow supporting Cards, Netbanking, Wallets and Cashfree payment page.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Backend Security Notice & Test Connection */}
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🔒</span>
+              <div>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  Backend Environment Security (.env)
+                </h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
+                  All sensitive Client IDs, Encrypted Keys, and Webhook Secrets for Pay100 and Cashfree are set strictly in the server <code className="font-mono text-slate-800 dark:text-slate-200">.env</code>. No credentials are required or exposed here.
+                </p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleTestPay100}
+              disabled={testRunning}
+              className="shrink-0"
+            >
+              {testRunning ? "Testing..." : "Test Pay100 Connection"}
+            </Button>
+          </div>
+
+          {testResult && (
+            <div
+              className={cn(
+                "p-3 rounded-xl text-xs font-medium border",
+                testResult.success
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                  : "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400"
+              )}
+            >
+              {testResult.success ? "✓ " : "✗ "}
+              {testResult.message}
+            </div>
+          )}
+
+          <div className="flex justify-end">
+            <Button type="submit" disabled={gatewaySaving} className="w-full sm:w-auto">
+              {gatewaySaving ? "Saving..." : "Save Active Gateway"}
+            </Button>
+          </div>
+        </form>
+      </Card>
+
+      {/* 2. Distribute Bonus to All Users (Popup + Push Notification) */}
+      <Card
+        title="🎁 Distribute Bonus to All Users (Popup + Push Notification)"
+        subtitle="Credit free bonus amount to all active users with a custom announcement message. Users receive an instant push notification and a golden popup modal upon opening the mobile app."
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setShowBonusConfirmModal(true);
+          }}
+          className="space-y-4"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Bonus Amount (₹)
+              </label>
+              <Input
+                type="number"
+                min="1"
+                step="1"
+                value={massBonusAmount}
+                onChange={(e) => {
+                  setMassBonusAmount(e.target.value);
+                  setMassBonusTitle(`🎁 You Have ₹${e.target.value || 0} Free Bonus in Your Wallet!`);
+                }}
+                placeholder="50"
+                required
+              />
+              <p className="text-[11px] text-slate-500 mt-1">Amount to add to each user wallet.</p>
             </div>
 
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Push & Popup Title
+              </label>
+              <Input
+                value={massBonusTitle}
+                onChange={(e) => setMassBonusTitle(e.target.value)}
+                placeholder="🎁 You Have ₹50 Free Bonus in Your Wallet!"
+                required
+              />
+              <p className="text-[11px] text-slate-500 mt-1">Heading for push notification and in-app popup modal.</p>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Bonus Message / Announcement
+            </label>
+            <Textarea
+              rows={3}
+              value={massBonusMessage}
+              onChange={(e) => setMassBonusMessage(e.target.value)}
+              placeholder="e.g. Play your favorite games starting from just ₹1! All winnings you make from your bonus are 100% withdrawable to your bank account."
+              required
+            />
+            <p className="text-[11px] text-slate-500 mt-1">
+              This message will be sent via push notification and displayed in the popup when users open the app.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400 space-y-1">
+            <p className="font-semibold flex items-center gap-1.5">
+              <span>💡</span> Intelligent Bonus Rules:
+            </p>
+            <p>
+              • Bonus amount is directly credited to each active user&apos;s wallet balance.
+              <br />
+              • Users cannot withdraw the bonus amount directly; it is intelligently excluded from withdrawals until wagered.
+              <br />
+              • All winnings made from playing with bonus are 100% withdrawable to user bank accounts!
+            </p>
+          </div>
+
+          {massBonusResult && (
+            <div
+              className={cn(
+                "p-3 rounded-xl text-xs font-medium border",
+                massBonusResult.success
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                  : "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400"
+              )}
+            >
+              {massBonusResult.success ? "✓ " : "✗ "}
+              {massBonusResult.message}
+            </div>
+          )}
+
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={massBonusSending || !massBonusAmount || !massBonusMessage}
+              className="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold"
+            >
+              {massBonusSending ? "Distributing Bonus..." : `🚀 Distribute ₹${massBonusAmount || 0} Bonus to All Users`}
+            </Button>
+          </div>
+        </form>
+      </Card>
+
+      {/* 3. Intelligent Support Chat Auto-Responder */}
+      <Card
+        title="🤖 Intelligent Support Chat Auto-Responder"
+        subtitle="24/7 AI-assisted auto-reply service in Hindi, English, and Hinglish. Automatically looks up live pending deposits, withdrawals, bonus balance, and game rates."
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-slate-900 dark:text-slate-100">
+                Support Auto-Responder Status
+              </span>
+              <Badge color={supportBotEnabled ? "emerald" : "rose"}>
+                {supportBotEnabled ? "ACTIVE (AUTO-REPLY ON)" : "DISABLED (MANUAL ONLY)"}
+              </Badge>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              When active, players asking about deposits, withdrawals, UTRs, bonus rules, or game rates receive instantaneous intelligent responses matching their live account status.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant={supportBotEnabled ? "destructive" : "default"}
+            disabled={supportBotSaving}
+            onClick={() => handleToggleSupportBot(!supportBotEnabled)}
+            className="shrink-0"
+          >
+            {supportBotSaving
+              ? "Updating..."
+              : supportBotEnabled
+              ? "Disable Auto-Responder"
+              : "Enable Auto-Responder"}
+          </Button>
+        </div>
+      </Card>
+
+      {/* 4. Registration Welcome Bonus (New User Signups) */}
+      <Card
+        title="🎁 Registration Welcome Bonus (New Users)"
+        subtitle="Automatically add free cash bonus directly into newly registered user wallets on first signup."
+      >
+        <form onSubmit={submitWelcomeBonus} className="space-y-4">
+          <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50">
+            <div>
+              <span className="font-bold text-slate-900 dark:text-slate-100 block">Welcome Bonus Status</span>
+              <span className="text-xs text-slate-500">
+                If enabled, new users instantly receive free bonus upon signup and view the popup on opening the app.
+              </span>
+            </div>
             <button
               type="button"
+              role="switch"
+              aria-checked={welcomeBonusEnabled}
               onClick={() => setWelcomeBonusEnabled(!welcomeBonusEnabled)}
               className={cn(
-                "relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500",
+                "relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
                 welcomeBonusEnabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-700"
               )}
-              title={welcomeBonusEnabled ? "Click to Disable" : "Click to Enable"}
             >
               <span
                 className={cn(
@@ -326,7 +629,9 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Registration Bonus Amount (₹)</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Registration Bonus Amount (₹)
+              </label>
               <Input
                 type="number"
                 min="0"
@@ -336,232 +641,19 @@ export default function SettingsPage() {
                 placeholder="50"
                 required
               />
-              <p className="text-[11px] text-slate-500 mt-1">Default is ₹50 credited strictly on first registration.</p>
+              <p className="text-[11px] text-slate-500 mt-1">Default is ₹50 credited on first registration.</p>
             </div>
           </div>
 
           <div className="flex justify-end">
             <Button type="submit" disabled={bonusSaving} className="w-full sm:w-auto">
-              {bonusSaving ? "Saving..." : "Save Bonus Settings"}
+              {bonusSaving ? "Saving..." : "Save Welcome Bonus Settings"}
             </Button>
           </div>
         </form>
       </Card>
 
-      <Card
-        title="💳 Deposit Payment Gateway"
-        subtitle="Dynamically toggle between Cashfree PG and Pay100 Collection (UPI Intent), or update API credentials."
-      >
-        <form onSubmit={submitGatewaySettings} className="space-y-6">
-          {/* Active Gateway Selection */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Active Payment Gateway
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div
-                onClick={() => setActiveGateway("cashfree")}
-                className={cn(
-                  "cursor-pointer rounded-2xl border-2 p-4 transition-all duration-200",
-                  activeGateway === "cashfree"
-                    ? "border-brand-500 bg-brand-500/10 shadow-sm"
-                    : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 hover:border-slate-300 dark:hover:border-slate-700"
-                )}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">💳</span>
-                    <span className="font-bold text-slate-900 dark:text-slate-100">Cashfree PG</span>
-                  </div>
-                  <Badge color={activeGateway === "cashfree" ? "emerald" : "slate"}>
-                    {activeGateway === "cashfree" ? "ACTIVE" : "STANDBY"}
-                  </Badge>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Traditional web checkout with Cards, Netbanking, Wallets & Cashfree UPI SDK.
-                </p>
-              </div>
-
-              <div
-                onClick={() => setActiveGateway("pay100")}
-                className={cn(
-                  "cursor-pointer rounded-2xl border-2 p-4 transition-all duration-200",
-                  activeGateway === "pay100"
-                    ? "border-brand-500 bg-brand-500/10 shadow-sm"
-                    : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 hover:border-slate-300 dark:hover:border-slate-700"
-                )}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">⚡</span>
-                    <span className="font-bold text-slate-900 dark:text-slate-100">Pay100 (UPI Intent)</span>
-                  </div>
-                  <Badge color={activeGateway === "pay100" ? "emerald" : "slate"}>
-                    {activeGateway === "pay100" ? "ACTIVE" : "STANDBY"}
-                  </Badge>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Fast UPI Payment Intent opening PhonePe, GPay, Paytm with instant QR fallback and auto-approval.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Pay100 Configuration */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/40 dark:bg-slate-850/40 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  <span>⚡</span> Pay100 Credentials (https://pay100.in)
-                </h4>
-                <p className="text-xs text-slate-500">Required for UPI Intent creation and webhook signature validation.</p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleTestPay100}
-                disabled={testRunning}
-              >
-                {testRunning ? "Testing..." : "Test Pay100 Connection"}
-              </Button>
-            </div>
-
-            {testResult && (
-              <div
-                className={cn(
-                  "p-3 rounded-xl text-xs font-medium border",
-                  testResult.success
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
-                    : "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400"
-                )}
-              >
-                {testResult.success ? "✓ " : "✗ "}
-                {testResult.message}
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Pay100 Client ID (X-Client-ID)">
-                <Input
-                  value={p100ClientId}
-                  onChange={(e) => setP100ClientId(e.target.value)}
-                  placeholder="e.g. 1000000000000000"
-                />
-              </Field>
-
-              <Field label="Pay100 API Base URL">
-                <Input
-                  value={p100BaseUrl}
-                  onChange={(e) => setP100BaseUrl(e.target.value)}
-                  placeholder="https://pay100.in"
-                />
-              </Field>
-
-              <Field
-                label={`Pay100 Encrypted Key (X-Encrypted-Key) ${
-                  p100HasEncryptedKey ? "• [Saved in Server]" : ""
-                }`}
-              >
-                <Input
-                  type="password"
-                  value={p100EncryptedKey}
-                  onChange={(e) => setP100EncryptedKey(e.target.value)}
-                  placeholder={
-                    p100HasEncryptedKey
-                      ? "•••••••• (Leave blank to keep unchanged)"
-                      : "Enter encrypted production key"
-                  }
-                />
-              </Field>
-
-              <Field
-                label={`Pay100 Secret Key (X-Secret-Key) ${
-                  p100HasSecretKey ? "• [Saved in Server]" : ""
-                }`}
-              >
-                <Input
-                  type="password"
-                  value={p100SecretKey}
-                  onChange={(e) => setP100SecretKey(e.target.value)}
-                  placeholder={
-                    p100HasSecretKey
-                      ? "•••••••• (Leave blank to keep unchanged)"
-                      : "Enter active secret key"
-                  }
-                />
-              </Field>
-
-              <Field label="Pay100 Request Validity (Minutes)">
-                <Input
-                  type="number"
-                  min="1"
-                  max="60"
-                  value={p100ExpiryMinutes}
-                  onChange={(e) => setP100ExpiryMinutes(e.target.value)}
-                  placeholder="10"
-                />
-              </Field>
-            </div>
-            <p className="text-[11px] text-slate-500">
-              Webhook URL for Pay100: <code className="font-mono text-slate-700 dark:text-slate-300">https://backend.dpsara777.com/api/mobile/deposit/pay100/webhook</code>
-            </p>
-          </div>
-
-          {/* Cashfree Configuration */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/40 dark:bg-slate-850/40 space-y-4">
-            <div className="border-b border-slate-200 dark:border-slate-800 pb-2">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <span>💳</span> Cashfree PG Credentials
-              </h4>
-              <p className="text-xs text-slate-500">Configured credentials for Cashfree Payment Gateway.</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Field label="Cashfree Deposit App ID">
-                <Input
-                  value={cfClientId}
-                  onChange={(e) => setCfClientId(e.target.value)}
-                  placeholder="Cashfree App ID"
-                />
-              </Field>
-
-              <Field
-                label={`Cashfree Secret Key ${cfHasSecretKey ? "• [Saved]" : ""}`}
-              >
-                <Input
-                  type="password"
-                  value={cfSecretKey}
-                  onChange={(e) => setCfSecretKey(e.target.value)}
-                  placeholder={
-                    cfHasSecretKey
-                      ? "•••••••• (Leave blank to keep unchanged)"
-                      : "Enter secret key"
-                  }
-                />
-              </Field>
-
-              <Field label="Cashfree Environment">
-                <select
-                  value={cfEnv}
-                  onChange={(e) => setCfEnv(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                >
-                  <option value="production">Production</option>
-                  <option value="sandbox">Sandbox / Testing</option>
-                </select>
-              </Field>
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={gatewaySaving} className="w-full sm:w-auto">
-              {gatewaySaving ? "Saving..." : "Save Payment Gateway Settings"}
-            </Button>
-          </div>
-        </form>
-      </Card>
-
+      {/* 5. Support Contact Numbers */}
       <Card title="Support Contact Numbers (App Homepage)">
         <form onSubmit={submitContactNumbers} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -591,8 +683,9 @@ export default function SettingsPage() {
         </form>
       </Card>
 
+      {/* 6. Settings Key-Value Table */}
       <Card 
-        title={`${settings.length} settings`} 
+        title={`${settings.length} System Settings`} 
         bodyClassName="p-0" 
         actions={<Button size="sm" onClick={openCreate}>Create Setting</Button>}
       >
@@ -626,6 +719,7 @@ export default function SettingsPage() {
         )}
       </Card>
 
+      {/* 7. Broadcast Notification */}
       <Card title="Broadcast Notification">
         <form onSubmit={submitBroadcast} className="space-y-4">
           <Field label="Title">
@@ -640,6 +734,7 @@ export default function SettingsPage() {
         </form>
       </Card>
 
+      {/* 8. Send Notification to User */}
       <Card title="Send Notification to User">
         <form onSubmit={submitUserNotification} className="space-y-4">
           <Field label="Select User (Search by Name or Phone)">
@@ -662,6 +757,7 @@ export default function SettingsPage() {
         </form>
       </Card>
 
+      {/* Edit Setting Modal */}
       <Modal open={!!editSetting} onClose={() => setEditSetting(null)} title={`Edit Setting`} description={editSetting?.key}>
         {editSetting && (
           <form onSubmit={submitEdit} className="space-y-4">
@@ -686,6 +782,44 @@ export default function SettingsPage() {
             </div>
           </form>
         )}
+      </Modal>
+
+      {/* Confirmation Modal for Mass Bonus Distribution */}
+      <Modal
+        open={showBonusConfirmModal}
+        onClose={() => setShowBonusConfirmModal(false)}
+        title="Confirm Bonus Distribution to All Users"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            Are you sure you want to distribute <strong>₹{massBonusAmount}</strong> bonus to <strong>ALL active users</strong>?
+          </p>
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-800 p-3 text-xs space-y-1.5 border border-slate-200 dark:border-slate-700">
+            <div>
+              <span className="font-semibold text-slate-700 dark:text-slate-300">Popup & Push Title:</span>{" "}
+              {massBonusTitle}
+            </div>
+            <div>
+              <span className="font-semibold text-slate-700 dark:text-slate-300">Message:</span>{" "}
+              {massBonusMessage}
+            </div>
+            <div className="text-amber-600 dark:text-amber-400 font-medium pt-1">
+              ⚡ This will credit wallets immediately, send push notifications, and show an in-app popup modal upon opening the app.
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="ghost" onClick={() => setShowBonusConfirmModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={massBonusSending}
+              onClick={handleDistributeMassBonus}
+              className="bg-amber-600 hover:bg-amber-700 text-white font-bold"
+            >
+              {massBonusSending ? "Distributing..." : "Yes, Distribute to All"}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

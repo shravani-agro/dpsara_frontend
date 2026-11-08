@@ -479,6 +479,29 @@ export async function sendUserNotification(userId: number, title: string, messag
   return res.data;
 }
 
+/* ---------------- Admin: Mass Bonus Distribution ---------------- */
+
+export async function distributeMassBonus(payload: {
+  amount: number;
+  message: string;
+  title?: string;
+}): Promise<{
+  success: boolean;
+  users_credited: number;
+  total_amount: number;
+  push_sent: number;
+  announcement_id: string;
+  message: string;
+}> {
+  const res = await client.post("/admin/users/distribute-bonus", payload);
+  return res.data;
+}
+
+export async function getLatestBonusAnnouncement() {
+  const res = await client.get("/admin/users/distribute-bonus/latest");
+  return res.data;
+}
+
 /* ---------------- Admin: Game Rates ---------------- */
 export async function getGameRates(marketId?: number) {
   const params: any = {};
