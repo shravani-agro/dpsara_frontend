@@ -8,11 +8,13 @@ import {
   Spinner,
   ErrorMsg,
   PageHeader,
+  Modal,
   cn,
 } from "@/components/ui";
 import {
   Target,
   Sliders,
+  Settings,
   RefreshCw,
   Save,
   ShieldAlert,
@@ -22,6 +24,11 @@ import {
   PlayCircle,
   Coins,
   BookOpen,
+  Filter,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { parseApiError } from "@/lib/error-parser";
@@ -65,6 +72,9 @@ export default function RealSpinProPage() {
   const [savingConfig, setSavingConfig] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Settings Modal State (Gear option in header)
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+
   // Algorithmic Game Controls
   const [config, setConfig] = useState<RealSpinProConfig>(DEFAULT_CONFIG);
 
@@ -76,15 +86,18 @@ export default function RealSpinProPage() {
     total_players: number;
     total_rounds: number;
     house_edge_pct: number;
+    active_connections?: number;
+    redis_connected?: boolean;
   } | null>(null);
 
-  // Tabs: "controls" | "bets" | "rounds" | "reference"
-  const [activeTab, setActiveTab] = useState<"controls" | "bets" | "rounds" | "reference">("controls");
+  // Active Main Tab: "rounds" | "bets" | "reference"
+  const [activeTab, setActiveTab] = useState<"rounds" | "bets" | "reference">("rounds");
 
   // Bets & Rounds
   const [bets, setBets] = useState<any[]>([]);
   const [rounds, setRounds] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [betOutcomeFilter, setBetOutcomeFilter] = useState<"all" | "won" | "lost" | "pending">("all");
   const [loadingData, setLoadingData] = useState<boolean>(true);
 
   const fetchLiveGameData = useCallback(async () => {
@@ -98,7 +111,7 @@ export default function RealSpinProPage() {
       if (betsData) setBets(betsData);
       if (roundsData) setRounds(roundsData);
     } catch (_) {
-      // Ignored during polling
+      // Ignored during periodic polling
     } finally {
       setLoadingData(false);
     }
@@ -155,7 +168,8 @@ export default function RealSpinProPage() {
     setError(null);
     try {
       await updateRealSpinProSettings({ config });
-      toast.success("Game controls and profit settings saved successfully!");
+      toast.success("Game settings and profit controls saved successfully!");
+      setIsSettingsOpen(false);
     } catch (err: any) {
       setError(parseApiError(err));
       toast.error("Failed to save controls: " + parseApiError(err));
@@ -180,6 +194,13 @@ export default function RealSpinProPage() {
   };
 
   const filteredBets = bets.filter((b) => {
+    // Status filter
+    if (betOutcomeFilter !== "all") {
+      if (betOutcomeFilter === "won" && b.status !== "won") return false;
+      if (betOutcomeFilter === "lost" && b.status !== "lost") return false;
+      if (betOutcomeFilter === "pending" && b.status === "won" && b.status === "lost") return false;
+    }
+    // Search query
     if (!searchTerm.trim()) return true;
     const q = searchTerm.toLowerCase();
     return (
@@ -191,56 +212,43 @@ export default function RealSpinProPage() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <PageHeader
-        title="🎡 RealSpinPro Management"
-        description="Comprehensive control center: profit margins, streak breakers, live rounds, and mobile visibility."
-      />
-
-      {error && <ErrorMsg error={error} onDismiss={() => setError(null)} />}
-
-      {/* Top Banner & Master Toggle */}
-      <Card className="p-6 border border-border/60 bg-surface/90 backdrop-blur-md rounded-2xl shadow-lg">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-3xl shadow-inner">
-              🎡
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h2 className="text-xl font-black text-white tracking-wide">
-                  RealSpinPro Game Engine
-                </h2>
-                <Badge
-                  variant={enabled ? "success" : "danger"}
-                  className="text-xs px-2.5 py-0.5 font-bold uppercase tracking-wider"
-                >
-                  {enabled ? "● LIVE ON MOBILE" : "○ GAME DISABLED"}
-                </Badge>
-                <Badge
-                  variant={enabled ? "warning" : "default"}
-                  className="text-[11px] px-2 py-0.5 font-medium"
-                >
-                  {enabled ? "⚡ WebSocket Running" : "🔌 WebSocket Stopped"}
-                </Badge>
-                {stats?.redis_connected !== undefined && (
-                  <Badge
-                    variant={stats.redis_connected ? "success" : "info"}
-                    className="text-[11px] px-2 py-0.5 font-medium"
-                  >
-                    {stats.redis_connected ? "🔗 Redis Pub/Sub: Active" : "📦 Hub: In-Memory Fallback"}
-                  </Badge>
-                )}
-              </div>
-              <p className="text-xs text-muted mt-1 max-w-2xl">
-                {enabled
-                  ? "Spinning logo is active across all screens right bottom above Support on the mobile app. Real-time WebSocket broadcasting timer ticks and round outcomes. Connected players bet with DPSara wallet balance."
-                  : "Game is hidden on mobile app and WebSockets are halted. No players can access or place bets on RealSpinPro."}
-              </p>
-            </div>
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto pb-16 px-1 sm:px-0">
+      {/* ══════════════════════════════════════════════════════════════════════════ */}
+      {/* HEADER BAR (Mobile-First with Quick Toggle & Settings Gear) */}
+      {/* ══════════════════════════════════════════════════════════════════════════ */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface/90 border border-border/60 rounded-2xl p-3.5 sm:p-5 shadow-sm backdrop-blur-md">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-xl sm:text-2xl shrink-0 shadow-inner">
+            🎡
           </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h1 className="text-base sm:text-xl font-black text-white tracking-wide truncate">
+                RealSpinPro
+              </h1>
+              <Badge
+                variant={enabled ? "success" : "danger"}
+                className="text-[10px] sm:text-xs px-2 py-0.5 font-bold uppercase"
+              >
+                {enabled ? "● LIVE" : "○ OFF"}
+              </Badge>
+              {stats?.redis_connected !== undefined && (
+                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-cyan-400 font-medium">
+                  ⚡ Redis Hub
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] sm:text-xs text-muted truncate mt-0.5">
+              1 ka 9 Spinning Game Engine • Real-time DPSara Wallet Bets
+            </p>
+          </div>
+        </div>
 
-          <div className="flex items-center gap-4">
+        {/* Action Controls: Quick Switch, Settings Gear & Refresh */}
+        <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
+          {/* Quick Mobile Master Toggle */}
+          <div className="flex items-center gap-2 bg-neutral-900/80 border border-neutral-800 rounded-xl px-2.5 py-1.5">
+            <span className="text-[11px] font-bold text-muted hidden xs:inline">App:</span>
             <button
               type="button"
               role="switch"
@@ -248,483 +256,307 @@ export default function RealSpinProPage() {
               onClick={() => handleToggle(!enabled)}
               disabled={savingToggle}
               className={cn(
-                "relative inline-flex h-9 w-20 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500",
-                enabled ? "bg-amber-500 shadow-lg shadow-amber-500/30" : "bg-neutral-700",
+                "relative inline-flex h-6 w-12 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                enabled ? "bg-amber-500" : "bg-neutral-700",
                 savingToggle && "opacity-60 cursor-not-allowed"
               )}
+              title={enabled ? "Click to disable game on mobile" : "Click to activate game on mobile"}
             >
               <span
                 className={cn(
-                  "pointer-events-none inline-block h-8 w-8 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out flex items-center justify-center text-[10px] font-black",
-                  enabled ? "translate-x-11 text-amber-600" : "translate-x-0 text-neutral-400"
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out text-[9px] font-black text-center leading-5",
+                  enabled ? "translate-x-6 text-amber-600" : "translate-x-0.5 text-neutral-500"
                 )}
               >
                 {enabled ? "ON" : "OFF"}
               </span>
             </button>
           </div>
-        </div>
-      </Card>
 
-      {/* Game Stats KPI Cards (5 Cards matching RealSpinPro operations) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {/* Settings Gear Modal Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsSettingsOpen(true)}
+            className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs gap-1.5 h-9 font-bold px-3 shadow-xs"
+            title="Open game controls, profit margins, and multiplier settings"
+          >
+            <Settings className="w-4 h-4 text-amber-400 animate-spin-slow" />
+            <span>Settings</span>
+          </Button>
+
+          {/* Refresh Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchLiveGameData}
+            loading={loadingData}
+            className="text-xs gap-1 h-9 px-2.5"
+            title="Refresh game data"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      {error && <ErrorMsg error={error} onDismiss={() => setError(null)} />}
+
+      {/* ══════════════════════════════════════════════════════════════════════════ */}
+      {/* COMPACT KPI STATS CARDS (Mobile Responsive Grid) */}
+      {/* ══════════════════════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3.5">
         {/* Total Wagered */}
-        <Card className="p-4 rounded-xl border border-border/50 bg-surface/80">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-xs font-semibold text-muted uppercase tracking-wider">
+        <Card className="p-3 sm:p-4 rounded-xl border border-border/50 bg-surface/80 shadow-xs">
+          <div className="flex justify-between items-start mb-1 sm:mb-1.5">
+            <span className="text-[10px] sm:text-xs font-semibold text-muted uppercase tracking-wider">
               Total Wagered
             </span>
-            <span className="text-amber-400 text-lg">💰</span>
+            <span className="text-amber-400 text-sm sm:text-base">💰</span>
           </div>
-          <div className="text-2xl font-black text-white">
-            ₹{(stats?.total_wagered ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+          <div className="text-base sm:text-2xl font-black text-white truncate">
+            ₹{(stats?.total_wagered ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
           </div>
-          <p className="text-[11px] text-muted mt-1">Total chips placed</p>
+          <p className="text-[10px] sm:text-[11px] text-muted truncate mt-0.5">Chips placed</p>
         </Card>
 
         {/* Total Won / Payout */}
-        <Card className="p-4 rounded-xl border border-border/50 bg-surface/80">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-xs font-semibold text-muted uppercase tracking-wider">
+        <Card className="p-3 sm:p-4 rounded-xl border border-border/50 bg-surface/80 shadow-xs">
+          <div className="flex justify-between items-start mb-1 sm:mb-1.5">
+            <span className="text-[10px] sm:text-xs font-semibold text-muted uppercase tracking-wider">
               Total Payout
             </span>
-            <span className="text-emerald-400 text-lg">🏆</span>
+            <span className="text-emerald-400 text-sm sm:text-base">🏆</span>
           </div>
-          <div className="text-2xl font-black text-emerald-400">
-            ₹{(stats?.total_payout ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+          <div className="text-base sm:text-2xl font-black text-emerald-400 truncate">
+            ₹{(stats?.total_payout ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
           </div>
-          <p className="text-[11px] text-muted mt-1">Won by players</p>
+          <p className="text-[10px] sm:text-[11px] text-muted truncate mt-0.5">Won by players</p>
         </Card>
 
         {/* House Profit */}
-        <Card className="p-4 rounded-xl border border-border/50 bg-surface/80">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-xs font-semibold text-muted uppercase tracking-wider">
+        <Card className="p-3 sm:p-4 rounded-xl border border-border/50 bg-surface/80 shadow-xs">
+          <div className="flex justify-between items-start mb-1 sm:mb-1.5">
+            <span className="text-[10px] sm:text-xs font-semibold text-muted uppercase tracking-wider">
               House Profit (GGR)
             </span>
-            <span className="text-blue-400 text-lg">📈</span>
+            <span className="text-blue-400 text-sm sm:text-base">📈</span>
           </div>
-          <div className={cn("text-2xl font-black", (stats?.total_profit ?? 0) >= 0 ? "text-blue-400" : "text-rose-400")}>
-            ₹{(stats?.total_profit ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+          <div className={cn("text-base sm:text-2xl font-black truncate", (stats?.total_profit ?? 0) >= 0 ? "text-blue-400" : "text-rose-400")}>
+            ₹{(stats?.total_profit ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
           </div>
-          <p className="text-[11px] text-muted mt-1">
-            Realized Margin: {stats?.house_edge_pct ?? 0}%
+          <p className="text-[10px] sm:text-[11px] text-muted truncate mt-0.5">
+            Margin: {stats?.house_edge_pct ?? 0}%
           </p>
         </Card>
 
         {/* Total Players */}
-        <Card className="p-4 rounded-xl border border-border/50 bg-surface/80">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-xs font-semibold text-muted uppercase tracking-wider">
-              Unique Players
+        <Card className="p-3 sm:p-4 rounded-xl border border-border/50 bg-surface/80 shadow-xs">
+          <div className="flex justify-between items-start mb-1 sm:mb-1.5">
+            <span className="text-[10px] sm:text-xs font-semibold text-muted uppercase tracking-wider">
+              Players
             </span>
-            <span className="text-purple-400 text-lg">👥</span>
+            <span className="text-purple-400 text-sm sm:text-base">👥</span>
           </div>
-          <div className="text-2xl font-black text-white">
+          <div className="text-base sm:text-2xl font-black text-white truncate">
             {stats?.total_players ?? 0}
           </div>
-          <p className="text-[11px] text-muted mt-1">
+          <p className="text-[10px] sm:text-[11px] text-muted truncate mt-0.5">
             {stats?.total_rounds ?? 0} rounds settled
           </p>
         </Card>
 
         {/* Active WebSocket Sessions */}
-        <Card className="p-4 rounded-xl border border-border/50 bg-surface/80">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-xs font-semibold text-muted uppercase tracking-wider">
+        <Card className="p-3 sm:p-4 rounded-xl border border-border/50 bg-surface/80 shadow-xs col-span-2 sm:col-span-1">
+          <div className="flex justify-between items-start mb-1 sm:mb-1.5">
+            <span className="text-[10px] sm:text-xs font-semibold text-muted uppercase tracking-wider">
               Live Sockets
             </span>
-            <span className="text-cyan-400 text-lg">⚡</span>
+            <span className="text-cyan-400 text-sm sm:text-base">⚡</span>
           </div>
-          <div className="text-2xl font-black text-cyan-400">
+          <div className="text-base sm:text-2xl font-black text-cyan-400 truncate">
             {stats?.active_connections ?? 0}
           </div>
-          <p className="text-[11px] text-muted mt-1">
-            {enabled ? "Connected devices" : "WebSocket offline"}
+          <p className="text-[10px] sm:text-[11px] text-muted truncate mt-0.5">
+            {enabled ? "Online app users" : "Offline"}
           </p>
         </Card>
       </div>
 
-      {/* Tabs & Management Container */}
-      <Card className="p-6 border border-border/50 bg-surface/90 rounded-2xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-border/50 gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setActiveTab("controls")}
-              className={cn(
-                "px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2",
-                activeTab === "controls"
-                  ? "bg-amber-500 text-neutral-950 shadow-md"
-                  : "bg-surface hover:bg-neutral-800 text-muted"
-              )}
-            >
-              <Sliders className="w-4 h-4" />
-              Game Controls & Margin
-            </button>
-            <button
-              onClick={() => setActiveTab("bets")}
-              className={cn(
-                "px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2",
-                activeTab === "bets"
-                  ? "bg-amber-500 text-neutral-950 shadow-md"
-                  : "bg-surface hover:bg-neutral-800 text-muted"
-              )}
-            >
-              <Coins className="w-4 h-4" />
-              Recent Bets Activity
-            </button>
+      {/* ══════════════════════════════════════════════════════════════════════════ */}
+      {/* MAIN OPERATIONS CONTAINER & TABS */}
+      {/* ══════════════════════════════════════════════════════════════════════════ */}
+      <Card className="p-3 sm:p-6 border border-border/50 bg-surface/90 rounded-2xl shadow-sm">
+        {/* Navigation Tabs Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 sm:pb-4 border-b border-border/50 gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
             <button
               onClick={() => setActiveTab("rounds")}
               className={cn(
-                "px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2",
+                "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shrink-0",
                 activeTab === "rounds"
-                  ? "bg-amber-500 text-neutral-950 shadow-md"
+                  ? "bg-amber-500 text-neutral-950 shadow-md font-black"
                   : "bg-surface hover:bg-neutral-800 text-muted"
               )}
             >
-              <PlayCircle className="w-4 h-4" />
-              Live Rounds Monitoring
+              <PlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Live Rounds ({rounds.length})
             </button>
+
+            <button
+              onClick={() => setActiveTab("bets")}
+              className={cn(
+                "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shrink-0",
+                activeTab === "bets"
+                  ? "bg-amber-500 text-neutral-950 shadow-md font-black"
+                  : "bg-surface hover:bg-neutral-800 text-muted"
+              )}
+            >
+              <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Recent Bets ({bets.length})
+            </button>
+
             <button
               onClick={() => setActiveTab("reference")}
               className={cn(
-                "px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2",
+                "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shrink-0",
                 activeTab === "reference"
-                  ? "bg-amber-500 text-neutral-950 shadow-md"
+                  ? "bg-amber-500 text-neutral-950 shadow-md font-black"
                   : "bg-surface hover:bg-neutral-800 text-muted"
               )}
             >
-              <BookOpen className="w-4 h-4" />
-              Rules & Multipliers
+              <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Rules & Matrix
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
-            {activeTab === "bets" && (
+          {/* Quick Search on Bets Tab */}
+          {activeTab === "bets" && (
+            <div className="flex items-center gap-2">
               <input
                 type="text"
-                placeholder="Search phone or round..."
+                placeholder="Search phone or round #..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-muted focus:outline-none focus:border-amber-500 w-48 sm:w-60"
+                className="bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-muted focus:outline-none focus:border-amber-500 w-full sm:w-60"
               />
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchLiveGameData}
-              loading={loadingData}
-              className="text-xs gap-1.5"
-            >
-              <RefreshCw className="w-3.5 h-3.5" /> Refresh
-            </Button>
-          </div>
+              <div className="flex items-center gap-1 bg-neutral-900 p-0.5 rounded-xl border border-neutral-800">
+                {(["all", "won", "lost"] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setBetOutcomeFilter(filter)}
+                    className={cn(
+                      "px-2 py-1 rounded-lg text-[10px] font-bold uppercase transition",
+                      betOutcomeFilter === filter
+                        ? "bg-neutral-700 text-white"
+                        : "text-muted hover:text-white"
+                    )}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ══════════════════════════════════════════════════════════════════════════ */}
-        {/* TAB 1: GAME CONTROLS & PROFIT MARGIN */}
+        {/* TAB 1: LIVE ROUNDS MONITORING */}
         {/* ══════════════════════════════════════════════════════════════════════════ */}
-        {activeTab === "controls" && (
-          <div className="mt-6 space-y-8">
-            {/* Header & Save Action */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-neutral-900/60 border border-neutral-800">
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Target className="w-5 h-5 text-amber-400" />
-                  RealSpinPro Algorithmic Profit Engine
-                </h3>
-                <p className="text-xs text-muted mt-0.5">
-                  Directly configure how outcomes and multipliers are calculated by the FastAPI game service.
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleResetDefaults}
-                  disabled={savingConfig}
-                  className="text-xs"
-                >
-                  Reset Defaults
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleSaveConfig}
-                  loading={savingConfig}
-                  className="bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold text-xs gap-1.5 shadow-md shadow-amber-500/20"
-                >
-                  <Save className="w-4 h-4" /> Save Game Controls
-                </Button>
-              </div>
-            </div>
-
-            {/* Operating Mode Selector */}
-            <div className="space-y-3">
-              <label className="text-xs font-bold text-muted uppercase tracking-wider">
-                Game Logic Mode
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Profit Driven */}
-                <div
-                  onClick={() => setConfig((prev) => ({ ...prev, mode: "profit_driven" }))}
-                  className={cn(
-                    "p-5 rounded-2xl border cursor-pointer transition-all relative overflow-hidden",
-                    config.mode === "profit_driven"
-                      ? "border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/10"
-                      : "border-border/40 bg-neutral-900/40 hover:border-neutral-700"
-                  )}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-white text-base flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-amber-400" />
-                      Profit Driven (House Optimized)
-                    </span>
-                    <Badge variant="warning" className="text-[10px] font-bold">
-                      RECOMMENDED
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted leading-relaxed">
-                    Continuously balances the house profit margin while strategically distributing payouts to active bettors to maximize player retention and prevent churn.
-                  </p>
-                </div>
-
-                {/* Fair / Random */}
-                <div
-                  onClick={() => setConfig((prev) => ({ ...prev, mode: "random" }))}
-                  className={cn(
-                    "p-5 rounded-2xl border cursor-pointer transition-all relative overflow-hidden",
-                    config.mode === "random"
-                      ? "border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/10"
-                      : "border-border/40 bg-neutral-900/40 hover:border-neutral-700"
-                  )}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-white text-base flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-blue-400" />
-                      Fair (Pure Random RNG)
-                    </span>
-                    <Badge variant="primary" className="text-[10px] font-bold">
-                      UNBIASED RNG
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted leading-relaxed">
-                    Draws winning numbers (0–9) and multipliers purely at random without checking current round bet volume or house margins.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Target Profit Margin Slider (When Profit Driven) */}
-            {config.mode === "profit_driven" && (
-              <div className="p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800 space-y-4">
-                <div className="flex items-center justify-between">
+        {activeTab === "rounds" && (
+          <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-4">
+            {/* Live Active Round Banner */}
+            {rounds.length > 0 && rounds[0].status !== "settled" && (
+              <div className="p-3 sm:p-4 rounded-xl border border-amber-500/40 bg-amber-500/10 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-3 h-3 rounded-full bg-amber-400 animate-ping" />
                   <div>
-                    <label className="text-sm font-bold text-white flex items-center gap-2">
-                      <Target className="w-4 h-4 text-amber-400" />
-                      Target Profit Margin (%)
-                    </label>
-                    <p className="text-xs text-muted mt-0.5">
-                      The percentage of total bets the algorithm aims to retain as house profit.
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      Active Round #{rounds[0].id}
+                    </span>
+                    <p className="text-[11px] text-muted">
+                      Bets Pool: ₹{Number(rounds[0].total_pool).toFixed(2)} ({rounds[0].bets_count} bets placed)
                     </p>
                   </div>
-                  <span className="text-2xl font-black text-amber-400">
-                    {config.target_margin}%
-                  </span>
                 </div>
-
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={config.target_margin}
-                  onChange={(e) =>
-                    setConfig((prev) => ({ ...prev, target_margin: Number(e.target.value) }))
-                  }
-                  className="w-full accent-amber-500 cursor-pointer h-2 bg-neutral-800 rounded-lg"
-                />
-
-                <div className="flex flex-wrap gap-2 pt-2">
-                  <span className="text-xs text-muted font-semibold self-center mr-2">Quick Presets:</span>
-                  {[10, 15, 20, 25, 30, 40].map((preset) => (
-                    <button
-                      key={preset}
-                      onClick={() => setConfig((prev) => ({ ...prev, target_margin: preset }))}
-                      className={cn(
-                        "px-3 py-1 rounded-lg text-xs font-bold transition-all",
-                        config.target_margin === preset
-                          ? "bg-amber-500 text-neutral-950"
-                          : "bg-neutral-800 text-muted hover:text-white"
-                      )}
-                    >
-                      {preset}% {preset === 20 ? "(Default)" : ""}
-                    </button>
-                  ))}
-                </div>
+                <Badge variant="warning" className="text-xs font-bold uppercase px-2.5 py-1">
+                  {rounds[0].status}
+                </Badge>
               </div>
             )}
 
-            {/* Multipliers Probability Distribution */}
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-muted uppercase tracking-wider flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  Multiplier Probability Distribution
-                </label>
-                <p className="text-xs text-muted mt-1">
-                  Adjust relative weight points for 1x, 2x, and 3x multipliers. Percentage probabilities calculate dynamically.
-                </p>
+            {/* Rounds Table (Horizontal scroll for mobile) */}
+            {rounds.length === 0 ? (
+              <div className="py-12 text-center text-muted text-xs sm:text-sm">
+                No rounds data found.
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* 1x Multiplier */}
-                <Card className="p-4 rounded-xl border border-border/50 bg-neutral-900/60">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-bold text-white">1x Base Multiplier</span>
-                    <Badge variant="primary" className="text-xs font-bold">
-                      {getWeightPct(config.multipliers["1x"])}% Chance
-                    </Badge>
-                  </div>
-                  <p className="text-[11px] text-muted mb-3">Pays standard 9x rate</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted">Weight:</span>
-                    <input
-                      type="number"
-                      min="1"
-                      value={config.multipliers["1x"]}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          multipliers: {
-                            ...prev.multipliers,
-                            "1x": Math.max(1, Number(e.target.value) || 1),
-                          },
-                        }))
-                      }
-                      className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-1.5 text-sm text-white font-bold focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                </Card>
-
-                {/* 2x Multiplier */}
-                <Card className="p-4 rounded-xl border border-blue-500/30 bg-blue-500/5">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-bold text-blue-300">2x Double Multiplier</span>
-                    <Badge variant="primary" className="text-xs font-bold">
-                      {getWeightPct(config.multipliers["2x"])}% Chance
-                    </Badge>
-                  </div>
-                  <p className="text-[11px] text-muted mb-3">Pays boosted 18x rate</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted">Weight:</span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={config.multipliers["2x"]}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          multipliers: {
-                            ...prev.multipliers,
-                            "2x": Math.max(0, Number(e.target.value) || 0),
-                          },
-                        }))
-                      }
-                      className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-1.5 text-sm text-blue-300 font-bold focus:outline-none focus:border-blue-400"
-                    />
-                  </div>
-                </Card>
-
-                {/* 3x Multiplier */}
-                <Card className="p-4 rounded-xl border border-purple-500/30 bg-purple-500/5">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-bold text-purple-300">3x Mega Multiplier</span>
-                    <Badge variant="warning" className="text-xs font-bold">
-                      {getWeightPct(config.multipliers["3x"])}% Chance
-                    </Badge>
-                  </div>
-                  <p className="text-[11px] text-muted mb-3">Pays massive 27x rate</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted">Weight:</span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={config.multipliers["3x"]}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          multipliers: {
-                            ...prev.multipliers,
-                            "3x": Math.max(0, Number(e.target.value) || 0),
-                          },
-                        }))
-                      }
-                      className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-1.5 text-sm text-purple-300 font-bold focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-                </Card>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-border/40">
+                <table className="w-full text-left text-xs border-collapse min-w-[560px]">
+                  <thead>
+                    <tr className="border-b border-border/40 bg-neutral-900/60 text-muted font-semibold uppercase text-[10px] sm:text-[11px]">
+                      <th className="py-3 px-3">Round ID</th>
+                      <th className="py-3 px-3">Winning #</th>
+                      <th className="py-3 px-3">Multiplier</th>
+                      <th className="py-3 px-3">Total Bets</th>
+                      <th className="py-3 px-3">Round Pool</th>
+                      <th className="py-3 px-3">Status</th>
+                      <th className="py-3 px-3">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/20">
+                    {rounds.map((r) => (
+                      <tr key={r.id} className="hover:bg-neutral-800/40 transition-colors">
+                        <td className="py-2.5 px-3 font-mono font-bold text-white">#{r.id}</td>
+                        <td className="py-2.5 px-3">
+                          {r.winning_number !== null ? (
+                            <span
+                              className={cn(
+                                "inline-flex items-center justify-center w-7 h-7 rounded-full font-black text-xs shadow-sm",
+                                NUMBER_COLORS[r.winning_number] || "bg-neutral-700 text-white"
+                              )}
+                            >
+                              {r.winning_number}
+                            </span>
+                          ) : (
+                            <span className="text-amber-400 font-semibold text-[11px] animate-pulse">
+                              Spinning...
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span className={cn("font-bold px-1.5 py-0.5 rounded text-[11px]", (r.multiplier || 1) > 1 ? "bg-amber-500/20 text-amber-300 font-black border border-amber-500/30" : "text-muted")}>
+                            {r.multiplier ? `${r.multiplier}x` : "1x"}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 font-semibold text-white">
+                          {r.bets_count} bets
+                        </td>
+                        <td className="py-2.5 px-3 font-black text-amber-300">
+                          ₹{Number(r.total_pool).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <Badge
+                            variant={
+                              r.status === "settled"
+                                ? "success"
+                                : r.status === "locked"
+                                ? "warning"
+                                : "primary"
+                            }
+                            className="text-[10px] font-bold uppercase"
+                          >
+                            {r.status}
+                          </Badge>
+                        </td>
+                        <td className="py-2.5 px-3 text-muted text-[11px] whitespace-nowrap">
+                          {r.created_at ? new Date(r.created_at).toLocaleTimeString() : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
-
-            {/* Retention & Loss Protection Controls */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <Card className="p-5 rounded-2xl border border-neutral-800 bg-neutral-900/40 space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-bold text-white flex items-center gap-2">
-                    <ShieldAlert className="w-4 h-4 text-emerald-400" />
-                    Bidded Outcome Win Rate (%)
-                  </label>
-                  <span className="text-lg font-black text-emerald-400">
-                    {config.min_win_rate_percent}%
-                  </span>
-                </div>
-                <p className="text-xs text-muted leading-relaxed">
-                  When safe, profitable candidate outcomes exist, this defines how frequently players win to maintain excitement rather than drawing unplaced numbers.
-                </p>
-                <input
-                  type="range"
-                  min="10"
-                  max="100"
-                  value={config.min_win_rate_percent}
-                  onChange={(e) =>
-                    setConfig((prev) => ({ ...prev, min_win_rate_percent: Number(e.target.value) }))
-                  }
-                  className="w-full accent-emerald-500 cursor-pointer h-2 bg-neutral-800 rounded-lg"
-                />
-              </Card>
-
-              <Card className="p-5 rounded-2xl border border-neutral-800 bg-neutral-900/40 space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-bold text-white flex items-center gap-2">
-                    <Info className="w-4 h-4 text-amber-400" />
-                    Losing Streak Breaker Assist
-                  </label>
-                  <span className="text-lg font-black text-amber-400">
-                    {config.max_losing_streak_trigger} Rounds
-                  </span>
-                </div>
-                <p className="text-xs text-muted leading-relaxed">
-                  Consecutive losses before the engine assists a player by prioritizing their numbers (if safe within house margins) to prevent player churn.
-                </p>
-                <div className="flex items-center gap-3 pt-1">
-                  <span className="text-xs text-muted">Trigger after:</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={config.max_losing_streak_trigger}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        max_losing_streak_trigger: Math.max(1, Number(e.target.value) || 1),
-                      }))
-                    }
-                    className="w-24 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-1.5 text-sm text-white font-bold text-center focus:outline-none focus:border-amber-500"
-                  />
-                  <span className="text-xs text-muted">losses in a row</span>
-                </div>
-              </Card>
-            </div>
+            )}
           </div>
         )}
 
@@ -732,199 +564,108 @@ export default function RealSpinProPage() {
         {/* TAB 2: RECENT BETS ACTIVITY */}
         {/* ══════════════════════════════════════════════════════════════════════════ */}
         {activeTab === "bets" && (
-          <div className="mt-4 overflow-x-auto">
+          <div className="mt-3 sm:mt-4">
             {filteredBets.length === 0 ? (
-              <div className="py-12 text-center text-muted text-sm">
-                No betting activity found.
+              <div className="py-12 text-center text-muted text-xs sm:text-sm">
+                No betting activity found matching search criteria.
               </div>
             ) : (
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-border/40 text-muted font-semibold uppercase text-[11px]">
-                    <th className="py-3 px-3">Bet ID</th>
-                    <th className="py-3 px-3">Player</th>
-                    <th className="py-3 px-3">Round #</th>
-                    <th className="py-3 px-3">Number Picked</th>
-                    <th className="py-3 px-3">Bet Amount</th>
-                    <th className="py-3 px-3">Winning Num</th>
-                    <th className="py-3 px-3">Outcome</th>
-                    <th className="py-3 px-3">Payout</th>
-                    <th className="py-3 px-3">Time</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/20">
-                  {filteredBets.map((b) => (
-                    <tr key={b.id} className="hover:bg-neutral-800/40 transition-colors">
-                      <td className="py-3 px-3 font-mono text-muted">#{b.id}</td>
-                      <td className="py-3 px-3 font-medium text-white">
-                        {b.phone || b.username || b.user}
-                      </td>
-                      <td className="py-3 px-3 font-mono text-muted">#{b.round_id}</td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={cn(
-                            "inline-flex items-center justify-center w-7 h-7 rounded-full font-black text-xs shadow-sm",
-                            NUMBER_COLORS[b.number] || "bg-neutral-700 text-white"
+              <div className="overflow-x-auto rounded-xl border border-border/40">
+                <table className="w-full text-left text-xs border-collapse min-w-[620px]">
+                  <thead>
+                    <tr className="border-b border-border/40 bg-neutral-900/60 text-muted font-semibold uppercase text-[10px] sm:text-[11px]">
+                      <th className="py-3 px-3">Bet ID</th>
+                      <th className="py-3 px-3">Player</th>
+                      <th className="py-3 px-3">Round #</th>
+                      <th className="py-3 px-3">Number Picked</th>
+                      <th className="py-3 px-3">Bet Amount</th>
+                      <th className="py-3 px-3">Outcome</th>
+                      <th className="py-3 px-3">Payout</th>
+                      <th className="py-3 px-3">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/20">
+                    {filteredBets.map((b) => (
+                      <tr key={b.id} className="hover:bg-neutral-800/40 transition-colors">
+                        <td className="py-2.5 px-3 font-mono text-muted">#{b.id}</td>
+                        <td className="py-2.5 px-3 font-medium text-white">
+                          {b.phone || b.username || b.user}
+                        </td>
+                        <td className="py-2.5 px-3 font-mono text-muted">#{b.round_id}</td>
+                        <td className="py-2.5 px-3">
+                          <span
+                            className={cn(
+                              "inline-flex items-center justify-center w-7 h-7 rounded-full font-black text-xs shadow-sm",
+                              NUMBER_COLORS[b.number] || "bg-neutral-700 text-white"
+                            )}
+                          >
+                            {b.number}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 font-bold text-white">
+                          ₹{Number(b.amount).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          {b.status === "won" ? (
+                            <Badge variant="success" className="text-[10px] font-bold">
+                              WIN ({b.multiplier || "1x"})
+                            </Badge>
+                          ) : b.status === "lost" ? (
+                            <Badge variant="danger" className="text-[10px] font-bold">
+                              LOST
+                            </Badge>
+                          ) : (
+                            <Badge variant="warning" className="text-[10px] font-bold">
+                              PENDING
+                            </Badge>
                           )}
-                        >
-                          {b.number}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 font-bold text-white">
-                        ₹{Number(b.amount).toFixed(2)}
-                      </td>
-                      <td className="py-3 px-3">
-                        {b.winning_number !== null ? (
-                          <span
-                            className={cn(
-                              "inline-flex items-center justify-center w-7 h-7 rounded-full font-black text-xs shadow-sm",
-                              NUMBER_COLORS[b.winning_number] || "bg-neutral-700 text-white"
-                            )}
-                          >
-                            {b.winning_number}
-                          </span>
-                        ) : (
-                          <span className="text-muted text-[11px]">Pending</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-3">
-                        {b.status === "won" ? (
-                          <Badge variant="success" className="text-[10px] font-bold">
-                            WIN ({b.multiplier || "1x"})
-                          </Badge>
-                        ) : b.status === "lost" ? (
-                          <Badge variant="danger" className="text-[10px] font-bold">
-                            LOST
-                          </Badge>
-                        ) : (
-                          <Badge variant="warning" className="text-[10px] font-bold">
-                            PENDING
-                          </Badge>
-                        )}
-                      </td>
-                      <td className="py-3 px-3 font-black">
-                        {b.payout > 0 ? (
-                          <span className="text-emerald-400">₹{Number(b.payout).toFixed(2)}</span>
-                        ) : (
-                          <span className="text-muted">₹0.00</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-3 text-muted text-[11px] whitespace-nowrap">
-                        {b.time || (b.created_at ? new Date(b.created_at).toLocaleTimeString() : "—")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
-
-        {/* ══════════════════════════════════════════════════════════════════════════ */}
-        {/* TAB 3: LIVE ROUNDS MONITORING */}
-        {/* ══════════════════════════════════════════════════════════════════════════ */}
-        {activeTab === "rounds" && (
-          <div className="mt-4 overflow-x-auto">
-            {rounds.length === 0 ? (
-              <div className="py-12 text-center text-muted text-sm">
-                No rounds data found.
+                        </td>
+                        <td className="py-2.5 px-3 font-black">
+                          {b.payout > 0 ? (
+                            <span className="text-emerald-400">₹{Number(b.payout).toFixed(2)}</span>
+                          ) : (
+                            <span className="text-muted">₹0.00</span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-muted text-[11px] whitespace-nowrap">
+                          {b.time || (b.created_at ? new Date(b.created_at).toLocaleTimeString() : "—")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ) : (
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-border/40 text-muted font-semibold uppercase text-[11px]">
-                    <th className="py-3 px-3">Round ID</th>
-                    <th className="py-3 px-3">Winning Number</th>
-                    <th className="py-3 px-3">Multiplier</th>
-                    <th className="py-3 px-3">Total Bets</th>
-                    <th className="py-3 px-3">Round Pool</th>
-                    <th className="py-3 px-3">Status</th>
-                    <th className="py-3 px-3">Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/20">
-                  {rounds.map((r) => (
-                    <tr key={r.id} className="hover:bg-neutral-800/40 transition-colors">
-                      <td className="py-3 px-3 font-mono font-bold text-white">#{r.id}</td>
-                      <td className="py-3 px-3">
-                        {r.winning_number !== null ? (
-                          <span
-                            className={cn(
-                              "inline-flex items-center justify-center w-7 h-7 rounded-full font-black text-xs shadow-sm",
-                              NUMBER_COLORS[r.winning_number] || "bg-neutral-700 text-white"
-                            )}
-                          >
-                            {r.winning_number}
-                          </span>
-                        ) : (
-                          <span className="text-amber-400 font-semibold animate-pulse">
-                            Spinning...
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-3">
-                        <span className="font-bold text-amber-400">
-                          {r.multiplier ? `${r.multiplier}x` : "1x"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 font-semibold text-white">
-                        {r.bets_count} bets
-                      </td>
-                      <td className="py-3 px-3 font-black text-amber-300">
-                        ₹{Number(r.total_pool).toFixed(2)}
-                      </td>
-                      <td className="py-3 px-3">
-                        <Badge
-                          variant={
-                            r.status === "settled"
-                              ? "success"
-                              : r.status === "locked"
-                              ? "warning"
-                              : "primary"
-                          }
-                          className="text-[10px] font-bold uppercase"
-                        >
-                          {r.status}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-3 text-muted text-[11px] whitespace-nowrap">
-                        {r.created_at ? new Date(r.created_at).toLocaleTimeString() : "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             )}
           </div>
         )}
 
         {/* ══════════════════════════════════════════════════════════════════════════ */}
-        {/* TAB 4: RULES & MULTIPLIERS REFERENCE */}
+        {/* TAB 3: RULES & MULTIPLIERS REFERENCE */}
         {/* ══════════════════════════════════════════════════════════════════════════ */}
         {activeTab === "reference" && (
-          <div className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="p-5 rounded-2xl border border-border/50 bg-neutral-900/40">
-                <h4 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-                  <span className="text-amber-400 text-lg">💰</span> Base Rate: 1 ka 9
+          <div className="mt-3 sm:mt-5 space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Card className="p-4 sm:p-5 rounded-2xl border border-border/50 bg-neutral-900/40">
+                <h4 className="text-sm sm:text-base font-bold text-white mb-1.5 flex items-center gap-2">
+                  <span className="text-amber-400 text-base">💰</span> Base Rate: 1 ka 9
                 </h4>
                 <p className="text-xs text-muted leading-relaxed">
                   Players choose single numbers 0–9. When a number hits on a 1x round, the payout is 9x the wagered amount. If 2x or 3x triggers, payouts jump to 18x and 27x respectively!
                 </p>
               </Card>
 
-              <Card className="p-5 rounded-2xl border border-border/50 bg-neutral-900/40">
-                <h4 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-                  <span className="text-blue-400 text-lg">⏱️</span> 60-Second Game Clock
+              <Card className="p-4 sm:p-5 rounded-2xl border border-border/50 bg-neutral-900/40">
+                <h4 className="text-sm sm:text-base font-bold text-white mb-1.5 flex items-center gap-2">
+                  <span className="text-blue-400 text-base">⏱️</span> 60-Second Game Clock
                 </h4>
                 <p className="text-xs text-muted leading-relaxed">
-                  Every round lasts exactly 60 seconds. 0–40s is betting phase; at 15s remaining, bets lock and the wheel spins. At 0s, winners are credited immediately.
+                  Every round lasts exactly 60 seconds. 0–45s is betting phase; at 15s remaining, bets lock and the wheel spins. At 0s, winners are credited immediately.
                 </p>
               </Card>
 
-              <Card className="p-5 rounded-2xl border border-border/50 bg-neutral-900/40">
-                <h4 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-                  <span className="text-emerald-400 text-lg">💳</span> DPSara Wallet Sync
+              <Card className="p-4 sm:p-5 rounded-2xl border border-border/50 bg-neutral-900/40">
+                <h4 className="text-sm sm:text-base font-bold text-white mb-1.5 flex items-center gap-2">
+                  <span className="text-emerald-400 text-base">💳</span> DPSara Wallet Sync
                 </h4>
                 <p className="text-xs text-muted leading-relaxed">
                   RealSpinPro connects directly to the player&apos;s main DPSara wallet. Bets are debited via transaction ledger, and winnings are credited automatically.
@@ -932,27 +673,21 @@ export default function RealSpinProPage() {
               </Card>
             </div>
 
-            <Card className="p-6 rounded-2xl border border-border/50 bg-neutral-900/60 space-y-4">
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+            <Card className="p-4 sm:p-5 rounded-2xl border border-border/50 bg-neutral-900/60 space-y-3">
+              <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
                 Payout Matrix by Multiplier
               </h4>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
+                <table className="w-full text-left text-xs border-collapse min-w-[460px]">
                   <thead>
-                    <tr className="border-b border-border/40 text-muted font-semibold">
-                      <th className="py-2.5 px-3">Bet Chip</th>
-                      <th className="py-2.5 px-3">1x Multiplier (9x)</th>
-                      <th className="py-2.5 px-3">2x Multiplier (18x)</th>
-                      <th className="py-2.5 px-3">3x Multiplier (27x)</th>
+                    <tr className="border-b border-border/40 text-muted font-semibold text-[11px]">
+                      <th className="py-2 px-3">Bet Chip</th>
+                      <th className="py-2 px-3">1x Multiplier (9x)</th>
+                      <th className="py-2 px-3">2x Multiplier (18x)</th>
+                      <th className="py-2 px-3">3x Multiplier (27x)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/20 font-bold">
-                    <tr>
-                      <td className="py-2.5 px-3 text-white">₹5 Chip</td>
-                      <td className="py-2.5 px-3 text-emerald-400">₹45.00</td>
-                      <td className="py-2.5 px-3 text-blue-400">₹90.00</td>
-                      <td className="py-2.5 px-3 text-purple-400">₹135.00</td>
-                    </tr>
                     <tr>
                       <td className="py-2.5 px-3 text-white">₹10 Chip</td>
                       <td className="py-2.5 px-3 text-emerald-400">₹90.00</td>
@@ -977,6 +712,12 @@ export default function RealSpinProPage() {
                       <td className="py-2.5 px-3 text-blue-400">₹9,000.00</td>
                       <td className="py-2.5 px-3 text-purple-400">₹13,500.00</td>
                     </tr>
+                    <tr>
+                      <td className="py-2.5 px-3 text-white">₹1000 Chip</td>
+                      <td className="py-2.5 px-3 text-emerald-400">₹9,000.00</td>
+                      <td className="py-2.5 px-3 text-blue-400">₹18,000.00</td>
+                      <td className="py-2.5 px-3 text-purple-400">₹27,000.00</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -984,6 +725,332 @@ export default function RealSpinProPage() {
           </div>
         )}
       </Card>
+
+      {/* ══════════════════════════════════════════════════════════════════════════ */}
+      {/* SETTINGS GEAR MODAL (Mobile Optimized Dialog) */}
+      {/* ══════════════════════════════════════════════════════════════════════════ */}
+      <Modal
+        open={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        title={
+          <div className="flex items-center gap-2">
+            <Settings className="w-5 h-5 text-amber-400" />
+            <span>RealSpinPro Engine Settings</span>
+          </div>
+        }
+        description="Configure profit margins, streak breakers, and multiplier distribution."
+        size="lg"
+      >
+        <div className="space-y-6 pt-1">
+          {/* Master Mobile Switch */}
+          <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
+            <div>
+              <span className="text-sm font-bold text-white block">
+                Mobile Game Availability
+              </span>
+              <p className="text-xs text-muted mt-0.5">
+                Displays the floating RealSpinPro game icon across the mobile app.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={enabled}
+              onClick={() => handleToggle(!enabled)}
+              disabled={savingToggle}
+              className={cn(
+                "relative inline-flex h-8 w-16 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                enabled ? "bg-amber-500 shadow-md shadow-amber-500/20" : "bg-neutral-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out flex items-center justify-center text-[10px] font-black",
+                  enabled ? "translate-x-8 text-amber-600" : "translate-x-0.5 text-neutral-400"
+                )}
+              >
+                {enabled ? "ON" : "OFF"}
+              </span>
+            </button>
+          </div>
+
+          {/* Operating Mode Selector */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-muted uppercase tracking-wider">
+              Game Engine Algorithm Mode
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Profit Driven */}
+              <div
+                onClick={() => setConfig((prev) => ({ ...prev, mode: "profit_driven" }))}
+                className={cn(
+                  "p-4 rounded-xl border cursor-pointer transition-all",
+                  config.mode === "profit_driven"
+                    ? "border-amber-500 bg-amber-500/10 shadow-sm"
+                    : "border-border/40 bg-neutral-900/60 hover:border-neutral-700"
+                )}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-white text-sm flex items-center gap-1.5">
+                    <TrendingUp className="w-4 h-4 text-amber-400" />
+                    Profit Driven
+                  </span>
+                  <Badge variant="warning" className="text-[9px] font-bold">
+                    RECOMMENDED
+                  </Badge>
+                </div>
+                <p className="text-[11px] text-muted leading-relaxed">
+                  Balances house target margin while distributing payouts to active bettors to maximize retention.
+                </p>
+              </div>
+
+              {/* Fair / Random */}
+              <div
+                onClick={() => setConfig((prev) => ({ ...prev, mode: "random" }))}
+                className={cn(
+                  "p-4 rounded-xl border cursor-pointer transition-all",
+                  config.mode === "random"
+                    ? "border-blue-500 bg-blue-500/10 shadow-sm"
+                    : "border-border/40 bg-neutral-900/60 hover:border-neutral-700"
+                )}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-white text-sm flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-blue-400" />
+                    Fair (Pure RNG)
+                  </span>
+                  <Badge variant="primary" className="text-[9px] font-bold">
+                    UNBIASED
+                  </Badge>
+                </div>
+                <p className="text-[11px] text-muted leading-relaxed">
+                  Draws outcomes purely at random without checking current round bet volume or house margins.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Target Profit Margin Slider (When Profit Driven) */}
+          {config.mode === "profit_driven" && (
+            <div className="p-4 rounded-xl bg-neutral-900/80 border border-neutral-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Target className="w-3.5 h-3.5 text-amber-400" />
+                    Target Profit Margin (%)
+                  </label>
+                  <p className="text-[11px] text-muted">
+                    Percentage of total round bets retained as house profit.
+                  </p>
+                </div>
+                <span className="text-xl font-black text-amber-400">
+                  {config.target_margin}%
+                </span>
+              </div>
+
+              <input
+                type="range"
+                min="0"
+                max="60"
+                value={config.target_margin}
+                onChange={(e) =>
+                  setConfig((prev) => ({ ...prev, target_margin: Number(e.target.value) }))
+                }
+                className="w-full accent-amber-500 cursor-pointer h-2 bg-neutral-800 rounded-lg"
+              />
+
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                <span className="text-[10px] text-muted font-semibold self-center mr-1">Presets:</span>
+                {[10, 15, 20, 25, 30, 40].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setConfig((prev) => ({ ...prev, target_margin: preset }))}
+                    className={cn(
+                      "px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all",
+                      config.target_margin === preset
+                        ? "bg-amber-500 text-neutral-950"
+                        : "bg-neutral-800 text-muted hover:text-white"
+                    )}
+                  >
+                    {preset}% {preset === 20 ? "★" : ""}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Multipliers Probability Distribution */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-muted uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              Multiplier Probabilities (Relative Weights)
+            </label>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              {/* 1x */}
+              <div className="p-3 rounded-xl border border-border/40 bg-neutral-900/60 text-center">
+                <span className="text-xs font-bold text-white block">1x (Base 9x)</span>
+                <Badge variant="primary" className="text-[9px] font-bold my-1">
+                  {getWeightPct(config.multipliers["1x"])}%
+                </Badge>
+                <input
+                  type="number"
+                  min="1"
+                  value={config.multipliers["1x"]}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      multipliers: {
+                        ...prev.multipliers,
+                        "1x": Math.max(1, Number(e.target.value) || 1),
+                      },
+                    }))
+                  }
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded px-2 py-1 text-xs text-white text-center font-bold"
+                />
+              </div>
+
+              {/* 2x */}
+              <div className="p-3 rounded-xl border border-blue-500/30 bg-blue-500/5 text-center">
+                <span className="text-xs font-bold text-blue-300 block">2x (18x)</span>
+                <Badge variant="primary" className="text-[9px] font-bold my-1">
+                  {getWeightPct(config.multipliers["2x"])}%
+                </Badge>
+                <input
+                  type="number"
+                  min="0"
+                  value={config.multipliers["2x"]}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      multipliers: {
+                        ...prev.multipliers,
+                        "2x": Math.max(0, Number(e.target.value) || 0),
+                      },
+                    }))
+                  }
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded px-2 py-1 text-xs text-blue-300 text-center font-bold"
+                />
+              </div>
+
+              {/* 3x */}
+              <div className="p-3 rounded-xl border border-purple-500/30 bg-purple-500/5 text-center">
+                <span className="text-xs font-bold text-purple-300 block">3x (27x)</span>
+                <Badge variant="warning" className="text-[9px] font-bold my-1">
+                  {getWeightPct(config.multipliers["3x"])}%
+                </Badge>
+                <input
+                  type="number"
+                  min="0"
+                  value={config.multipliers["3x"]}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      multipliers: {
+                        ...prev.multipliers,
+                        "3x": Math.max(0, Number(e.target.value) || 0),
+                      },
+                    }))
+                  }
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded px-2 py-1 text-xs text-purple-300 text-center font-bold"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Retention & Streak Protection */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-3.5 rounded-xl border border-neutral-800 bg-neutral-900/60 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-white flex items-center gap-1">
+                  <ShieldAlert className="w-3.5 h-3.5 text-emerald-400" />
+                  Outcome Win Rate (%)
+                </label>
+                <span className="text-sm font-bold text-emerald-400">
+                  {config.min_win_rate_percent}%
+                </span>
+              </div>
+              <p className="text-[10px] text-muted leading-tight">
+                Frequency of winning candidate outcomes when within target margins.
+              </p>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                value={config.min_win_rate_percent}
+                onChange={(e) =>
+                  setConfig((prev) => ({ ...prev, min_win_rate_percent: Number(e.target.value) }))
+                }
+                className="w-full accent-emerald-500 cursor-pointer h-1.5 bg-neutral-800 rounded-lg"
+              />
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-neutral-800 bg-neutral-900/60 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-white flex items-center gap-1">
+                  <Info className="w-3.5 h-3.5 text-amber-400" />
+                  Streak Breaker Assist
+                </label>
+                <span className="text-sm font-bold text-amber-400">
+                  {config.max_losing_streak_trigger} Losses
+                </span>
+              </div>
+              <p className="text-[10px] text-muted leading-tight">
+                Assists player by prioritizing their numbers after consecutive losses.
+              </p>
+              <div className="flex items-center gap-2 pt-0.5">
+                <span className="text-[11px] text-muted">Trigger after:</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={config.max_losing_streak_trigger}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      max_losing_streak_trigger: Math.max(1, Number(e.target.value) || 1),
+                    }))
+                  }
+                  className="w-16 bg-neutral-800 border border-neutral-700 rounded px-2 py-1 text-xs text-white text-center font-bold"
+                />
+                <span className="text-[11px] text-muted">losses</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Modal Action Buttons */}
+          <div className="flex items-center justify-between pt-3 border-t border-border/40 gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetDefaults}
+              disabled={savingConfig}
+              className="text-xs gap-1 text-muted"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Reset Defaults
+            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsSettingsOpen(false)}
+                className="text-xs"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSaveConfig}
+                loading={savingConfig}
+                className="bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold text-xs gap-1.5 shadow-md shadow-amber-500/20"
+              >
+                <Save className="w-3.5 h-3.5" /> Save Controls
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

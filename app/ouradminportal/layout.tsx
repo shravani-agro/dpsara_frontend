@@ -151,6 +151,7 @@ function NavContent({
           {group.items.map((item) => {
             const active = isActive(item, pathname);
             const isWithdrawals = item.href === "/ouradminportal/withdrawals";
+            const isRealSpinPro = item.href === "/ouradminportal/realspinpro";
             return (
               <Link
                 key={item.href}
@@ -165,6 +166,11 @@ function NavContent({
                 {isWithdrawals && pendingWithdrawals > 0 && (
                   <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-black text-white bg-rose-600 rounded-full animate-pulse shadow-sm shadow-rose-600/50">
                     {pendingWithdrawals} PENDING
+                  </span>
+                )}
+                {isRealSpinPro && (
+                  <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-500 bg-amber-500/10 rounded border border-amber-500/25">
+                    Game
                   </span>
                 )}
               </Link>
