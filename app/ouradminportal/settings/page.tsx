@@ -24,6 +24,13 @@ import {
   updatePaymentGatewaySettings,
   testPay100Connection,
   distributeMassBonus,
+  getDepositBonusSettings,
+  updateDepositBonusSettings,
+  getAutomatedNotificationsSettings,
+  updateAutomatedNotificationsSettings,
+  triggerMarketReminders,
+  triggerRandomWinnerAlert,
+  triggerInactiveNudge,
 } from "@/lib/admin";
 import { UserSelect } from "@/components/UserSelect";
 
@@ -57,6 +64,25 @@ export default function SettingsPage() {
   // Support Chat Intelligent Auto-Responder states
   const [supportBotEnabled, setSupportBotEnabled] = useState(true);
   const [supportBotSaving, setSupportBotSaving] = useState(false);
+
+  // Deposit Bonus Tiers states
+  const [depositBonusEnabled, setDepositBonusEnabled] = useState(true);
+  const [depositTiers, setDepositTiers] = useState<Array<{ min_amount: number; bonus_percent: number; label: string }>>([
+    { min_amount: 500, bonus_percent: 5, label: "5% Extra" },
+    { min_amount: 1000, bonus_percent: 8, label: "8% Extra" },
+    { min_amount: 2500, bonus_percent: 12, label: "12% Extra" },
+  ]);
+  const [depositBonusSaving, setDepositBonusSaving] = useState(false);
+
+  // Strategic Automated Push Notifications states
+  const [notifMarketRemindersEnabled, setNotifMarketRemindersEnabled] = useState(true);
+  const [notifRandomWinnerEnabled, setNotifRandomWinnerEnabled] = useState(true);
+  const [notifRandomWinnerMaxPerDay, setNotifRandomWinnerMaxPerDay] = useState("3");
+  const [notifInactiveEnabled, setNotifInactiveEnabled] = useState(true);
+  const [notifInactiveDays, setNotifInactiveDays] = useState("3");
+  const [notifSaving, setNotifSaving] = useState(false);
+  const [notifTriggerLoading, setNotifTriggerLoading] = useState<string | null>(null);
+  const [notifTriggerMsg, setNotifTriggerMsg] = useState<{ id: string; success: boolean; text: string } | null>(null);
 
   const [editSetting, setEditSetting] = useState<any>(null);
   const [editValue, setEditValue] = useState("");
@@ -110,6 +136,45 @@ export default function SettingsPage() {
         }
       } catch (err) {
         console.warn("Could not load gateway settings:", err);
+      }
+
+      // Load Deposit Bonus Settings
+      try {
+        const bonusData = await getDepositBonusSettings();
+        if (bonusData) {
+          if (bonusData.enabled !== undefined) {
+            setDepositBonusEnabled(bonusData.enabled);
+          }
+          if (bonusData.tiers && Array.isArray(bonusData.tiers) && bonusData.tiers.length > 0) {
+            setDepositTiers(bonusData.tiers);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not load deposit bonus settings:", err);
+      }
+
+      // Load Automated Notifications Settings
+      try {
+        const notifData = await getAutomatedNotificationsSettings();
+        if (notifData) {
+          if (notifData.market_reminders_enabled !== undefined) {
+            setNotifMarketRemindersEnabled(notifData.market_reminders_enabled);
+          }
+          if (notifData.random_winner_alerts_enabled !== undefined) {
+            setNotifRandomWinnerEnabled(notifData.random_winner_alerts_enabled);
+          }
+          if (notifData.random_winner_max_per_day !== undefined) {
+            setNotifRandomWinnerMaxPerDay(String(notifData.random_winner_max_per_day));
+          }
+          if (notifData.inactive_reengagement_enabled !== undefined) {
+            setNotifInactiveEnabled(notifData.inactive_reengagement_enabled);
+          }
+          if (notifData.inactive_days !== undefined) {
+            setNotifInactiveDays(String(notifData.inactive_days));
+          }
+        }
+      } catch (err) {
+        console.warn("Could not load automated notification settings:", err);
       }
     } catch (e: any) {
       setError(parseApiError(e, "Failed to load settings"));
@@ -205,6 +270,111 @@ export default function SettingsPage() {
       setError(parseApiError(err, "Failed to update support bot setting"));
     } finally {
       setSupportBotSaving(false);
+    }
+  }
+
+  async function submitDepositBonusSettings(e: React.FormEvent) {
+    e.preventDefault();
+    setDepositBonusSaving(true);
+    setError(null);
+    setMsg(null);
+    try {
+      await updateDepositBonusSettings({
+        enabled: depositBonusEnabled,
+        tiers: depositTiers,
+      });
+      setMsg("Smart Deposit Bonus Tiers saved successfully!");
+      load();
+    } catch (err: any) {
+      setError(parseApiError(err, "Failed to update deposit bonus settings"));
+    } finally {
+      setDepositBonusSaving(false);
+    }
+  }
+
+  async function submitAutomatedNotifSettings(e: React.FormEvent) {
+    e.preventDefault();
+    setNotifSaving(true);
+    setError(null);
+    setMsg(null);
+    try {
+      await updateAutomatedNotificationsSettings({
+        market_reminders_enabled: notifMarketRemindersEnabled,
+        random_winner_alerts_enabled: notifRandomWinnerEnabled,
+        random_winner_max_per_day: parseInt(notifRandomWinnerMaxPerDay, 10) || 3,
+        inactive_reengagement_enabled: notifInactiveEnabled,
+        inactive_days: parseInt(notifInactiveDays, 10) || 3,
+      });
+      setMsg("Automated Push Notification triggers updated successfully!");
+      load();
+    } catch (err: any) {
+      setError(parseApiError(err, "Failed to update automated notification settings"));
+    } finally {
+      setNotifSaving(false);
+    }
+  }
+
+  async function handleTriggerMarketPush() {
+    setNotifTriggerLoading("market");
+    setNotifTriggerMsg(null);
+    try {
+      const res = await triggerMarketReminders(true);
+      setNotifTriggerMsg({
+        id: "market",
+        success: true,
+        text: `Market reminder triggered successfully! (Status: ${res?.status || "sent"})`,
+      });
+    } catch (err: any) {
+      setNotifTriggerMsg({
+        id: "market",
+        success: false,
+        text: parseApiError(err, "Failed to trigger market reminder"),
+      });
+    } finally {
+      setNotifTriggerLoading(null);
+    }
+  }
+
+  async function handleTriggerWinnerPush() {
+    setNotifTriggerLoading("winner");
+    setNotifTriggerMsg(null);
+    try {
+      const res = await triggerRandomWinnerAlert(true);
+      setNotifTriggerMsg({
+        id: "winner",
+        success: true,
+        text: `Big winner alert push broadcasted successfully! (Status: ${res?.status || "sent"})`,
+      });
+    } catch (err: any) {
+      setNotifTriggerMsg({
+        id: "winner",
+        success: false,
+        text: parseApiError(err, "Failed to trigger winner alert"),
+      });
+    } finally {
+      setNotifTriggerLoading(null);
+    }
+  }
+
+  async function handleTriggerInactivePush() {
+    setNotifTriggerLoading("inactive");
+    setNotifTriggerMsg(null);
+    try {
+      const days = parseInt(notifInactiveDays, 10) || 3;
+      const res = await triggerInactiveNudge(days, 50, true);
+      setNotifTriggerMsg({
+        id: "inactive",
+        success: true,
+        text: `Inactive user sweep finished! Sent: ${res?.sent_count ?? 0}, Found: ${res?.candidates_found ?? 0}`,
+      });
+    } catch (err: any) {
+      setNotifTriggerMsg({
+        id: "inactive",
+        success: false,
+        text: parseApiError(err, "Failed to trigger inactive nudge sweep"),
+      });
+    } finally {
+      setNotifTriggerLoading(null);
     }
   }
 
@@ -648,6 +818,334 @@ export default function SettingsPage() {
           <div className="flex justify-end">
             <Button type="submit" disabled={bonusSaving} className="w-full sm:w-auto">
               {bonusSaving ? "Saving..." : "Save Welcome Bonus Settings"}
+            </Button>
+          </div>
+        </form>
+      </Card>
+
+      {/* 5. Smart Deposit Tiers & Extra Cash Bonus */}
+      <Card
+        title="🎁 Smart Deposit Tiers & Extra Cash Bonus (Increases Average Deposit Size)"
+        subtitle="Reward players with extra game bonus credits when depositing higher amounts. Users feel they get free money to play, directly shifting them from depositing ₹300 up to ₹1,000+."
+      >
+        <form onSubmit={submitDepositBonusSettings} className="space-y-5">
+          <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-900 dark:text-slate-100">Deposit Bonus Tiers Status</span>
+                <Badge color={depositBonusEnabled ? "emerald" : "rose"}>
+                  {depositBonusEnabled ? "ACTIVE (BONUS ON)" : "DISABLED"}
+                </Badge>
+              </div>
+              <span className="text-xs text-slate-500">
+                When enabled, deposit bonus badges appear on quick amount buttons in the mobile app, and bonus is credited automatically upon payment.
+              </span>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={depositBonusEnabled}
+              onClick={() => setDepositBonusEnabled(!depositBonusEnabled)}
+              className={cn(
+                "relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                depositBonusEnabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                  depositBonusEnabled ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              Configured Deposit Bonus Tiers
+            </h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {depositTiers.map((tier, idx) => {
+                const bonusAmt = Math.round((tier.min_amount * tier.bonus_percent) / 100);
+                const totalAmt = tier.min_amount + bonusAmt;
+                return (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/10 space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm text-amber-900 dark:text-amber-300">
+                        Tier {idx + 1}
+                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-200 font-bold">
+                        +{tier.bonus_percent}% Bonus
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                          Min Amount (₹)
+                        </label>
+                        <Input
+                          type="number"
+                          min="100"
+                          step="100"
+                          value={tier.min_amount}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            const next = [...depositTiers];
+                            next[idx] = { ...next[idx], min_amount: val };
+                            setDepositTiers(next);
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                          Extra Bonus (%)
+                        </label>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="50"
+                          step="1"
+                          value={tier.bonus_percent}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            const next = [...depositTiers];
+                            next[idx] = { ...next[idx], bonus_percent: val, label: `${val}% Extra` };
+                            setDepositTiers(next);
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-amber-500/20 text-[11.5px] text-amber-800 dark:text-amber-300 font-medium">
+                      Deposit ₹{tier.min_amount.toLocaleString("en-IN")} → Player gets{" "}
+                      <span className="font-bold">₹{totalAmt.toLocaleString("en-IN")}</span> (+₹{bonusAmt} bonus)
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={depositBonusSaving}
+              className="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold"
+            >
+              {depositBonusSaving ? "Saving..." : "Save Deposit Bonus Tiers"}
+            </Button>
+          </div>
+        </form>
+      </Card>
+
+      {/* 6. Strategic Timed Push Notifications */}
+      <Card
+        title="🚀 Strategic Timed Push Notifications (Reactivates Dormant Users & Drives Bets)"
+        subtitle="Automated high-converting push notifications triggered at optimal impulse moments to maximize daily active players and last-minute market bidding."
+      >
+        <form onSubmit={submitAutomatedNotifSettings} className="space-y-6">
+          {notifTriggerMsg && (
+            <div
+              className={cn(
+                "p-3 rounded-xl text-xs font-medium border",
+                notifTriggerMsg.success
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                  : "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400"
+              )}
+            >
+              {notifTriggerMsg.success ? "✓ " : "✗ "}
+              {notifTriggerMsg.text}
+            </div>
+          )}
+
+          {/* Trigger 1: 15 Mins Market Open/Close Countdown */}
+          <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                    ⏳ 15 Mins Market Open/Close Countdown (Kalyan & Major Markets)
+                  </span>
+                  <Badge color={notifMarketRemindersEnabled ? "emerald" : "rose"}>
+                    {notifMarketRemindersEnabled ? "AUTOMATED (ON)" : "DISABLED"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Fires automatically ~15 minutes before open & close sessions (e.g. 1:30 PM & 9:00 PM for Kalyan).
+                  Creates high urgency (FOMO): &quot;⏳ Kalyan Open closes in 15 minutes! Place your Jodi &amp; Panna now before rates lock.&quot;
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={notifTriggerLoading === "market"}
+                  onClick={handleTriggerMarketPush}
+                  className="text-xs"
+                >
+                  {notifTriggerLoading === "market" ? "Sending..." : "🚀 Test Market Push"}
+                </Button>
+
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={notifMarketRemindersEnabled}
+                  onClick={() => setNotifMarketRemindersEnabled(!notifMarketRemindersEnabled)}
+                  className={cn(
+                    "relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                    notifMarketRemindersEnabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-700"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                      notifMarketRemindersEnabled ? "translate-x-5" : "translate-x-0"
+                    )}
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Trigger 2: Big Win & Social Proof Alerts */}
+          <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                    🎉 Big Win &amp; Social Proof Alerts (After Big Results)
+                  </span>
+                  <Badge color={notifRandomWinnerEnabled ? "emerald" : "rose"}>
+                    {notifRandomWinnerEnabled ? "AUTOMATED (ON)" : "DISABLED"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Broadcasts recent winner excitement: &quot;🎉 Big Win Alert! Player 98****32 just won ₹45,000 on Milan Night! Today could be your lucky day.&quot;
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={notifTriggerLoading === "winner"}
+                  onClick={handleTriggerWinnerPush}
+                  className="text-xs"
+                >
+                  {notifTriggerLoading === "winner" ? "Broadcasting..." : "🎉 Broadcast Winner Push"}
+                </Button>
+
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={notifRandomWinnerEnabled}
+                  onClick={() => setNotifRandomWinnerEnabled(!notifRandomWinnerEnabled)}
+                  className={cn(
+                    "relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                    notifRandomWinnerEnabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-700"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                      notifRandomWinnerEnabled ? "translate-x-5" : "translate-x-0"
+                    )}
+                  />
+                </button>
+              </div>
+            </div>
+
+            <div className="w-48 pt-2">
+              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                Max Winner Broadcasts Per Day
+              </label>
+              <Input
+                type="number"
+                min="1"
+                max="10"
+                value={notifRandomWinnerMaxPerDay}
+                onChange={(e) => setNotifRandomWinnerMaxPerDay(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Trigger 3: Inactive User Reactivation */}
+          <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                    👋 Inactive User Reactivation (Dormant Users 3+ Days)
+                  </span>
+                  <Badge color={notifInactiveEnabled ? "emerald" : "rose"}>
+                    {notifInactiveEnabled ? "AUTOMATED (DAILY SWEEP)" : "DISABLED"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Automatically finds active devices that have not placed a bet in 3+ days and sends:
+                  &quot;👋 We miss you! ₹50 Bonus credited on your next deposit. Valid till midnight today!&quot;
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={notifTriggerLoading === "inactive"}
+                  onClick={handleTriggerInactivePush}
+                  className="text-xs"
+                >
+                  {notifTriggerLoading === "inactive" ? "Sweeping..." : "👋 Trigger Inactive Sweep"}
+                </Button>
+
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={notifInactiveEnabled}
+                  onClick={() => setNotifInactiveEnabled(!notifInactiveEnabled)}
+                  className={cn(
+                    "relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                    notifInactiveEnabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-700"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                      notifInactiveEnabled ? "translate-x-5" : "translate-x-0"
+                    )}
+                  />
+                </button>
+              </div>
+            </div>
+
+            <div className="w-48 pt-2">
+              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                Inactive Days Threshold
+              </label>
+              <Input
+                type="number"
+                min="1"
+                max="30"
+                value={notifInactiveDays}
+                onChange={(e) => setNotifInactiveDays(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={notifSaving}
+              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold"
+            >
+              {notifSaving ? "Saving..." : "Save Automated Notification Triggers"}
             </Button>
           </div>
         </form>

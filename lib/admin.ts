@@ -412,6 +412,49 @@ export async function testPay100Connection() {
   return res.data;
 }
 
+/* ---------------- Admin: Revenue & Growth ---------------- */
+
+export async function getDepositBonusSettings() {
+  const res = await client.get("/admin/revenue/deposit-bonus-settings");
+  return res.data;
+}
+
+export async function updateDepositBonusSettings(payload: { enabled: boolean; tiers: any[] }) {
+  const res = await client.put("/admin/revenue/deposit-bonus-settings", payload);
+  return res.data;
+}
+
+export async function getAutomatedNotificationsSettings() {
+  const res = await client.get("/admin/revenue/automated-notifications-settings");
+  return res.data;
+}
+
+export async function updateAutomatedNotificationsSettings(payload: any) {
+  const res = await client.put("/admin/revenue/automated-notifications-settings", payload);
+  return res.data;
+}
+
+export async function triggerMarketReminders(force: boolean = true) {
+  const res = await client.post("/admin/notifications/trigger-market-reminders", null, {
+    params: { force },
+  });
+  return res.data;
+}
+
+export async function triggerRandomWinnerAlert(force: boolean = true) {
+  const res = await client.post("/admin/notifications/trigger-random-winner-alert", null, {
+    params: { force },
+  });
+  return res.data;
+}
+
+export async function triggerInactiveNudge(inactive_days: number = 3, limit: number = 50, force: boolean = true) {
+  const res = await client.post("/admin/notifications/trigger-inactive-nudge", null, {
+    params: { inactive_days, limit, force },
+  });
+  return res.data;
+}
+
 /* ---------------- Admin: Jackpot ---------------- */
 
 export async function listJackpotMarkets(params: any = {}) {
@@ -823,3 +866,15 @@ export async function getWhatsAppBroadcastHistory(): Promise<any[]> {
   const res = await client.get<any[]>("/admin/whatsapp/history");
   return res.data;
 }
+
+/* ---------------- RealSpinPro ---------------- */
+export async function getRealSpinProSettings(): Promise<{ enabled: boolean }> {
+  const res = await client.get("/admin/realspinpro/settings");
+  return res.data;
+}
+
+export async function updateRealSpinProSettings(enabled: boolean): Promise<any> {
+  const res = await client.put("/admin/realspinpro/settings", { enabled });
+  return res.data;
+}
+

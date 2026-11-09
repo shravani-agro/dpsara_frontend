@@ -55,6 +55,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/ouradminportal/markets", label: "Markets", icon: "📈", permKey: "show_markets" },
       { href: "/ouradminportal/starline", label: "Starline", icon: "⭐", permKey: "show_starline" },
       { href: "/ouradminportal/jackpot", label: "Jackpot", icon: "💰", permKey: "show_jackpot" },
+      { href: "/ouradminportal/realspinpro", label: "RealSpinPro", icon: "🎡" },
       { href: "/ouradminportal/results", label: "Results", icon: "🎯", permKey: "show_result" },
     ],
   },
