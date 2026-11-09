@@ -878,3 +878,28 @@ export async function updateRealSpinProSettings(enabled: boolean): Promise<any> 
   return res.data;
 }
 
+export async function getRealSpinProStats(): Promise<{
+  total_wagered: number;
+  total_payout: number;
+  total_profit: number;
+  total_players: number;
+  total_rounds: number;
+  house_edge_pct: number;
+}> {
+  const res = await client.get("/admin/realspinpro/stats");
+  return res.data;
+}
+
+export async function getRealSpinProBets(limit: number = 50, roundId?: number): Promise<any[]> {
+  const params: any = { limit };
+  if (roundId) params.round_id = roundId;
+  const res = await client.get("/admin/realspinpro/bets", { params });
+  return res.data;
+}
+
+export async function getRealSpinProRounds(limit: number = 30): Promise<any[]> {
+  const res = await client.get("/admin/realspinpro/rounds", { params: { limit } });
+  return res.data;
+}
+
+
