@@ -868,13 +868,33 @@ export async function getWhatsAppBroadcastHistory(): Promise<any[]> {
 }
 
 /* ---------------- RealSpinPro ---------------- */
-export async function getRealSpinProSettings(): Promise<{ enabled: boolean }> {
+export interface RealSpinProConfig {
+  mode: "profit_driven" | "random";
+  target_margin: number;
+  min_win_rate_percent: number;
+  max_losing_streak_trigger: number;
+  multipliers: {
+    "1x": number;
+    "2x": number;
+    "3x": number;
+  };
+}
+
+export interface RealSpinProSettings {
+  enabled: boolean;
+  config?: RealSpinProConfig;
+}
+
+export async function getRealSpinProSettings(): Promise<RealSpinProSettings> {
   const res = await client.get("/admin/realspinpro/settings");
   return res.data;
 }
 
-export async function updateRealSpinProSettings(enabled: boolean): Promise<any> {
-  const res = await client.put("/admin/realspinpro/settings", { enabled });
+export async function updateRealSpinProSettings(
+  payload: { enabled?: boolean; config?: RealSpinProConfig } | boolean
+): Promise<any> {
+  const body = typeof payload === "boolean" ? { enabled: payload } : payload;
+  const res = await client.put("/admin/realspinpro/settings", body);
   return res.data;
 }
 
