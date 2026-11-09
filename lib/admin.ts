@@ -118,9 +118,18 @@ export function decodeToken(token: string): any | null {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return null;
-    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const json = typeof atob === "function" ? atob(payload) : Buffer.from(payload, "base64").toString("utf-8");
-    return JSON.parse(json);
+    let payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (payload.length % 4 !== 0) {
+      payload += "=";
+    }
+    const raw =
+      typeof atob === "function"
+        ? atob(payload)
+        : typeof (globalThis as any).Buffer !== "undefined"
+        ? (globalThis as any).Buffer.from(payload, "base64").toString("utf-8")
+        : null;
+    if (!raw) return null;
+    return JSON.parse(raw);
   } catch {
     return null;
   }
