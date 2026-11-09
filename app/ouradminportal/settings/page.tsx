@@ -31,6 +31,8 @@ import {
   triggerMarketReminders,
   triggerRandomWinnerAlert,
   triggerInactiveNudge,
+  getRealSpinProSettings,
+  updateRealSpinProSettings,
 } from "@/lib/admin";
 import { UserSelect } from "@/components/UserSelect";
 

@@ -905,6 +905,9 @@ export async function getRealSpinProStats(): Promise<{
   total_players: number;
   total_rounds: number;
   house_edge_pct: number;
+  active_connections?: number;
+  redis_connected?: boolean;
+  game_enabled?: boolean;
 }> {
   const res = await client.get("/admin/realspinpro/stats");
   return res.data;
