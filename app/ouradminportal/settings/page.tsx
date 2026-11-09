@@ -50,6 +50,10 @@ export default function SettingsPage() {
   const [welcomeBonusAmount, setWelcomeBonusAmount] = useState("50");
   const [bonusSaving, setBonusSaving] = useState(false);
 
+  // RealSpinPro Master Toggle states
+  const [realspinproEnabled, setRealspinproEnabled] = useState(true);
+  const [realspinproSaving, setRealspinproSaving] = useState(false);
+
   // Mass Bonus Distribution states
   const [massBonusAmount, setMassBonusAmount] = useState("50");
   const [massBonusTitle, setMassBonusTitle] = useState("🎁 You Have ₹50 Free Bonus in Your Wallet!");
@@ -128,6 +132,16 @@ export default function SettingsPage() {
       const botSetting = data.find((s: any) => s.key === "support_bot_enabled");
       if (botSetting?.value !== undefined) {
         setSupportBotEnabled(botSetting.value !== "false" && botSetting.value !== "0");
+      }
+
+      // Load RealSpinPro Settings
+      try {
+        const rsp = await getRealSpinProSettings();
+        if (rsp && rsp.enabled !== undefined) {
+          setRealspinproEnabled(rsp.enabled);
+        }
+      } catch (err) {
+        console.warn("Could not load RealSpinPro settings:", err);
       }
 
       // Load Payment Gateway Selection
@@ -211,6 +225,27 @@ export default function SettingsPage() {
       setError(err?.response?.data?.detail || "Failed to save bonus settings");
     } finally {
       setBonusSaving(false);
+    }
+  }
+
+  async function handleToggleRealSpinPro(nextVal: boolean) {
+    setRealspinproSaving(true);
+    setError(null);
+    setMsg(null);
+    try {
+      await updateRealSpinProSettings({ enabled: nextVal });
+      setRealspinproEnabled(nextVal);
+      setMsg(
+        `RealSpinPro is now ${
+          nextVal
+            ? "ENABLED (Active on Mobile App & WebSocket Running)"
+            : "DISABLED (Hidden on Mobile App & WebSocket Stopped)"
+        }`
+      );
+    } catch (err: any) {
+      setError(parseApiError(err));
+    } finally {
+      setRealspinproSaving(false);
     }
   }
 
