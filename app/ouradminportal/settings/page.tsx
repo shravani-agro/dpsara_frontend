@@ -860,6 +860,61 @@ export default function SettingsPage() {
         </form>
       </Card>
 
+      {/* RealSpinPro Game Master Controls */}
+      <Card
+        title="🎡 RealSpinPro Spinning Game Master Switch"
+        subtitle="Control mobile visibility, live WebSocket connections, and real-time round settlement for the spinning wheel game."
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-900 dark:text-slate-100">
+                  RealSpinPro Game Status
+                </span>
+                <Badge color={realspinproEnabled ? "emerald" : "rose"}>
+                  {realspinproEnabled ? "LIVE ON MOBILE" : "DISABLED"}
+                </Badge>
+                <Badge color={realspinproEnabled ? "amber" : "slate"}>
+                  {realspinproEnabled ? "⚡ WebSocket Active" : "🔌 WebSocket Stopped"}
+                </Badge>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 max-w-xl">
+                When enabled, the rotating RealSpinPro wheel is shown to logged-in mobile players right bottom above Support. When disabled, the game icon is hidden and WebSocket connections are stopped.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={realspinproEnabled}
+              disabled={realspinproSaving}
+              onClick={() => handleToggleRealSpinPro(!realspinproEnabled)}
+              className={cn(
+                "relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                realspinproEnabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-700",
+                realspinproSaving && "opacity-60 cursor-not-allowed"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                  realspinproEnabled ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <a
+              href="/ouradminportal/realspinpro"
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-neutral-950 transition-colors shadow-sm"
+            >
+              Configure Margins, Multipliers & Live Rounds →
+            </a>
+          </div>
+        </div>
+      </Card>
+
       {/* 5. Smart Deposit Tiers & Extra Cash Bonus */}
       <Card
         title="🎁 Smart Deposit Tiers & Extra Cash Bonus (Increases Average Deposit Size)"
