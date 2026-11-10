@@ -606,24 +606,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setInterval(syncRealSpinProStatus, 12000);
     }
 
-        // Spin Button Click
-        const spinBtn = document.getElementById('rsp-spin-btn');
-        if (spinBtn) {
-            spinBtn.addEventListener('click', () => {
-                if (isSpinning) return;
-                const randomWin = Math.floor(Math.random() * 10);
-                spinWheel(randomWin, true);
-            });
-        }
-
-        // Initial RealSpinPro sync and start clock
-        syncRealSpinProStatus();
-        startLiveClock();
-
-        // Periodic Status & Clock Sync (every 12 seconds)
-        setInterval(syncRealSpinProStatus, 12000);
-    }
-
     // Initial Execution
     removeStarlineAndJackpotCharts();
     updateMarkets();
