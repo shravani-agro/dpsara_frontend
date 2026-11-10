@@ -121,16 +121,18 @@ export default function WinGoBidsHistoryPage() {
 
   // Client-side filtering for search & bet type
   const filteredItems = useMemo(() => {
+    if (!Array.isArray(items)) return [];
     return items.filter((b) => {
-      if (typeFilter && b.bet_type !== typeFilter) return false;
+      if (!b) return false;
+      if (typeFilter && String(b.bet_type || '').toLowerCase() !== typeFilter.toLowerCase()) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.trim().toLowerCase();
         const matchesUser =
-          String(b.user_id).includes(q) ||
-          (b.username && b.username.toLowerCase().includes(q)) ||
-          (b.phone && b.phone.includes(q));
-        const matchesPeriod = b.period && b.period.toLowerCase().includes(q);
-        const matchesVal = b.bet_value && b.bet_value.toLowerCase().includes(q);
+          String(b.user_id || '').includes(q) ||
+          String(b.username || '').toLowerCase().includes(q) ||
+          String(b.phone || '').includes(q);
+        const matchesPeriod = String(b.period || '').toLowerCase().includes(q);
+        const matchesVal = String(b.bet_value || '').toLowerCase().includes(q);
         if (!matchesUser && !matchesPeriod && !matchesVal) return false;
       }
       return true;

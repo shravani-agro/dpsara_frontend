@@ -115,9 +115,9 @@ export default function WinGoConsolePage() {
         getWinGoBets(50).catch(() => []),
         getWinGoRounds(30).catch(() => []),
       ]);
-      if (statsData) setStats(statsData);
-      if (betsData) setBets(betsData);
-      if (roundsData) setRounds(roundsData);
+      if (statsData && typeof statsData === "object" && !("detail" in statsData)) setStats(statsData);
+      if (Array.isArray(betsData)) setBets(betsData);
+      if (Array.isArray(roundsData)) setRounds(roundsData);
     } catch (_) {
       // Periodic polling error ignored
     } finally {
@@ -194,6 +194,7 @@ export default function WinGoConsolePage() {
   };
 
   const filteredBets = useMemo(() => {
+    if (!Array.isArray(bets)) return [];
     return bets.filter((b) => {
       const matchesSearch =
         !searchTerm ||
