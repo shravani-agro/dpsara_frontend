@@ -269,11 +269,82 @@ document.addEventListener('DOMContentLoaded', () => {
         setInterval(syncRealSpinProStatus, 12000);
     }
 
+    // 4. Win Go Color Prediction Master Toggle & Live Banner Sync
+    function initWinGo() {
+        const landingSection = document.getElementById('wingo-landing-section');
+        const floatingPill = document.getElementById('wingo-floating-pill');
+        const navItem = document.getElementById('nav-item-wingo');
+        const mobileNavItem = document.getElementById('mobile-nav-item-wingo');
+
+        if (!landingSection) return;
+
+        let periodSeconds = 24;
+        let timerInterval = null;
+        let isGameEnabled = true;
+
+        async function syncWinGoStatus() {
+            try {
+                const statusRes = await fetch(`${API_BASE}/mobile/settings`).catch(() => null);
+                if (statusRes && statusRes.ok) {
+                    const json = await statusRes.json();
+                    const enabled = json?.data?.wingo_enabled;
+                    if (enabled !== undefined) {
+                        const isLive = enabled !== false && enabled !== 0 && enabled !== '0';
+                        isGameEnabled = isLive;
+                        const displayVal = isLive ? '' : 'none';
+                        landingSection.style.display = displayVal;
+                        if (floatingPill) floatingPill.style.display = displayVal;
+                        if (navItem) navItem.style.display = displayVal;
+                        if (mobileNavItem) mobileNavItem.style.display = displayVal;
+                        if (!isLive) return;
+                    }
+                }
+
+                // Sync Active Status from Win Go backend
+                const wingoRes = await fetch(`${API_BASE}/mobile/wingo/status`).catch(() => null);
+                if (wingoRes && wingoRes.ok) {
+                    const wData = await wingoRes.json();
+                    const roundObj = wData?.data || wData;
+                    if (roundObj?.period) {
+                        const pIdEl = document.getElementById('wingo-period-id');
+                        if (pIdEl) pIdEl.innerText = roundObj.period;
+                    }
+                    if (roundObj?.seconds_remaining !== undefined) {
+                        periodSeconds = Math.max(0, Math.floor(Number(roundObj.seconds_remaining)));
+                    }
+                }
+            } catch (err) {
+                // Silently handle
+            }
+        }
+
+        function startLiveClock() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!isGameEnabled) return;
+
+                const now = Math.floor(Date.now() / 1000);
+                periodSeconds = 30 - (now % 30);
+
+                const timerEl = document.getElementById('wingo-timer');
+                if (timerEl) {
+                    const ss = String(periodSeconds).padStart(2, '0');
+                    timerEl.innerText = `00:${ss}`;
+                }
+            }, 1000);
+        }
+
+        syncWinGoStatus();
+        startLiveClock();
+        setInterval(syncWinGoStatus, 12000);
+    }
+
     // Initial Execution
     removeStarlineAndJackpotCharts();
     updateMarkets();
     updateGameRates();
     initRealSpinPro();
+    initWinGo();
 
     // Auto Refresh every 10 seconds for real-time live results
     setInterval(() => {

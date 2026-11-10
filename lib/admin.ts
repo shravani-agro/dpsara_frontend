@@ -983,4 +983,56 @@ export async function getRealSpinProRounds(limit: number = 30): Promise<any[]> {
   return res.data;
 }
 
+/* ---------------- Win Go Color Prediction ---------------- */
+export interface WingoConfig {
+  mode: "profit_driven" | "random";
+  target_margin: number;
+  min_win_rate_percent: number;
+  max_losing_streak_trigger: number;
+  manual_override_number?: number | null;
+  kill_switch?: boolean;
+}
+
+export interface WingoSettings {
+  enabled: boolean;
+  config?: WingoConfig;
+}
+
+export async function getWinGoSettings(): Promise<WingoSettings> {
+  const res = await client.get("/admin/wingo/settings");
+  return res.data;
+}
+
+export async function updateWinGoSettings(
+  payload: { enabled?: boolean; config?: WingoConfig } | boolean
+): Promise<any> {
+  const body = typeof payload === "boolean" ? { enabled: payload } : payload;
+  const res = await client.put("/admin/wingo/settings", body);
+  return res.data;
+}
+
+export async function getWinGoStats(): Promise<{
+  total_wagered: number;
+  total_payout: number;
+  total_profit: number;
+  total_players: number;
+  total_rounds: number;
+  house_edge_pct: number;
+  active_connections?: number;
+}> {
+  const res = await client.get("/admin/wingo/stats");
+  return res.data;
+}
+
+export async function getWinGoBets(params: any = {}): Promise<any[]> {
+  const queryParams = typeof params === "number" ? { limit: params } : params;
+  const res = await client.get("/admin/wingo/bets", { params: queryParams });
+  return res.data;
+}
+
+export async function getWinGoRounds(limit: number = 30): Promise<any[]> {
+  const res = await client.get("/admin/wingo/rounds", { params: { limit } });
+  return res.data;
+}
+
 

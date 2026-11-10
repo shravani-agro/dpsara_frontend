@@ -354,6 +354,15 @@
                     class="px-1.5 py-0.5 text-[10px] font-display font-bold uppercase tracking-wider text-black bg-gradient-to-b from-gradGoldTop to-gradGoldBottom rounded-full leading-none shadow-sm">LIVE</span>
                 </a>
               </li>
+              <li class="relative flex items-center" id="nav-item-wingo">
+                <a class="inline-flex items-center gap-1.5 text-black text-[15px] xl:text-[16px] whitespace-nowrap transition-colors duration-300 hover:text-primary font-bold no-underline"
+                  href="#wingo-landing-section">
+                  <span class="text-base">🎰</span>
+                  <span>Win Go</span>
+                  <span
+                    class="px-1.5 py-0.5 text-[10px] font-display font-bold uppercase tracking-wider text-white bg-gradient-to-r from-emerald-500 to-rose-600 rounded-full leading-none shadow-sm">NEW</span>
+                </a>
+              </li>
               <li class="relative flex items-center"><a
                   class="inline-flex items-center text-black text-[15px] xl:text-[16px] whitespace-nowrap transition-colors duration-300 hover:text-primary font-medium"
                   href="/blog.html">Blogs</a></li>
@@ -3302,6 +3311,125 @@
         </div>
       </section>
 
+      <!-- ================= WIN GO COLOR PREDICTION LIVE PLAY BANNER ================= -->
+      <section id="wingo-landing-section" class="pt-6 max-lg:pt-4 scroll-mt-24">
+        <div class="container mx-auto px-4">
+          <div
+            class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#23080A] via-[#2E0D10] to-[#1C0608] border border-[#561A20] p-5 sm:p-7 md:p-8 lg:p-9 shadow-[0_16px_40px_rgba(0,0,0,0.6)] transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_20px_48px_rgba(235,53,68,0.2)]">
+            <!-- Background Glow Highlights -->
+            <div
+              class="absolute -top-24 -left-24 w-64 h-64 bg-rose-600/15 rounded-full blur-3xl pointer-events-none">
+            </div>
+            <div
+              class="absolute -bottom-24 -right-24 w-64 h-64 bg-amber-500/15 rounded-full blur-3xl pointer-events-none">
+            </div>
+
+            <div class="relative z-10 flex flex-col-reverse lg:flex-row items-center justify-between gap-6 lg:gap-8">
+
+              <!-- Left: Game Details & Play Button -->
+              <div class="flex-1 text-center lg:text-left w-full">
+
+                <!-- Live Pill Badge -->
+                <div
+                  class="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/10 border border-amber-500/30 text-amber-300 text-[11px] sm:text-xs font-display font-bold uppercase tracking-wider mb-2.5 sm:mb-3 shadow-sm">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>30s Rapid Color Prediction</span>
+                  <span class="text-white/30">•</span>
+                  <span>Period #<span id="wingo-period-id" class="text-amber-400 font-mono font-bold">202611...</span></span>
+                  <span class="text-white/30">•</span>
+                  <span id="wingo-timer" class="font-mono font-bold text-white">00:24</span>
+                </div>
+
+                <h2
+                  class="font-display font-black text-xl sm:text-2xl md:text-3xl lg:text-[34px] text-white uppercase tracking-tight m-0 leading-tight">
+                  Win Go <span
+                    class="bg-gradient-to-r from-amber-400 via-rose-400 to-amber-300 bg-clip-text text-transparent">Color Prediction</span>
+                </h2>
+
+                <p
+                  class="mt-2 text-xs sm:text-sm md:text-[15px] text-slate-300 font-medium max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                  Predict Green, Violet, or Red and lucky digits (0–9) in thrilling 30-second rapid rounds! Enjoy <strong
+                    class="text-amber-400 font-bold">2X on Colors</strong>, <strong class="text-purple-400 font-bold">4.5X on Violet</strong>, and huge <strong class="text-emerald-400 font-bold">9X on Digits</strong>.
+                </p>
+
+                <!-- Features Strip -->
+                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2 mt-3 sm:mt-4">
+                  <span
+                    class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-[11px] sm:text-xs font-bold border border-emerald-500/40">
+                    🟢 Green (1, 3, 7, 9) 2X
+                  </span>
+                  <span
+                    class="px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-300 text-[11px] sm:text-xs font-bold border border-purple-500/40">
+                    🟣 Violet (0, 5) 4.5X
+                  </span>
+                  <span
+                    class="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 text-[11px] sm:text-xs font-bold border border-rose-500/40">
+                    🔴 Red (2, 4, 6, 8) 2X
+                  </span>
+                  <span
+                    class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 text-[11px] sm:text-xs font-bold border border-amber-500/40">
+                    🎯 Digits 0-9 (9X)
+                  </span>
+                </div>
+
+                <!-- CTA Button & Trust Indicator -->
+                <div
+                  class="mt-5 sm:mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4">
+                  <a href="https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk"
+                    class="inline-flex items-center justify-center gap-2 h-11 sm:h-12 px-6 sm:px-8 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-amber-500 text-slate-950 font-display font-black text-xs sm:text-sm md:text-base uppercase tracking-wider shadow-[0_6px_20px_rgba(244,63,94,0.4)] hover:brightness-110 active:scale-95 transition-all no-underline w-full sm:w-auto">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                      <path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" />
+                    </svg>
+                    <span>Play Win Go Now</span>
+                  </a>
+                  <span
+                    class="text-[11px] sm:text-xs text-slate-300 font-semibold flex items-center justify-center lg:justify-start gap-1.5">
+                    <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Fair Random Algorithm · Instant Wallet Payouts
+                  </span>
+                </div>
+
+              </div>
+
+              <!-- Right: Gumball Machine Graphic -->
+              <div class="shrink-0 flex items-center justify-center">
+                <a href="https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk"
+                  class="relative group block cursor-pointer">
+                  <div
+                    class="relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 lg:w-52 lg:h-52 flex items-center justify-center">
+                    <div
+                      class="absolute inset-0 rounded-full bg-rose-500/20 blur-xl group-hover:bg-rose-500/35 transition-all">
+                    </div>
+                    <img src="/images/colorpredictionicon.png" alt="Win Go Color Prediction"
+                      class="w-full h-full object-contain relative z-10 drop-shadow-[0_12px_28px_rgba(0,0,0,0.6)] transition-transform duration-700 group-hover:scale-105" />
+                  </div>
+                </a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= FLOATING WINGO QUICK LAUNCHER ================= -->
+      <div id="wingo-floating-pill" class="fixed right-4 bottom-32 sm:bottom-36 z-50 transition-all duration-300">
+        <a href="#wingo-landing-section"
+          class="flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#2E0D10] border border-amber-500/50 text-white shadow-[0_6px_20px_rgba(244,63,94,0.35)] hover:shadow-[0_8px_28px_rgba(244,63,94,0.5)] hover:scale-105 active:scale-95 transition-all no-underline group">
+          <span class="text-xl">🎰</span>
+          <div class="flex flex-col text-left leading-none">
+            <span
+              class="text-[12px] font-display font-bold uppercase tracking-wider text-amber-300">Win Go</span>
+            <span class="text-[10px] text-slate-300 flex items-center gap-1 mt-0.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Color Predict
+            </span>
+          </div>
+        </a>
+      </div>
+
       <!-- ================= FLOATING REALSPINPRO QUICK LAUNCHER ================= -->
       <div id="realspinpro-floating-pill" class="fixed right-4 bottom-20 sm:bottom-24 z-50 transition-all duration-300">
         <a href="#realspinpro-landing-section"
@@ -4081,6 +4209,17 @@
             </span>
             <span
               class="px-1.5 py-0.5 text-[10px] font-display font-bold uppercase tracking-wider text-black bg-gradient-to-b from-gradGoldTop to-gradGoldBottom rounded-full leading-none shadow-sm">LIVE</span>
+          </a>
+        </li>
+        <li class="mb-1" id="mobile-nav-item-wingo">
+          <a class="flex items-center justify-between w-full px-3 py-3 rounded-xl text-[15px] text-left no-underline border-none cursor-pointer bg-transparent font-medium text-black hover:bg-timeBg"
+            href="#wingo-landing-section">
+            <span class="flex items-center gap-3">
+              <span class="text-lg">🎰</span>
+              <span>Win Go Color Prediction</span>
+            </span>
+            <span
+              class="px-1.5 py-0.5 text-[10px] font-display font-bold uppercase tracking-wider text-white bg-gradient-to-r from-emerald-500 to-rose-600 rounded-full leading-none shadow-sm">NEW</span>
           </a>
         </li>
         <li class="mb-1"><button
