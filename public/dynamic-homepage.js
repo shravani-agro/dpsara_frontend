@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 3. RealSpinPro Live Master Toggle & Interactive Game Engine
+    // 3. RealSpinPro Live Master Toggle & Live Banner Sync
     function initRealSpinPro() {
         const landingSection = document.getElementById('realspinpro-landing-section');
         const floatingPill = document.getElementById('realspinpro-floating-pill');
@@ -195,79 +195,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!landingSection) return;
 
-        let selectedChip = 10;
-        let bets = {};
-        let lastBets = {};
-        let demoBalance = 5000;
-        let isSpinning = false;
-        let currentRotation = 0;
         let roundSeconds = 45;
         let currentRoundId = 1088;
-        let currentMultiplier = 1;
         let timerInterval = null;
         let isGameEnabled = true;
 
-        const numberColors = {
-            0: 'bg-[#1E88E5]',
-            1: 'bg-[#F59E0B]',
-            2: 'bg-[#10B981]',
-            3: 'bg-[#EC4899]',
-            4: 'bg-[#8B5CF6]',
-            5: 'bg-[#EF4444]',
-            6: 'bg-[#F97316]',
-            7: 'bg-[#06B6D4]',
-            8: 'bg-[#4F46E5]',
-            9: 'bg-[#B45309]'
-        };
-
-        function updateBetDisplays() {
-            let total = 0;
-            // Update individual tiles
-            for (let i = 0; i <= 9; i++) {
-                const bVal = bets[i] || 0;
-                total += bVal;
-                const btn = document.querySelector(`.rsp-num-btn[data-rsp-num="${i}"]`);
-                if (btn) {
-                    const valEl = btn.querySelector('.rsp-bet-val');
-                    if (valEl) {
-                        valEl.innerText = bVal > 0 ? `₹${bVal}` : '-';
-                        if (bVal > 0) {
-                            valEl.classList.add('text-primary');
-                        } else {
-                            valEl.classList.remove('text-primary');
-                        }
-                    }
-                }
-            }
-            const playEl = document.getElementById('rsp-play-amount');
-            if (playEl) playEl.innerText = `₹${total.toLocaleString('en-IN')}`;
-
-            const balEl = document.getElementById('rsp-demo-balance');
-            if (balEl) balEl.innerText = `₹${demoBalance.toLocaleString('en-IN')}`;
-        }
-
-        // Master Toggle Check
+        // Master Toggle Check & Active Round Sync
         async function syncRealSpinProStatus() {
             try {
-                let statusRes = await fetch(`${API_BASE}/mobile/settings`).catch(() => null);
+                const statusRes = await fetch(`${API_BASE}/mobile/settings`).catch(() => null);
                 if (statusRes && statusRes.ok) {
                     const json = await statusRes.json();
                     const enabled = json?.data?.realspinpro_enabled;
                     if (enabled !== undefined) {
                         const isLive = enabled !== false && enabled !== 0 && enabled !== '0';
                         isGameEnabled = isLive;
-                        if (isLive) {
-                            landingSection.style.display = '';
-                            if (floatingPill) floatingPill.style.display = '';
-                            if (navItem) navItem.style.display = '';
-                            if (mobileNavItem) mobileNavItem.style.display = '';
-                        } else {
-                            landingSection.style.display = 'none';
-                            if (floatingPill) floatingPill.style.display = 'none';
-                            if (navItem) navItem.style.display = 'none';
-                            if (mobileNavItem) mobileNavItem.style.display = 'none';
-                            return;
-                        }
+                        const displayVal = isLive ? '' : 'none';
+                        landingSection.style.display = displayVal;
+                        if (floatingPill) floatingPill.style.display = displayVal;
+                        if (navItem) navItem.style.display = displayVal;
+                        if (mobileNavItem) mobileNavItem.style.display = displayVal;
+                        if (!isLive) return;
                     }
                 }
 
@@ -284,34 +232,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (roundObj?.time_remaining !== undefined) {
                         roundSeconds = Math.max(0, Math.floor(Number(roundObj.time_remaining)));
                     }
-                    if (roundObj?.multiplier) {
-                        currentMultiplier = Number(roundObj.multiplier);
-                    }
-                }
-
-                // Sync History
-                const histRes = await fetch(`${API_BASE}/spinwheel/history?limit=10`).catch(() => null);
-                if (histRes && histRes.ok) {
-                    const hData = await histRes.json();
-                    const rounds = Array.isArray(hData?.data) ? hData.data : Array.isArray(hData) ? hData : [];
-                    if (rounds.length > 0) {
-                        renderHistoryStrip(rounds);
-                    }
                 }
             } catch (err) {
                 // Silently handle offline/network deviations
             }
-        }
-
-        function renderHistoryStrip(rounds) {
-            const strip = document.getElementById('rsp-history-strip');
-            if (!strip) return;
-            const html = rounds.slice(0, 10).map(r => {
-                const num = r.win_number ?? r.result_number ?? r.number ?? Math.floor(Math.random() * 10);
-                const colorCls = numberColors[num] || 'bg-blue-600';
-                return `<span class="rsp-hist-slot w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white ${colorCls} shadow-sm">${num}</span>`;
-            }).join('');
-            if (html) strip.innerHTML = html;
         }
 
         // Live Clock Loop
@@ -334,273 +258,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const ss = String(roundSeconds % 60).padStart(2, '0');
                     timerEl.innerText = `${mm}:${ss}`;
                 }
-
-                const timerPill = document.getElementById('rsp-timer-pill');
-                if (timerPill) {
-                    timerPill.innerText = `${roundSeconds}s`;
-                }
-
-                const phaseBadge = document.getElementById('rsp-phase-badge');
-                const phaseText = document.getElementById('rsp-phase-badge-text');
-
-                if (roundSeconds > 15) {
-                    if (phaseBadge) {
-                        phaseBadge.className = 'block text-[12px] max-sm:text-[11px] font-semibold leading-none whitespace-nowrap text-successGreen';
-                        phaseBadge.innerText = 'Running for bets';
-                    }
-                    if (phaseText) phaseText.innerText = 'PLACE YOUR BET';
-                } else if (roundSeconds > 10) {
-                    if (phaseBadge) {
-                        phaseBadge.className = 'block text-[12px] max-sm:text-[11px] font-semibold leading-none whitespace-nowrap text-amber-500';
-                        phaseBadge.innerText = 'Bets Locked';
-                    }
-                    if (phaseText) phaseText.innerText = 'BETS LOCKED';
-                } else if (roundSeconds > 5) {
-                    if (phaseBadge) {
-                        phaseBadge.className = 'block text-[12px] max-sm:text-[11px] font-semibold leading-none whitespace-nowrap text-primary animate-pulse';
-                        phaseBadge.innerText = 'Wheel Spinning';
-                    }
-                    if (phaseText) phaseText.innerText = 'WHEEL SPINNING';
-
-                    if (!isSpinning && roundSeconds === 9) {
-                        // Background wheel spin for live visitors
-                        const luckyWin = Math.floor(Math.random() * 10);
-                        spinWheel(luckyWin, false);
-                    }
-                } else {
-                    if (phaseBadge) {
-                        phaseBadge.className = 'block text-[12px] max-sm:text-[11px] font-semibold leading-none whitespace-nowrap text-purple-600 dark:text-purple-400';
-                        phaseBadge.innerText = 'Winner Announced';
-                    }
-                    if (phaseText) phaseText.innerText = 'WINNER ANNOUNCED';
-                }
             }, 1000);
-        }
-
-        // Chip Selector Buttons
-        const chipBtns = document.querySelectorAll('.rsp-chip-btn');
-        chipBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                chipBtns.forEach(b => {
-                    b.classList.remove('ring-2', 'ring-primary', 'scale-110');
-                });
-                btn.classList.add('ring-2', 'ring-primary', 'scale-110');
-                selectedChip = Number(btn.getAttribute('data-rsp-chip') || 10);
-            });
-        });
-
-        // Number Buttons (1-5, 6-0)
-        const numBtns = document.querySelectorAll('.rsp-num-btn');
-        numBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (isSpinning) return;
-                const num = Number(btn.getAttribute('data-rsp-num'));
-                if (demoBalance < selectedChip) {
-                    alert('Demo balance insufficient! Reset or clear bets to continue.');
-                    return;
-                }
-                demoBalance -= selectedChip;
-                bets[num] = (bets[num] || 0) + selectedChip;
-                updateBetDisplays();
-            });
-        });
-
-        // Quick Action: Double Bets
-        const doubleBtn = document.getElementById('rsp-btn-double');
-        if (doubleBtn) {
-            doubleBtn.addEventListener('click', () => {
-                if (isSpinning) return;
-                let needed = 0;
-                Object.values(bets).forEach(v => needed += v);
-                if (needed === 0) return;
-                if (demoBalance < needed) {
-                    alert('Insufficient demo balance to double bets!');
-                    return;
-                }
-                demoBalance -= needed;
-                Object.keys(bets).forEach(k => bets[k] *= 2);
-                updateBetDisplays();
-            });
-        }
-
-        // Quick Action: Repeat Previous Bets
-        const repeatBtn = document.getElementById('rsp-btn-repeat');
-        if (repeatBtn) {
-            repeatBtn.addEventListener('click', () => {
-                if (isSpinning) return;
-                let needed = 0;
-                Object.values(lastBets).forEach(v => needed += v);
-                if (needed === 0) return;
-                if (demoBalance < needed) {
-                    alert('Insufficient demo balance to repeat bets!');
-                    return;
-                }
-                // clear current
-                Object.values(bets).forEach(v => demoBalance += v);
-                bets = { ...lastBets };
-                demoBalance -= needed;
-                updateBetDisplays();
-            });
-        }
-
-        // Quick Action: ODDS (1, 3, 5, 7, 9)
-        const oddsBtn = document.getElementById('rsp-btn-odds');
-        if (oddsBtn) {
-            oddsBtn.addEventListener('click', () => {
-                if (isSpinning) return;
-                const odds = [1, 3, 5, 7, 9];
-                const totalCost = selectedChip * odds.length;
-                if (demoBalance < totalCost) {
-                    alert('Insufficient demo balance to bet all Odds!');
-                    return;
-                }
-                demoBalance -= totalCost;
-                odds.forEach(n => bets[n] = (bets[n] || 0) + selectedChip);
-                updateBetDisplays();
-            });
-        }
-
-        // Quick Action: EVENS (0, 2, 4, 6, 8)
-        const evensBtn = document.getElementById('rsp-btn-evens');
-        if (evensBtn) {
-            evensBtn.addEventListener('click', () => {
-                if (isSpinning) return;
-                const evens = [0, 2, 4, 6, 8];
-                const totalCost = selectedChip * evens.length;
-                if (demoBalance < totalCost) {
-                    alert('Insufficient demo balance to bet all Evens!');
-                    return;
-                }
-                demoBalance -= totalCost;
-                evens.forEach(n => bets[n] = (bets[n] || 0) + selectedChip);
-                updateBetDisplays();
-            });
-        }
-
-        // Clear Bets Button
-        const clearBtn = document.getElementById('rsp-clear-btn');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                if (isSpinning) return;
-                let refund = 0;
-                Object.values(bets).forEach(v => refund += v);
-                demoBalance += refund;
-                if (demoBalance < 1000) demoBalance = 5000;
-                bets = {};
-                updateBetDisplays();
-
-                const outcomeBox = document.getElementById('rsp-outcome-box');
-                if (outcomeBox) outcomeBox.classList.add('hidden');
-            });
-        }
-
-        // Spin Logic
-        function spinWheel(targetNumber, isManual = true) {
-            if (isSpinning) return;
-            isSpinning = true;
-
-            const wheelEl = document.getElementById('rsp-wheel');
-            const outcomeBox = document.getElementById('rsp-outcome-box');
-            const outcomeMsg = document.getElementById('rsp-outcome-msg');
-            const spinBtn = document.getElementById('rsp-spin-btn');
-
-            if (outcomeBox) outcomeBox.classList.add('hidden');
-            if (spinBtn) {
-                spinBtn.disabled = true;
-                spinBtn.classList.add('opacity-60', 'cursor-not-allowed');
-            }
-
-            // Save for REPEAT
-            if (Object.keys(bets).length > 0) {
-                lastBets = { ...bets };
-            }
-
-            // Target number: 0 is at 0 deg, 1 at 36 deg, etc.
-            // Under pointer (top), to bring segment N to top:
-            // segment angle = N * 36 deg. Rotation required is (360 - N * 36) deg.
-            const targetSegmentAngle = (10 - (targetNumber % 10)) % 10 * 36;
-            const extraRotations = 360 * 5; // 5 full spins
-            const normalizedCurrent = currentRotation % 360;
-            const delta = extraRotations + targetSegmentAngle - normalizedCurrent;
-            currentRotation += delta;
-
-            if (wheelEl) {
-                wheelEl.style.transform = `rotate(${currentRotation}deg)`;
-            }
-
-            // Dynamic multiplier: 80% 1X, 15% 2X, 5% 3X
-            const r = Math.random() * 100;
-            let mult = 1;
-            if (r > 95) mult = 3;
-            else if (r > 80) mult = 2;
-
-            setTimeout(() => {
-                isSpinning = false;
-                if (spinBtn) {
-                    spinBtn.disabled = false;
-                    spinBtn.classList.remove('opacity-60', 'cursor-not-allowed');
-                }
-
-                // Add to history strip
-                const strip = document.getElementById('rsp-history-strip');
-                if (strip) {
-                    const colorCls = numberColors[targetNumber] || 'bg-blue-600';
-                    const pill = document.createElement('span');
-                    pill.className = `rsp-hist-slot w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white ${colorCls} shadow-sm animate-bounce`;
-                    pill.innerText = targetNumber;
-                    strip.insertBefore(pill, strip.firstChild);
-                    if (strip.children.length > 10) {
-                        strip.removeChild(strip.lastChild);
-                    }
-                }
-
-                // Check Bet Outcome
-                if (isManual) {
-                    const betOnTarget = bets[targetNumber] || 0;
-                    const winEl = document.getElementById('rsp-win-amount');
-                    if (betOnTarget > 0) {
-                        const winPayout = betOnTarget * 9 * mult;
-                        demoBalance += winPayout;
-                        if (winEl) winEl.innerText = `₹${winPayout.toLocaleString('en-IN')}`;
-
-                        if (outcomeBox && outcomeMsg) {
-                            outcomeMsg.innerHTML = `🎉 <span class="text-amber-500 font-black">JACKPOT WIN!</span> Number <strong>${targetNumber}</strong> landed with <strong>${mult}X Multiplier</strong>! You won <strong class="text-emerald-500">₹${winPayout.toLocaleString('en-IN')}</strong>!`;
-                            outcomeBox.className = 'mt-3 p-3 rounded-xl border border-emerald-500/50 bg-emerald-500/10 text-center animate-fade-in block';
-                        }
-                    } else {
-                        const totalBet = Object.values(bets).reduce((a, b) => a + b, 0);
-                        if (winEl) winEl.innerText = '₹0';
-                        if (outcomeBox && outcomeMsg) {
-                            if (totalBet > 0) {
-                                outcomeMsg.innerHTML = `🎡 Number <strong>${targetNumber}</strong> (${mult}X) Landed! Better luck next spin. Download app to win real cash!`;
-                            } else {
-                                outcomeMsg.innerHTML = `🎡 Wheel landed on Number <strong>${targetNumber}</strong> with <strong>${mult}X Multiplier</strong>! Pick numbers to win!`;
-                            }
-                            outcomeBox.className = 'mt-3 p-3 rounded-xl border border-primary/40 bg-timeBg text-center animate-fade-in block';
-                        }
-                    }
-
-                    // Reset bets for next round
-                    bets = {};
-                    updateBetDisplays();
-                }
-            }, 4200);
-        }
-
-        // Spin Button Click
-        const spinBtn = document.getElementById('rsp-spin-btn');
-        if (spinBtn) {
-            spinBtn.addEventListener('click', () => {
-                if (isSpinning) return;
-                const randomWin = Math.floor(Math.random() * 10);
-                spinWheel(randomWin, true);
-            });
         }
 
         // Initial RealSpinPro sync and start clock
         syncRealSpinProStatus();
         startLiveClock();
-        updateBetDisplays();
 
         // Periodic Status & Clock Sync (every 12 seconds)
         setInterval(syncRealSpinProStatus, 12000);

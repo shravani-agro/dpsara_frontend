@@ -1946,446 +1946,79 @@
           </div>
         </div>
       </section>
-      <!-- ================= REALSPINPRO LIVE WHEEL SECTION ================= -->
-      <section id="realspinpro-landing-section" class="pt-8 max-lg:pt-6 relative scroll-mt-24">
+      <!-- ================= REALSPINPRO LIVE PLAY BANNER ================= -->
+      <section id="realspinpro-landing-section" class="pt-8 max-lg:pt-6 scroll-mt-24">
         <div class="container mx-auto px-4">
-          
-          <!-- Section Title (Matches Main Market, Starline, Jackpot exactly) -->
-          <div class="text-center mb-8 max-lg:mb-6">
-            <span class="inline-flex items-center justify-center h-[48px] max-sm:h-[42px] px-7 max-sm:px-6 rounded-[12px] bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-[#16100E] text-[18px] max-sm:text-[16px] font-display font-bold tracking-[0.4px] leading-none shadow-[0_8px_18px_rgba(120,82,13,0.32)] max-sm:w-full">
-              <span class="inline-flex items-center gap-2">
-                <svg aria-hidden="true" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="m4.93 4.93 4.24 4.24"></path>
-                  <path d="m14.83 9.17 4.24-4.24"></path>
-                  <path d="m14.83 14.83 4.24 4.24"></path>
-                  <path d="m9.17 14.83-4.24 4.24"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                <span>RealSpinPro Live Games</span>
-                <svg aria-hidden="true" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="m4.93 4.93 4.24 4.24"></path>
-                  <path d="m14.83 9.17 4.24-4.24"></path>
-                  <path d="m14.83 14.83 4.24 4.24"></path>
-                  <path d="m9.17 14.83-4.24 4.24"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-              </span>
-            </span>
-            <p class="mt-3 text-sm md:text-base text-dark leading-relaxed font-medium max-w-xl mx-auto">
-              24x7 Non-Stop 60-Second Instant Live Wheel • 0 to 9 Single Numbers • Win Up to 30X Multiplier • Instant App Payouts
-            </p>
-          </div>
+          <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#18110B] via-[#2A1D13] to-[#18110B] border border-goldLight/40 p-6 sm:p-8 md:p-10 shadow-[0_16px_40px_rgba(27,19,10,0.16)] transition-all duration-300 hover:border-goldLight hover:shadow-[0_20px_50px_rgba(224,130,10,0.22)]">
+            <!-- Background Glow Highlights -->
+            <div class="absolute -top-24 -left-24 w-72 h-72 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-rose-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
-          <!-- 3 Feature & Rate Cards (Matches the 3-column market cards grid on DPSara) -->
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 mb-6">
-            
-            <!-- Card 1: Active Round & Countdown -->
-            <div class="bg-surfaceBg border border-borderColor rounded-2xl p-4 max-sm:p-3.5 md:p-[18px_20px] shadow-[0_10px_30px_rgba(27,19,10,0.04)] transition-all duration-300 hover:border-goldLight hover:shadow-[0_16px_34px_rgba(224,130,10,0.12)]">
-              <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-1.5">
-                    <span class="relative flex h-2.5 w-2.5">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                    </span>
-                    <h5 class="not-italic uppercase mb-0 font-display font-bold text-black leading-tight text-[18px] max-sm:text-[17px] tracking-wider truncate">
-                      Round #<span id="rsp-round-id" class="text-primary font-mono">1088</span>
-                    </h5>
-                  </div>
-                  <div class="flex items-baseline gap-2 mt-1">
-                    <span id="rsp-timer" class="font-mono font-black text-2xl max-sm:text-xl text-primary leading-none">00:45</span>
-                    <span class="text-xs text-dark/70 font-semibold">remaining</span>
-                  </div>
-                </div>
-                <div class="shrink-0 flex flex-col items-end justify-start gap-2">
-                  <span id="rsp-phase-badge" class="block text-[12px] max-sm:text-[11px] font-semibold leading-none whitespace-nowrap text-successGreen">
-                    Running for bets
-                  </span>
-                  <a aria-label="Play now" class="shrink-0 h-9 max-sm:h-8 px-3.5 max-sm:px-3 rounded-full inline-flex items-center justify-center gap-1.5 text-[13px] max-sm:text-[12px] font-display font-bold transition-all bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-white shadow-[0_6px_14px_rgba(120,82,13,0.28)] hover:brightness-105 hover:!text-white cursor-pointer" href="https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk">
-                    <svg aria-hidden="true" class="w-3.5 h-3.5 fill-current !text-white" viewBox="0 0 24 24">
-                      <path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path>
-                    </svg>Play Now
-                  </a>
-                </div>
-              </div>
-              <div class="flex items-center justify-between gap-2.5 mt-3 pt-3 max-sm:mt-2.5 max-sm:pt-2.5 border-t border-borderColor text-xs font-semibold text-dark/70">
-                <span>Frequency: Every 60 Seconds</span>
-                <span class="text-emerald-600 dark:text-emerald-400 font-bold">● Provably Fair</span>
-              </div>
-            </div>
-
-            <!-- Card 2: Multipliers & Win Rate -->
-            <div class="bg-surfaceBg border border-borderColor rounded-2xl p-4 max-sm:p-3.5 md:p-[18px_20px] shadow-[0_10px_30px_rgba(27,19,10,0.04)] transition-all duration-300 hover:border-goldLight hover:shadow-[0_16px_34px_rgba(224,130,10,0.12)]">
-              <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-1">
-                    <h5 class="not-italic uppercase mb-0 font-display font-bold text-black leading-tight text-[18px] max-sm:text-[17px] tracking-wider truncate">
-                      Multipliers
-                    </h5>
-                  </div>
-                  <span class="block text-left text-[20px] max-sm:text-[18px] font-bold text-black leading-none mt-1">
-                    Up to 30X
-                  </span>
-                </div>
-                <div class="shrink-0 flex flex-col items-end justify-start gap-2">
-                  <span class="block text-[12px] max-sm:text-[11px] font-semibold leading-none whitespace-nowrap text-successGreen">
-                    Dynamic Boost
-                  </span>
-                  <a aria-label="Play now" class="shrink-0 h-9 max-sm:h-8 px-3.5 max-sm:px-3 rounded-full inline-flex items-center justify-center gap-1.5 text-[13px] max-sm:text-[12px] font-display font-bold transition-all bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-white shadow-[0_6px_14px_rgba(120,82,13,0.28)] hover:brightness-105 hover:!text-white cursor-pointer" href="https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk">
-                    <svg aria-hidden="true" class="w-3.5 h-3.5 fill-current !text-white" viewBox="0 0 24 24">
-                      <path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path>
-                    </svg>Play Now
-                  </a>
-                </div>
-              </div>
-              <div class="flex items-center justify-between gap-2.5 mt-3 pt-3 max-sm:mt-2.5 max-sm:pt-2.5 border-t border-borderColor text-xs font-semibold">
-                <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400">1X (80%)</span>
-                <span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400">2X (15%)</span>
-                <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold">3X (5% Super)</span>
-              </div>
-            </div>
-
-            <!-- Card 3: Betting Limits & Speed -->
-            <div class="bg-surfaceBg border border-borderColor rounded-2xl p-4 max-sm:p-3.5 md:p-[18px_20px] shadow-[0_10px_30px_rgba(27,19,10,0.04)] transition-all duration-300 hover:border-goldLight hover:shadow-[0_16px_34px_rgba(224,130,10,0.12)]">
-              <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-1">
-                    <h5 class="not-italic uppercase mb-0 font-display font-bold text-black leading-tight text-[18px] max-sm:text-[17px] tracking-wider truncate">
-                      Bet Limits
-                    </h5>
-                  </div>
-                  <span class="block text-left text-[20px] max-sm:text-[18px] font-bold text-black leading-none mt-1">
-                    Min ₹1 — Instant
-                  </span>
-                </div>
-                <div class="shrink-0 flex flex-col items-end justify-start gap-2">
-                  <span class="block text-[12px] max-sm:text-[11px] font-semibold leading-none whitespace-nowrap text-successGreen">
-                    24x7 Active
-                  </span>
-                  <a aria-label="Play now" class="shrink-0 h-9 max-sm:h-8 px-3.5 max-sm:px-3 rounded-full inline-flex items-center justify-center gap-1.5 text-[13px] max-sm:text-[12px] font-display font-bold transition-all bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-white shadow-[0_6px_14px_rgba(120,82,13,0.28)] hover:brightness-105 hover:!text-white cursor-pointer" href="https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk">
-                    <svg aria-hidden="true" class="w-3.5 h-3.5 fill-current !text-white" viewBox="0 0 24 24">
-                      <path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path>
-                    </svg>Play Now
-                  </a>
-                </div>
-              </div>
-              <div class="flex items-center justify-between gap-2.5 mt-3 pt-3 max-sm:mt-2.5 max-sm:pt-2.5 border-t border-borderColor text-xs font-semibold text-dark/70">
-                <span>Fast UPI Deposits</span>
-                <span class="text-goldDark font-bold">Zero Delay Payout</span>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Main Interactive Game Arena Card (Matches Site Surface & Theme) -->
-          <div class="bg-surfaceBg border border-borderColor rounded-2xl p-4 sm:p-6 md:p-8 shadow-[0_10px_30px_rgba(27,19,10,0.04)] transition-all duration-300 hover:border-goldLight hover:shadow-[0_16px_34px_rgba(224,130,10,0.12)]">
-            
-            <!-- Live Header Bar (Matches Mobile App UI) -->
-            <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-6 border-b border-borderColor">
-              <div class="flex items-center gap-2">
-                <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-display font-bold text-xs uppercase tracking-wider">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span id="rsp-phase-badge-text">PLACE YOUR BET</span>
-                  <span id="rsp-timer-pill" class="font-mono font-black text-primary">45s</span>
-                </span>
-              </div>
-
-              <!-- Score & Balance Badges (Matching App Screen: PLAY, WIN, DEMO COINS) -->
-              <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-                <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-timeBg border border-borderColor text-xs font-semibold">
-                  <span class="text-dark/60">PLAY:</span>
-                  <span id="rsp-play-amount" class="font-mono font-black text-black dark:text-white">₹0</span>
-                </div>
-                <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-timeBg border border-borderColor text-xs font-semibold">
-                  <span class="text-dark/60">WIN:</span>
-                  <span id="rsp-win-amount" class="font-mono font-black text-emerald-600 dark:text-emerald-400">₹0</span>
-                </div>
-                <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-timeBg border border-borderColor text-xs font-semibold">
-                  <span class="text-dark/60">DEMO COINS:</span>
-                  <span id="rsp-demo-balance" class="font-mono font-black text-primary">₹5,000</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Two-Column Showcase: Left = Live Wheel & History | Right = 10 Betting Numbers & Chips -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+            <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-10">
               
-              <!-- Left Column: The 10-Segment Wheel with Diamond Pointer & History -->
-              <div class="lg:col-span-5 flex flex-col items-center justify-center">
-                <div class="relative w-[280px] h-[280px] sm:w-[310px] sm:h-[310px] mx-auto flex items-center justify-center">
-                  
-                  <!-- Top Diamond Pointer Needle (12 o'clock) matching App Screenshot -->
-                  <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-30 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-                    <svg width="28" height="34" viewBox="0 0 28 34" fill="none">
-                      <!-- Diamond Pointer -->
-                      <polygon points="14,32 5,16 14,2 23,16" fill="url(#diamondGrad)" stroke="#FFE29A" stroke-width="1.5"/>
-                      <polygon points="14,26 8,16 14,6 20,16" fill="#FFFFFF" opacity="0.8"/>
-                      <defs>
-                        <linearGradient id="diamondGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stop-color="#FFFFFF"/>
-                          <stop offset="50%" stop-color="#E2E8F0"/>
-                          <stop offset="100%" stop-color="#94A3B8"/>
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                  </div>
-
-                  <!-- Golden Outer Bezel with Bolted Edge Ring -->
-                  <div class="absolute inset-0 rounded-full border-4 border-[#F9B12B] shadow-[0_0_24px_rgba(249,177,43,0.3),inset_0_0_16px_rgba(0,0,0,0.4)] bg-[#1e1713]"></div>
-
-                  <!-- Rotating Roulette Wheel -->
-                  <div id="rsp-wheel" class="relative w-[260px] h-[260px] sm:w-[290px] sm:h-[290px] rounded-full overflow-hidden transition-transform duration-[4000ms] will-change-transform" style="transition-timing-function: cubic-bezier(0.12, 0.8, 0.2, 1);">
-                    <svg class="w-full h-full select-none pointer-events-none" viewBox="0 0 300 300">
-                      <!-- 10 Segments (0 to 9, 36 deg each) matching the app palette -->
-                      <!-- Segment 0: Top, Blue -->
-                      <g transform="rotate(0, 150, 150)">
-                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#1E88E5" stroke="#FFE29A" stroke-width="1"/>
-                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="22" font-weight="900" font-family="'Factor A', sans-serif">0</text>
-                      </g>
-                      <!-- Segment 1: Yellow / Gold -->
-                      <g transform="rotate(36, 150, 150)">
-                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#F59E0B" stroke="#FFE29A" stroke-width="1"/>
-                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="22" font-weight="900" font-family="'Factor A', sans-serif">1</text>
-                      </g>
-                      <!-- Segment 2: Green -->
-                      <g transform="rotate(72, 150, 150)">
-                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#10B981" stroke="#FFE29A" stroke-width="1"/>
-                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="22" font-weight="900" font-family="'Factor A', sans-serif">2</text>
-                      </g>
-                      <!-- Segment 3: Pink / Magenta -->
-                      <g transform="rotate(108, 150, 150)">
-                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#EC4899" stroke="#FFE29A" stroke-width="1"/>
-                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="22" font-weight="900" font-family="'Factor A', sans-serif">3</text>
-                      </g>
-                      <!-- Segment 4: Purple -->
-                      <g transform="rotate(144, 150, 150)">
-                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#8B5CF6" stroke="#FFE29A" stroke-width="1"/>
-                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="22" font-weight="900" font-family="'Factor A', sans-serif">4</text>
-                      </g>
-                      <!-- Segment 5: Red -->
-                      <g transform="rotate(180, 150, 150)">
-                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#EF4444" stroke="#FFE29A" stroke-width="1"/>
-                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="22" font-weight="900" font-family="'Factor A', sans-serif">5</text>
-                      </g>
-                      <!-- Segment 6: Orange -->
-                      <g transform="rotate(216, 150, 150)">
-                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#F97316" stroke="#FFE29A" stroke-width="1"/>
-                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="22" font-weight="900" font-family="'Factor A', sans-serif">6</text>
-                      </g>
-                      <!-- Segment 7: Teal / Cyan -->
-                      <g transform="rotate(252, 150, 150)">
-                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#06B6D4" stroke="#FFE29A" stroke-width="1"/>
-                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="22" font-weight="900" font-family="'Factor A', sans-serif">7</text>
-                      </g>
-                      <!-- Segment 8: Indigo -->
-                      <g transform="rotate(288, 150, 150)">
-                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#4F46E5" stroke="#FFE29A" stroke-width="1"/>
-                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="22" font-weight="900" font-family="'Factor A', sans-serif">8</text>
-                      </g>
-                      <!-- Segment 9: Bronze / Olive -->
-                      <g transform="rotate(324, 150, 150)">
-                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#B45309" stroke="#FFE29A" stroke-width="1"/>
-                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="22" font-weight="900" font-family="'Factor A', sans-serif">9</text>
-                      </g>
-
-                      <!-- Center Hub: Bolted Gold Ring with Center 'N' Logo -->
-                      <circle cx="150" cy="150" r="46" fill="#1C140E" stroke="#F9B12B" stroke-width="3"/>
-                      <circle cx="150" cy="150" r="38" fill="url(#centerGoldGrad)" stroke="#FFE29A" stroke-width="1.5"/>
-                      <circle cx="150" cy="150" r="28" fill="#F97316" stroke="#FFFFFF" stroke-width="1"/>
-                      <defs>
-                        <radialGradient id="centerGoldGrad" cx="50%" cy="50%" r="50%">
-                          <stop offset="0%" stop-color="#FFF2A3"/>
-                          <stop offset="60%" stop-color="#F9B12B"/>
-                          <stop offset="100%" stop-color="#C57D06"/>
-                        </radialGradient>
-                      </defs>
-                      <text x="150" y="157" text-anchor="middle" fill="#FFFFFF" font-size="22" font-weight="900" font-family="'Factor A', sans-serif">N</text>
-                    </svg>
-                  </div>
+              <!-- Left: Game Details & Play Button -->
+              <div class="flex-1 text-center lg:text-left">
+                
+                <!-- Live Pill Badge -->
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 dark:bg-surfaceBg/80 border border-goldLight/50 text-goldLight text-xs font-display font-bold uppercase tracking-wider mb-3 shadow-sm">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>24x7 Live Wheel</span>
+                  <span class="text-white/40">•</span>
+                  <span>Round #<span id="rsp-round-id" class="text-primary font-mono">1088</span></span>
+                  <span class="text-white/40">•</span>
+                  <span id="rsp-timer" class="font-mono text-white">00:45</span>
                 </div>
 
-                <!-- 10-Slot History Row matching the App Screenshot: HISTORY [-] [-] ... -->
-                <div class="w-full mt-5 text-center">
-                  <div class="flex items-center justify-center gap-1.5 flex-wrap">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-dark/70 dark:text-slate-400 mr-1 flex items-center gap-1">
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                      HISTORY:
-                    </span>
-                    <div id="rsp-history-strip" class="inline-flex items-center gap-1.5 flex-wrap justify-center">
-                      <!-- 10 History Pills -->
-                      <span class="rsp-hist-slot w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white bg-blue-600 shadow-sm">0</span>
-                      <span class="rsp-hist-slot w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white bg-emerald-600 shadow-sm">2</span>
-                      <span class="rsp-hist-slot w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white bg-red-600 shadow-sm">5</span>
-                      <span class="rsp-hist-slot w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white bg-cyan-600 shadow-sm">7</span>
-                      <span class="rsp-hist-slot w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white bg-purple-600 shadow-sm">4</span>
-                      <span class="rsp-hist-slot w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white bg-yellow-600 shadow-sm">1</span>
-                      <span class="rsp-hist-slot w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white bg-orange-600 shadow-sm">6</span>
-                      <span class="rsp-hist-slot w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white bg-indigo-600 shadow-sm">8</span>
-                      <span class="rsp-hist-slot w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white bg-pink-600 shadow-sm">3</span>
-                      <span class="rsp-hist-slot w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white bg-amber-700 shadow-sm">9</span>
-                    </div>
-                  </div>
+                <h2 class="font-display font-black text-2xl sm:text-3xl md:text-4xl text-white uppercase tracking-tight m-0 leading-tight">
+                  RealSpinPro <span class="bg-gradient-to-r from-gradGoldTop to-gradGoldBottom bg-clip-text text-transparent">Live Wheel</span>
+                </h2>
+
+                <p class="mt-2 text-sm sm:text-base text-slate-300 font-medium max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                  Fast-paced 60-second live wheel rounds with single digit bets (0–9) and up to <strong class="text-amber-400">30X multiplier payouts</strong>! Watch live &amp; play for real cash.
+                </p>
+
+                <!-- Features Strip -->
+                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-2.5 mt-4">
+                  <span class="px-3 py-1 rounded-xl bg-white/10 text-white text-xs font-bold border border-white/15">
+                    ⚡ 60-Sec Rapid Rounds
+                  </span>
+                  <span class="px-3 py-1 rounded-xl bg-amber-500/15 text-amber-300 text-xs font-bold border border-amber-500/30">
+                    🎯 Digits 0 to 9
+                  </span>
+                  <span class="px-3 py-1 rounded-xl bg-purple-500/15 text-purple-300 text-xs font-bold border border-purple-500/30">
+                    💥 Up to 3X Multipliers
+                  </span>
+                  <span class="px-3 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 text-xs font-bold border border-emerald-500/30">
+                    💰 Min Bet ₹1
+                  </span>
+                </div>
+
+                <!-- CTA Button -->
+                <div class="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                  <a href="https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk" class="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-full bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-black font-display font-bold text-sm sm:text-base uppercase tracking-wider shadow-[0_8px_22px_rgba(249,177,43,0.45)] hover:brightness-110 active:scale-95 transition-all no-underline w-full sm:w-auto">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg>
+                    <span>Play RealSpinPro Now</span>
+                  </a>
+                  <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    Instant UPI Withdrawals &amp; 24x7 Settlement
+                  </span>
                 </div>
 
               </div>
 
-              <!-- Right Column: Number Pads 1-5, 6-0, Quick Actions, Chips, and Play CTA -->
-              <div class="lg:col-span-7 flex flex-col justify-between h-full space-y-4">
-                
-                <div>
-                  <div class="flex items-center justify-between mb-2">
-                    <h5 class="text-sm font-bold uppercase tracking-wider text-black dark:text-white m-0">
-                      Pick Winning Numbers (0 — 9)
-                    </h5>
-                    <span class="text-xs font-semibold text-dark/70 dark:text-slate-400">
-                      Payout: <strong>9X stake x Multiplier</strong>
-                    </span>
+              <!-- Right: Wheel Showcase Graphic -->
+              <div class="shrink-0 flex items-center justify-center">
+                <a href="https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk" class="relative group block cursor-pointer">
+                  <div class="relative w-52 h-52 sm:w-64 sm:h-64 md:w-72 md:h-72 flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full bg-amber-500/15 blur-2xl group-hover:bg-amber-500/25 transition-all"></div>
+                    <img src="/realspinpro/spin_wheel.png" alt="RealSpinPro Live Wheel" class="w-full h-full object-contain relative z-10 drop-shadow-[0_12px_28px_rgba(0,0,0,0.6)] transition-transform duration-700 group-hover:scale-105" />
                   </div>
-
-                  <!-- 10 Number Tiles Grid: Row 1 = 1,2,3,4,5 | Row 2 = 6,7,8,9,0 (Matching Mobile App Screenshot) -->
-                  <div class="grid grid-cols-5 gap-2 sm:gap-2.5 mb-3">
-                    
-                    <!-- 1 -->
-                    <button type="button" data-rsp-num="1" class="rsp-num-btn group relative flex flex-col rounded-xl overflow-hidden border border-borderColor hover:border-goldLight transition-all duration-150 active:scale-95 shadow-sm">
-                      <div class="bg-[#E53935] text-white py-1.5 sm:py-2 text-center font-display font-black text-base sm:text-lg leading-none">1</div>
-                      <div class="rsp-bet-val bg-white dark:bg-timeBg text-black dark:text-white py-1 text-center font-mono font-bold text-xs sm:text-sm leading-none">-</div>
-                    </button>
-
-                    <!-- 2 -->
-                    <button type="button" data-rsp-num="2" class="rsp-num-btn group relative flex flex-col rounded-xl overflow-hidden border border-borderColor hover:border-goldLight transition-all duration-150 active:scale-95 shadow-sm">
-                      <div class="bg-[#E53935] text-white py-1.5 sm:py-2 text-center font-display font-black text-base sm:text-lg leading-none">2</div>
-                      <div class="rsp-bet-val bg-white dark:bg-timeBg text-black dark:text-white py-1 text-center font-mono font-bold text-xs sm:text-sm leading-none">-</div>
-                    </button>
-
-                    <!-- 3 -->
-                    <button type="button" data-rsp-num="3" class="rsp-num-btn group relative flex flex-col rounded-xl overflow-hidden border border-borderColor hover:border-goldLight transition-all duration-150 active:scale-95 shadow-sm">
-                      <div class="bg-[#E53935] text-white py-1.5 sm:py-2 text-center font-display font-black text-base sm:text-lg leading-none">3</div>
-                      <div class="rsp-bet-val bg-white dark:bg-timeBg text-black dark:text-white py-1 text-center font-mono font-bold text-xs sm:text-sm leading-none">-</div>
-                    </button>
-
-                    <!-- 4 -->
-                    <button type="button" data-rsp-num="4" class="rsp-num-btn group relative flex flex-col rounded-xl overflow-hidden border border-borderColor hover:border-goldLight transition-all duration-150 active:scale-95 shadow-sm">
-                      <div class="bg-[#E53935] text-white py-1.5 sm:py-2 text-center font-display font-black text-base sm:text-lg leading-none">4</div>
-                      <div class="rsp-bet-val bg-white dark:bg-timeBg text-black dark:text-white py-1 text-center font-mono font-bold text-xs sm:text-sm leading-none">-</div>
-                    </button>
-
-                    <!-- 5 -->
-                    <button type="button" data-rsp-num="5" class="rsp-num-btn group relative flex flex-col rounded-xl overflow-hidden border border-borderColor hover:border-goldLight transition-all duration-150 active:scale-95 shadow-sm">
-                      <div class="bg-[#E53935] text-white py-1.5 sm:py-2 text-center font-display font-black text-base sm:text-lg leading-none">5</div>
-                      <div class="rsp-bet-val bg-white dark:bg-timeBg text-black dark:text-white py-1 text-center font-mono font-bold text-xs sm:text-sm leading-none">-</div>
-                    </button>
-
-                    <!-- 6 -->
-                    <button type="button" data-rsp-num="6" class="rsp-num-btn group relative flex flex-col rounded-xl overflow-hidden border border-borderColor hover:border-goldLight transition-all duration-150 active:scale-95 shadow-sm">
-                      <div class="bg-[#E53935] text-white py-1.5 sm:py-2 text-center font-display font-black text-base sm:text-lg leading-none">6</div>
-                      <div class="rsp-bet-val bg-white dark:bg-timeBg text-black dark:text-white py-1 text-center font-mono font-bold text-xs sm:text-sm leading-none">-</div>
-                    </button>
-
-                    <!-- 7 -->
-                    <button type="button" data-rsp-num="7" class="rsp-num-btn group relative flex flex-col rounded-xl overflow-hidden border border-borderColor hover:border-goldLight transition-all duration-150 active:scale-95 shadow-sm">
-                      <div class="bg-[#E53935] text-white py-1.5 sm:py-2 text-center font-display font-black text-base sm:text-lg leading-none">7</div>
-                      <div class="rsp-bet-val bg-white dark:bg-timeBg text-black dark:text-white py-1 text-center font-mono font-bold text-xs sm:text-sm leading-none">-</div>
-                    </button>
-
-                    <!-- 8 -->
-                    <button type="button" data-rsp-num="8" class="rsp-num-btn group relative flex flex-col rounded-xl overflow-hidden border border-borderColor hover:border-goldLight transition-all duration-150 active:scale-95 shadow-sm">
-                      <div class="bg-[#E53935] text-white py-1.5 sm:py-2 text-center font-display font-black text-base sm:text-lg leading-none">8</div>
-                      <div class="rsp-bet-val bg-white dark:bg-timeBg text-black dark:text-white py-1 text-center font-mono font-bold text-xs sm:text-sm leading-none">-</div>
-                    </button>
-
-                    <!-- 9 -->
-                    <button type="button" data-rsp-num="9" class="rsp-num-btn group relative flex flex-col rounded-xl overflow-hidden border border-borderColor hover:border-goldLight transition-all duration-150 active:scale-95 shadow-sm">
-                      <div class="bg-[#E53935] text-white py-1.5 sm:py-2 text-center font-display font-black text-base sm:text-lg leading-none">9</div>
-                      <div class="rsp-bet-val bg-white dark:bg-timeBg text-black dark:text-white py-1 text-center font-mono font-bold text-xs sm:text-sm leading-none">-</div>
-                    </button>
-
-                    <!-- 0 -->
-                    <button type="button" data-rsp-num="0" class="rsp-num-btn group relative flex flex-col rounded-xl overflow-hidden border border-borderColor hover:border-goldLight transition-all duration-150 active:scale-95 shadow-sm">
-                      <div class="bg-[#E53935] text-white py-1.5 sm:py-2 text-center font-display font-black text-base sm:text-lg leading-none">0</div>
-                      <div class="rsp-bet-val bg-white dark:bg-timeBg text-black dark:text-white py-1 text-center font-mono font-bold text-xs sm:text-sm leading-none">-</div>
-                    </button>
-
-                  </div>
-
-                  <!-- Quick Action Buttons: DOUBLE, REPEAT, ODDS, EVENS, CLEAR (Matching Screenshot) -->
-                  <div class="grid grid-cols-5 gap-1.5 sm:gap-2 mb-3">
-                    <button type="button" id="rsp-btn-double" class="h-8 rounded-lg border border-teal-500/40 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold text-[11px] uppercase tracking-wider transition-all hover:bg-teal-500/20 active:scale-95">
-                      DOUBLE
-                    </button>
-                    <button type="button" id="rsp-btn-repeat" class="h-8 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-[11px] uppercase tracking-wider transition-all hover:bg-amber-500/20 active:scale-95">
-                      REPEAT
-                    </button>
-                    <button type="button" id="rsp-btn-odds" class="h-8 rounded-lg border border-borderColor bg-timeBg text-black dark:text-white font-bold text-[11px] uppercase tracking-wider transition-all hover:border-goldLight active:scale-95">
-                      ODDS
-                    </button>
-                    <button type="button" id="rsp-btn-evens" class="h-8 rounded-lg border border-borderColor bg-timeBg text-black dark:text-white font-bold text-[11px] uppercase tracking-wider transition-all hover:border-goldLight active:scale-95">
-                      EVENS
-                    </button>
-                    <button type="button" id="rsp-clear-btn" class="h-8 rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-[11px] uppercase tracking-wider transition-all hover:bg-rose-500/20 active:scale-95">
-                      CLEAR
-                    </button>
-                  </div>
-
-                  <!-- Casino Chips Selector: 5, 10, 50, 100, 500 (Matching Screenshot) -->
-                  <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-timeBg border border-borderColor mb-4">
-                    <span class="text-xs font-bold uppercase tracking-wider text-dark/70 dark:text-slate-400 shrink-0">Select Chip:</span>
-                    <div class="flex items-center gap-2 sm:gap-3">
-                      <!-- 5 Purple -->
-                      <button type="button" data-rsp-chip="5" class="rsp-chip-btn w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/60 bg-[#9C27B0] text-white font-display font-black text-xs sm:text-sm flex items-center justify-center shadow transition-all duration-150 hover:scale-110 active:scale-95 cursor-pointer">5</button>
-                      <!-- 10 Blue (Default Selected) -->
-                      <button type="button" data-rsp-chip="10" class="rsp-chip-btn w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-primary ring-2 ring-primary bg-[#1E88E5] text-white font-display font-black text-xs sm:text-sm flex items-center justify-center shadow transition-all duration-150 scale-110 active:scale-95 cursor-pointer">10</button>
-                      <!-- 50 Red -->
-                      <button type="button" data-rsp-chip="50" class="rsp-chip-btn w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/60 bg-[#E53935] text-white font-display font-black text-xs sm:text-sm flex items-center justify-center shadow transition-all duration-150 hover:scale-110 active:scale-95 cursor-pointer">50</button>
-                      <!-- 100 Yellow -->
-                      <button type="button" data-rsp-chip="100" class="rsp-chip-btn w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-black/30 bg-[#FBC02D] text-black font-display font-black text-xs sm:text-sm flex items-center justify-center shadow transition-all duration-150 hover:scale-110 active:scale-95 cursor-pointer">100</button>
-                      <!-- 500 Green -->
-                      <button type="button" data-rsp-chip="500" class="rsp-chip-btn w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/60 bg-[#43A047] text-white font-display font-black text-xs sm:text-sm flex items-center justify-center shadow transition-all duration-150 hover:scale-110 active:scale-95 cursor-pointer">500</button>
-                    </div>
-                  </div>
-
-                  <!-- Spin Test Luck Button -->
-                  <div class="flex items-center gap-3">
-                    <button type="button" id="rsp-spin-btn" class="flex-1 inline-flex items-center justify-center gap-2 h-11 sm:h-12 rounded-xl bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-black font-display font-bold text-sm uppercase tracking-wider shadow-[0_6px_18px_rgba(249,177,43,0.32)] transition-all duration-200 hover:brightness-105 active:scale-95 cursor-pointer">
-                      <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg>
-                      <span>SPIN &amp; TEST LUCK</span>
-                    </button>
-                  </div>
-
-                  <!-- Live Outcome Alert Notification Box -->
-                  <div id="rsp-outcome-box" class="hidden mt-3 p-3 rounded-xl border border-goldLight/40 bg-timeBg text-center transition-all">
-                    <p id="rsp-outcome-msg" class="text-xs sm:text-sm font-bold text-black dark:text-white m-0">🎉 Winner Announced!</p>
-                  </div>
-                </div>
-
-                <!-- Call-To-Action: Play in DPSara App (Styled identically to DPSara CTAs) -->
-                <div class="pt-3 border-t border-borderColor">
-                  <div class="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl bg-timeBg border border-borderColor">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-xl bg-gradient-to-b from-gradGoldTop to-gradGoldBottom flex items-center justify-center text-black font-black text-lg shrink-0 shadow">
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg>
-                      </div>
-                      <div class="flex flex-col text-left">
-                        <span class="text-sm sm:text-base font-display font-bold text-black dark:text-white leading-tight">
-                          Play RealSpinPro in DPSara App
-                        </span>
-                        <span class="text-xs text-dark/70 font-medium">
-                          Single Numbers 0-9 • 60-Sec Live Rounds • Instant UPI Withdrawals
-                        </span>
-                      </div>
-                    </div>
-                    <a href="https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk" class="shrink-0 inline-flex items-center justify-center gap-1.5 h-10 px-5 rounded-full bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-black text-xs font-display font-bold uppercase tracking-wider shadow-[0_6px_14px_rgba(120,82,13,0.28)] hover:brightness-105 no-underline transition-all active:scale-95 w-full sm:w-auto">
-                      Download APK ➔
-                    </a>
-                  </div>
-                </div>
-
+                </a>
               </div>
 
             </div>
           </div>
-
         </div>
       </section>
 
