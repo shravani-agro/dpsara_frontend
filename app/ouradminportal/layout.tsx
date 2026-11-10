@@ -73,6 +73,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/ouradminportal/jackpot", label: "Jackpot Market & Results", icon: "💰", permKey: "show_jackpot" },
       { href: "/ouradminportal/jackpot-bids-history", label: "Jackpot Bids History", icon: "🎲", permKey: "show_bids" },
+      { href: "/ouradminportal/jackpot-bids", label: "Jackpot Bid Live Data", icon: "📊", permKey: "show_bid_data" },
     ],
   },
   {

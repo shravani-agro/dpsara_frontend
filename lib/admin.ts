@@ -532,6 +532,27 @@ export async function updateJackpotBidStatus(bidId: number, status: string) {
   return res.data;
 }
 
+export async function getJackpotBidsSummary(params: {
+  market_id?: number;
+  bid_date?: string;
+  session?: string;
+} = {}) {
+  const res = await client.get("/admin/jackpot/bids/summary", { params });
+  return res.data;
+}
+
+export async function getJackpotStats(): Promise<{
+  total_wagered: number;
+  total_payout: number;
+  total_profit: number;
+  total_players: number;
+  total_bets: number;
+  house_edge_pct: number;
+}> {
+  const res = await client.get("/admin/jackpot/stats");
+  return res.data;
+}
+
 /* ---------------- Admin: Notifications ---------------- */
 
 export async function broadcastNotification(title: string, message: string) {
@@ -904,6 +925,9 @@ export interface RealSpinProConfig {
     "2x": number;
     "3x": number;
   };
+  manual_override_number?: number | null;
+  manual_override_multiplier?: number | null;
+  kill_switch?: boolean;
 }
 
 export interface RealSpinProSettings {

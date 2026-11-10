@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import Link from "next/link";
 import { format } from "@/lib/format";
 import {
   Card,
@@ -23,6 +24,8 @@ import {
   listJackpotResults,
   bulkDeclareJackpotResults,
   deleteJackpotResult,
+  getJackpotStats,
+  getJackpotBidsSummary,
 } from "@/lib/admin";
 
 const OFFICIAL_JACKPOT_NUMBERS = [
@@ -58,6 +61,17 @@ export default function JackpotPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  // Overall Stats
+  const [stats, setStats] = useState<{
+    total_wagered: number;
+    total_payout: number;
+    total_profit: number;
+    total_players: number;
+    total_bets: number;
+    house_edge_pct: number;
+  } | null>(null);
 
   // Results Management State (Jackpot = Panna Numbers Only)
   const [declaredResults, setDeclaredResults] = useState<any[]>([]);
@@ -67,6 +81,10 @@ export default function JackpotPage() {
   const [pannaNumber, setPannaNumber] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [isDeclaring, setIsDeclaring] = useState(false);
+
+  // Slot Live Bets Breakdown
+  const [slotBids, setSlotBids] = useState<Record<string, number>>({});
+  const [loadingSlotBids, setLoadingSlotBids] = useState(false);
 
   // New Slot State
   const [newTime, setNewTime] = useState("");
@@ -89,11 +107,20 @@ export default function JackpotPage() {
     }
   }, []);
 
+  const loadStats = useCallback(async () => {
+    try {
+      const s = await getJackpotStats();
+      if (s) setStats(s);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const loadResults = useCallback(async () => {
     setLoadingResults(true);
     try {
       const data = await listJackpotResults();
-      setDeclaredResults(data);
+      setDeclaredResults(data || []);
     } catch {
       setDeclaredResults([]);
     } finally {
@@ -103,8 +130,43 @@ export default function JackpotPage() {
 
   useEffect(() => {
     load();
+    loadStats();
     loadResults();
-  }, [load, loadResults]);
+  }, [load, loadStats, loadResults]);
+
+  // Whenever sessionLabel or resultDate changes, fetch live bets on numbers
+  useEffect(() => {
+    if (!market || !sessionLabel || !resultDate) {
+      setSlotBids({});
+      return;
+    }
+    let active = true;
+    setLoadingSlotBids(true);
+    getJackpotBidsSummary({
+      market_id: market.id,
+      bid_date: resultDate,
+      session: sessionLabel,
+    })
+      .then((data: any[]) => {
+        if (!active) return;
+        const map: Record<string, number> = {};
+        for (const item of data || []) {
+          const num = String(item.selected_number || "").trim();
+          map[num] = (map[num] || 0) + (Number(item.total_amount) || 0);
+        }
+        setSlotBids(map);
+      })
+      .catch(() => {
+        if (active) setSlotBids({});
+      })
+      .finally(() => {
+        if (active) setLoadingSlotBids(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [market, sessionLabel, resultDate]);
 
   async function initMarket() {
     try {
@@ -115,12 +177,43 @@ export default function JackpotPage() {
         game_days: "Mon-Sun",
         sequence_number: 0,
         holiday_status: false,
+        is_active: true,
         schedules: OFFICIAL_JACKPOT_SLOTS,
       });
       load();
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || "Error initializing jackpot market");
       setLoading(false);
+    }
+  }
+
+  async function handleToggleActive(nextActive: boolean) {
+    if (!market) return;
+    setSavingSettings(true);
+    try {
+      const payload = { ...market, is_active: nextActive };
+      await updateJackpotMarket(market.id, payload);
+      setMarket(payload);
+      toast.success(`Jackpot market is now ${nextActive ? "ACTIVE" : "SUSPENDED"}`);
+    } catch (err: any) {
+      toast.error(parseApiError(err, "Failed to update market status"));
+    } finally {
+      setSavingSettings(false);
+    }
+  }
+
+  async function handleToggleHoliday(nextHoliday: boolean) {
+    if (!market) return;
+    setSavingSettings(true);
+    try {
+      const payload = { ...market, holiday_status: nextHoliday };
+      await updateJackpotMarket(market.id, payload);
+      setMarket(payload);
+      toast.success(`Jackpot holiday status updated to ${nextHoliday ? "HOLIDAY" : "OPEN"}`);
+    } catch (err: any) {
+      toast.error(parseApiError(err, "Failed to update holiday status"));
+    } finally {
+      setSavingSettings(false);
     }
   }
 
@@ -185,12 +278,6 @@ export default function JackpotPage() {
     }
   }
 
-  // Sanitize Panna input: 3 digits only
-  const handlePannaChange = (val: string) => {
-    const clean = val.replace(/\D/g, "").slice(0, 3);
-    setPannaNumber(clean);
-  };
-
   async function declareResult() {
     if (!market || !pannaNumber || !sessionLabel) return;
     if (!OFFICIAL_JACKPOT_NUMBERS.includes(pannaNumber)) {
@@ -214,9 +301,11 @@ export default function JackpotPage() {
         setError(first.detail || "Failed to declare result");
       } else {
         setMsg(first?.status === "updated" ? "Jackpot result updated successfully." : "Jackpot result declared successfully.");
+        toast.success(`Jackpot result for ${sessionLabel} declared: ♠ ${pannaNumber} ♠`);
         setPannaNumber("");
         setSessionLabel("");
         loadResults();
+        loadStats();
       }
     } catch (e: any) {
       setError(parseApiError(e, "Failed to declare result"));
@@ -229,8 +318,9 @@ export default function JackpotPage() {
     if (!confirm("Are you sure you want to delete this result? This will automatically revert any winnings and update user wallets!")) return;
     try {
       await deleteJackpotResult(id);
-      toast.success("Result deleted successfully");
+      toast.success("Result deleted successfully and bets rolled back");
       loadResults();
+      loadStats();
     } catch (err: any) {
       toast.error(parseApiError(err, "Failed to delete result"));
     }
@@ -244,19 +334,118 @@ export default function JackpotPage() {
     return val;
   };
 
+  const slotTotalWagered = useMemo(() => {
+    return Object.values(slotBids).reduce((acc, curr) => acc + curr, 0);
+  }, [slotBids]);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
       <PageHeader
-        title="Jackpot Settings & Results"
-        description="Manage Jackpot time slots and declare winning results (Only 10 official numbers: 000 - 999)"
+        title="Jackpot Console & Results"
+        description="Manage official 12 time slots, monitor live exposures, and declare triplet panna results (000 - 999)"
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/ouradminportal/jackpot-bids">
+              <Button variant="outline" size="sm" className="text-xs font-bold text-amber-600 dark:text-amber-400 border-amber-500/30">
+                Live Bid Data 📊
+              </Button>
+            </Link>
+            <Link href="/ouradminportal/jackpot-bids-history">
+              <Button variant="outline" size="sm" className="text-xs font-bold">
+                Bids History 🎲
+              </Button>
+            </Link>
+            <Link href="/ouradminportal/game-rates">
+              <Button variant="outline" size="sm" className="text-xs">
+                Game Rates 💰
+              </Button>
+            </Link>
+          </div>
+        }
       />
+
       <ErrorMsg msg={error} />
       {msg && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300 flex items-center justify-between">
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300 font-semibold flex items-center justify-between">
           <span>{msg}</span>
-          <button onClick={() => setMsg(null)} className="text-emerald-400 hover:text-white text-xs">✕</button>
+          <button onClick={() => setMsg(null)} className="text-emerald-600 dark:text-emerald-400 hover:text-white text-xs">✕</button>
         </div>
       )}
+
+      {/* KPI Performance Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <Card className="p-3.5 rounded-xl shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block mb-1">
+            Total Jackpot Bets
+          </span>
+          <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+            ₹{(stats?.total_wagered ?? 0).toLocaleString("en-IN")}
+          </div>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
+            {stats?.total_bets ?? 0} tickets placed
+          </span>
+        </Card>
+
+        <Card className="p-3.5 rounded-xl shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block mb-1">
+            Total Payouts
+          </span>
+          <div className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400">
+            ₹{(stats?.total_payout ?? 0).toLocaleString("en-IN")}
+          </div>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
+            Disbursed to winners
+          </span>
+        </Card>
+
+        <Card className="p-3.5 rounded-xl shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block mb-1">
+            House Profit (GGR)
+          </span>
+          <div
+            className={`text-lg sm:text-xl font-black ${
+              (stats?.total_profit ?? 0) >= 0 ? "text-blue-600 dark:text-blue-400" : "text-rose-600 dark:text-rose-400"
+            }`}
+          >
+            ₹{(stats?.total_profit ?? 0).toLocaleString("en-IN")}
+          </div>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
+            House Margin: {stats?.house_edge_pct ?? 0}%
+          </span>
+        </Card>
+
+        <Card className="p-3.5 rounded-xl shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block mb-1">
+            Active Players
+          </span>
+          <div className="text-lg sm:text-xl font-black text-purple-600 dark:text-purple-400">
+            {stats?.total_players ?? 0}
+          </div>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
+            Registered bettors
+          </span>
+        </Card>
+
+        <Card className="p-3.5 rounded-xl shadow-xs col-span-2 sm:col-span-1">
+          <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block mb-1">
+            Market Status
+          </span>
+          <div className="flex items-center gap-2 mt-1">
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black uppercase ${
+                market?.is_active !== false && !market?.holiday_status
+                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                  : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
+              }`}
+            >
+              {market?.holiday_status ? "● HOLIDAY" : market?.is_active !== false ? "● LIVE" : "○ PAUSED"}
+            </span>
+          </div>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
+            12 Daily Sessions
+          </span>
+        </Card>
+      </div>
 
       {loading ? (
         <div className="p-8 text-center">
@@ -266,9 +455,9 @@ export default function JackpotPage() {
         <Card title="Jackpot System Setup" className="text-center py-8">
           <EmptyState
             title="No Jackpot Market Found"
-            hint="Initialize the jackpot system to start adding time slots."
+            hint="Initialize the jackpot system to start adding time slots and accepting triplet bids."
           />
-          <Button onClick={initMarket} className="mt-4">
+          <Button onClick={initMarket} className="mt-4 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold">
             Initialize Jackpot System
           </Button>
         </Card>
@@ -276,16 +465,65 @@ export default function JackpotPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: Time Slots & Results */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Market Operation Controls */}
+            <Card
+              title="Jackpot Market Operational Settings"
+              subtitle="Quick switches to pause the market or set holiday mode"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 dark:text-white block">
+                      Market Availability
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Enables Jackpot game across the player mobile app.
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant={market.is_active !== false ? "primary" : "outline"}
+                    onClick={() => handleToggleActive(market.is_active === false)}
+                    disabled={savingSettings}
+                    className="text-xs font-bold"
+                  >
+                    {market.is_active !== false ? "ACTIVE" : "SUSPENDED"}
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 dark:text-white block">
+                      Holiday Mode
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Close betting today for national holidays / maintenance.
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant={market.holiday_status ? "danger" : "outline"}
+                    onClick={() => handleToggleHoliday(!market.holiday_status)}
+                    disabled={savingSettings}
+                    className="text-xs font-bold"
+                  >
+                    {market.holiday_status ? "HOLIDAY ON" : "OPEN NORMAL"}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
+            {/* Time Slots (Sessions) */}
             <Card
               title="Jackpot Time Slots (Sessions)"
-              subtitle="12 Official Time Slots (10:00 AM to 09:00 PM) — Jackpot has time only, no names"
+              subtitle="12 Official Time Slots (10:00 AM to 09:00 PM) — Every hour on the dot"
               actions={
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={handleSyncOfficialSlots}
                   disabled={isSyncing}
-                  className="border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
+                  className="border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 text-xs font-bold"
                 >
                   {isSyncing ? "Syncing..." : "⚡ Sync 12 Official Slots (10:00 AM - 09:00 PM)"}
                 </Button>
@@ -296,7 +534,7 @@ export default function JackpotPage() {
                   <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Result Time</label>
                   <TimePicker value={newTime} onChange={setNewTime} />
                 </div>
-                <Button onClick={handleAddSlot} disabled={!newTime || isAddingSlot} className="mb-0.5">
+                <Button onClick={handleAddSlot} disabled={!newTime || isAddingSlot} className="mb-0.5 text-xs font-bold">
                   {isAddingSlot ? "Adding..." : "+ Add Slot"}
                 </Button>
               </div>
@@ -331,6 +569,7 @@ export default function JackpotPage() {
               )}
             </Card>
 
+            {/* Results History Table */}
             <Card title="Recent Jackpot Results" subtitle="Panna Numbers history for Jackpot slots">
               {loadingResults ? (
                 <Spinner />
@@ -363,7 +602,7 @@ export default function JackpotPage() {
                             <td className="px-3 font-semibold text-slate-900 dark:text-white">{r.session_label}</td>
                             <td className="px-3 text-center">
                               <span className="inline-block rounded-lg bg-amber-500/10 border border-amber-500/40 px-3.5 py-1 font-mono font-black text-amber-700 dark:text-amber-300 text-lg tracking-widest">
-                                {pannaVal}
+                                ♠ {pannaVal} ♠
                               </span>
                             </td>
                             <td className="px-3 text-right space-x-2 whitespace-nowrap">
@@ -417,6 +656,21 @@ export default function JackpotPage() {
                   </Select>
                 </div>
 
+                {/* Live Exposure Preview for Selected Slot */}
+                {sessionLabel && (
+                  <div className="p-3.5 rounded-xl border border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20 space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-bold text-blue-700 dark:text-blue-300">
+                      <span>Live Slot Bets: {sessionLabel}</span>
+                      <span>
+                        {loadingSlotBids ? "Calculating..." : `₹${slotTotalWagered.toLocaleString("en-IN")}`}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Check amounts below to verify house payout liability before declaring.
+                    </p>
+                  </div>
+                )}
+
                 {/* 10 Official Numbers Selector (000 - 999) */}
                 <div className="rounded-xl border border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 p-4 space-y-3">
                   <div className="flex items-center justify-between">
@@ -430,10 +684,11 @@ export default function JackpotPage() {
                     </Badge>
                   </div>
 
-                  {/* 10 Interactive Number Chips */}
+                  {/* 10 Interactive Number Chips with Live Bets Indicator */}
                   <div className="grid grid-cols-5 gap-2">
                     {OFFICIAL_JACKPOT_NUMBERS.map((num) => {
                       const isSelected = pannaNumber === num;
+                      const betAmt = slotBids[num] || 0;
                       return (
                         <button
                           key={num}
@@ -442,13 +697,18 @@ export default function JackpotPage() {
                             setError(null);
                             setPannaNumber(num);
                           }}
-                          className={`py-2 px-1 text-center font-mono font-black text-sm rounded-lg border transition-all ${
+                          className={`py-2 px-1 text-center font-mono font-black text-sm rounded-lg border transition-all flex flex-col items-center justify-center ${
                             isSelected
                               ? "bg-amber-400 text-slate-950 border-amber-300 shadow-md shadow-amber-500/40 scale-105"
                               : "bg-white dark:bg-slate-800/80 text-amber-700 dark:text-amber-300 border-slate-200 dark:border-slate-700 hover:border-amber-500/50 hover:bg-amber-50/50 dark:hover:bg-slate-800"
                           }`}
                         >
-                          {num}
+                          <span>{num}</span>
+                          {betAmt > 0 && (
+                            <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                              ₹{betAmt}
+                            </span>
+                          )}
                         </button>
                       );
                     })}
@@ -468,7 +728,7 @@ export default function JackpotPage() {
                       <option value="">-- Choose from 10 Official Numbers --</option>
                       {OFFICIAL_JACKPOT_NUMBERS.map((num) => (
                         <option key={num} value={num}>
-                          ♠ {num} ♠
+                          ♠ {num} ♠ {slotBids[num] ? `(₹${slotBids[num]} bets)` : ""}
                         </option>
                       ))}
                     </Select>
@@ -490,6 +750,11 @@ export default function JackpotPage() {
                   <span className="text-xs text-slate-500 dark:text-slate-400 block mt-2">
                     Slot: <strong className="text-slate-900 dark:text-white font-bold">{sessionLabel || "Not Selected"}</strong>
                   </span>
+                  {pannaNumber && slotBids[pannaNumber] !== undefined && (
+                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold block mt-1">
+                      Bets on {pannaNumber}: ₹{slotBids[pannaNumber].toLocaleString("en-IN")}
+                    </span>
+                  )}
                 </div>
 
                 <Button

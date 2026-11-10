@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import Link from "next/link";
 import {
   Card,
   Button,
@@ -29,6 +30,8 @@ import {
   XCircle,
   Clock,
   RotateCcw,
+  Zap,
+  Flame,
 } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { parseApiError } from "@/lib/error-parser";
@@ -64,6 +67,9 @@ const DEFAULT_CONFIG: RealSpinProConfig = {
     "2x": 15,
     "3x": 5,
   },
+  manual_override_number: null,
+  manual_override_multiplier: 1,
+  kill_switch: false,
 };
 
 export default function RealSpinProPage() {
@@ -90,8 +96,8 @@ export default function RealSpinProPage() {
     redis_connected?: boolean;
   } | null>(null);
 
-  // Active Main Tab: "rounds" | "bets" | "reference"
-  const [activeTab, setActiveTab] = useState<"rounds" | "bets" | "reference">("rounds");
+  // Active Main Tab: "rounds" | "bets" | "manual_control" | "reference"
+  const [activeTab, setActiveTab] = useState<"rounds" | "bets" | "manual_control" | "reference">("rounds");
 
   // Bets & Rounds
   const [bets, setBets] = useState<any[]>([]);
@@ -99,6 +105,18 @@ export default function RealSpinProPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [betOutcomeFilter, setBetOutcomeFilter] = useState<"all" | "won" | "lost" | "pending">("all");
   const [loadingData, setLoadingData] = useState<boolean>(true);
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
+
+  // Countdown timer for 60-second cycle
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(60);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      setSecondsRemaining(60 - now.getSeconds());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const fetchLiveGameData = useCallback(async () => {
     try {
@@ -132,6 +150,9 @@ export default function RealSpinProPage() {
             "2x": data.config.multipliers?.["2x"] ?? 15,
             "3x": data.config.multipliers?.["3x"] ?? 5,
           },
+          manual_override_number: data.config.manual_override_number ?? null,
+          manual_override_multiplier: data.config.manual_override_multiplier ?? 1,
+          kill_switch: Boolean(data.config.kill_switch),
         });
       }
     } catch (err: any) {
@@ -143,10 +164,10 @@ export default function RealSpinProPage() {
     fetchSettings();
     fetchLiveGameData();
 
-    // Auto-poll live game data every 4 seconds
-    const interval = setInterval(fetchLiveGameData, 4000);
+    if (!autoRefresh) return;
+    const interval = setInterval(fetchLiveGameData, 3500);
     return () => clearInterval(interval);
-  }, [fetchSettings, fetchLiveGameData]);
+  }, [fetchSettings, fetchLiveGameData, autoRefresh]);
 
   const handleToggle = async (nextState: boolean) => {
     setSavingToggle(true);
@@ -154,7 +175,7 @@ export default function RealSpinProPage() {
     try {
       await updateRealSpinProSettings({ enabled: nextState });
       setEnabled(nextState);
-      const stateText = nextState ? "ACTIVATED on Mobile" : "DEACTIVATED / Hidden";
+      const stateText = nextState ? "ACTIVATED on Mobile" : "DEACTIVATED / Paused";
       toast.success(`RealSpinPro is now ${stateText}`);
     } catch (err: any) {
       setError(parseApiError(err));
@@ -163,12 +184,14 @@ export default function RealSpinProPage() {
     }
   };
 
-  const handleSaveConfig = async () => {
+  const handleSaveConfig = async (overrideConfig?: RealSpinProConfig) => {
     setSavingConfig(true);
     setError(null);
+    const targetConfig = overrideConfig || config;
     try {
-      await updateRealSpinProSettings({ config });
-      toast.success("Game settings and profit controls saved successfully!");
+      await updateRealSpinProSettings({ config: targetConfig });
+      setConfig(targetConfig);
+      toast.success("Game controls and profit settings saved successfully!");
       setIsSettingsOpen(false);
     } catch (err: any) {
       setError(parseApiError(err));
@@ -193,14 +216,40 @@ export default function RealSpinProPage() {
     return Math.round((w / multiplierTotalWeight) * 100);
   };
 
+  // Active round analysis
+  const activeRound = useMemo(() => {
+    if (!rounds || rounds.length === 0) return null;
+    return rounds[0];
+  }, [rounds]);
+
+  // Breakdown of bets for the current active round across digits 0 to 9
+  const activeRoundBetsByNumber = useMemo(() => {
+    const map: Record<number, number> = {
+      0: 0, 1: 0, 2: 0, 3: 0, 4: 0,
+      5: 0, 6: 0, 7: 0, 8: 0, 9: 0,
+    };
+    if (!activeRound) return map;
+    for (const b of bets) {
+      if (Number(b.round_id) === Number(activeRound.id)) {
+        const num = Number(b.number);
+        if (num >= 0 && num <= 9) {
+          map[num] = (map[num] || 0) + (Number(b.amount) || 0);
+        }
+      }
+    }
+    return map;
+  }, [bets, activeRound]);
+
+  const activeRoundTotalBets = useMemo(() => {
+    return Object.values(activeRoundBetsByNumber).reduce((a, b) => a + b, 0);
+  }, [activeRoundBetsByNumber]);
+
   const filteredBets = bets.filter((b) => {
-    // Status filter
     if (betOutcomeFilter !== "all") {
       if (betOutcomeFilter === "won" && b.status !== "won") return false;
       if (betOutcomeFilter === "lost" && b.status !== "lost") return false;
-      if (betOutcomeFilter === "pending" && b.status === "won" && b.status === "lost") return false;
+      if (betOutcomeFilter === "pending" && (b.status === "won" || b.status === "lost")) return false;
     }
-    // Search query
     if (!searchTerm.trim()) return true;
     const q = searchTerm.toLowerCase();
     return (
@@ -224,7 +273,7 @@ export default function RealSpinProPage() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <h1 className="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-wide truncate">
-                RealSpinPro
+                RealSpinPro Console
               </h1>
               <Badge
                 variant={enabled ? "success" : "danger"}
@@ -232,6 +281,11 @@ export default function RealSpinProPage() {
               >
                 {enabled ? "● LIVE" : "○ OFF"}
               </Badge>
+              {config.manual_override_number !== null && config.manual_override_number !== undefined && (
+                <Badge variant="warning" className="text-[10px] px-2 py-0.5 font-extrabold uppercase animate-pulse">
+                  ⚡ OVERRIDE: {config.manual_override_number}
+                </Badge>
+              )}
               {stats?.redis_connected !== undefined && (
                 <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-cyan-600 dark:text-cyan-400 font-medium">
                   ⚡ Redis Hub
@@ -239,13 +293,19 @@ export default function RealSpinProPage() {
               )}
             </div>
             <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
-              1 ka 9 Spinning Game Engine • Real-time DPSara Wallet Bets
+              1 ka 9 Spinning Game Engine • Real-time DPSara Wallet Bets &amp; Profit Controller
             </p>
           </div>
         </div>
 
         {/* Action Controls: Quick Switch, Settings Gear & Refresh */}
         <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200 dark:border-slate-800">
+          <Link href="/ouradminportal/realspinpro-bids-history">
+            <Button variant="outline" size="sm" className="text-xs h-9 font-bold px-2.5 hidden md:inline-flex">
+              Bids History 🎰
+            </Button>
+          </Link>
+
           {/* Quick Mobile Master Toggle */}
           <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5">
             <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 hidden xs:inline">App:</span>
@@ -383,6 +443,92 @@ export default function RealSpinProPage() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════════ */}
+      {/* ACTIVE ROUND RADAR & LIVE BETS BREAKDOWN */}
+      {/* ══════════════════════════════════════════════════════════════════════════ */}
+      {activeRound && (
+        <Card className="p-4 sm:p-5 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <span className="w-3.5 h-3.5 rounded-full bg-amber-500 block animate-ping" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 absolute top-0.5 left-0.5" />
+              </div>
+              <div>
+                <span className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>Current Active Round #{activeRound.id}</span>
+                  <Badge variant={secondsRemaining > 15 ? "warning" : "danger"} className="text-[10px] font-black uppercase">
+                    {secondsRemaining > 15 ? `BETTING OPEN (${secondsRemaining}s)` : `SPINNING (${secondsRemaining}s)`}
+                  </Badge>
+                </span>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Pool: ₹{Number(activeRound.total_pool || activeRoundTotalBets).toFixed(2)} • {activeRound.bets_count || 0} Bets placed
+                </p>
+              </div>
+            </div>
+
+            {/* Countdown Progress Bar */}
+            <div className="flex items-center gap-3 min-w-[200px]">
+              <div className="flex-1 bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full transition-all duration-1000",
+                    secondsRemaining > 20 ? "bg-amber-500" : secondsRemaining > 10 ? "bg-orange-500" : "bg-rose-500 animate-pulse"
+                  )}
+                  style={{ width: `${(secondsRemaining / 60) * 100}%` }}
+                />
+              </div>
+              <span className="font-mono text-xs font-black text-slate-900 dark:text-white shrink-0">
+                {secondsRemaining}s
+              </span>
+            </div>
+          </div>
+
+          {/* 10 Digits Live Exposure Distribution */}
+          <div className="mt-3">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">
+              Active Round Wager Distribution by Number (0 – 9)
+            </span>
+            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => {
+                const amount = activeRoundBetsByNumber[num] || 0;
+                const isOverridden = config.manual_override_number === num;
+                return (
+                  <div
+                    key={num}
+                    className={cn(
+                      "p-2 rounded-xl border text-center transition-all",
+                      isOverridden
+                        ? "border-amber-500 bg-amber-500/20 ring-1 ring-amber-500/50"
+                        : amount > 0
+                        ? "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 opacity-60"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "inline-flex items-center justify-center w-6 h-6 rounded-full font-black text-xs shadow-xs mx-auto mb-1",
+                        NUMBER_COLORS[num]
+                      )}
+                    >
+                      {num}
+                    </span>
+                    <span className="text-[10px] font-bold block text-slate-900 dark:text-white truncate">
+                      ₹{amount}
+                    </span>
+                    {isOverridden && (
+                      <span className="text-[8px] font-black uppercase text-amber-600 dark:text-amber-400 block">
+                        ★ NEXT WIN
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════════ */}
       {/* MAIN OPERATIONS CONTAINER & TABS */}
       {/* ══════════════════════════════════════════════════════════════════════════ */}
       <Card className="p-3 sm:p-6 rounded-2xl shadow-sm">
@@ -416,6 +562,19 @@ export default function RealSpinProPage() {
             </button>
 
             <button
+              onClick={() => setActiveTab("manual_control")}
+              className={cn(
+                "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shrink-0",
+                activeTab === "manual_control"
+                  ? "bg-amber-500 text-neutral-950 shadow-md font-black"
+                  : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"
+              )}
+            >
+              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Manual Override
+            </button>
+
+            <button
               onClick={() => setActiveTab("reference")}
               className={cn(
                 "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shrink-0",
@@ -425,7 +584,7 @@ export default function RealSpinProPage() {
               )}
             >
               <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Rules & Matrix
+              Rules &amp; Matrix
             </button>
           </div>
 
@@ -464,27 +623,6 @@ export default function RealSpinProPage() {
         {/* ══════════════════════════════════════════════════════════════════════════ */}
         {activeTab === "rounds" && (
           <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-4">
-            {/* Live Active Round Banner */}
-            {rounds.length > 0 && rounds[0].status !== "settled" && (
-              <div className="p-3 sm:p-4 rounded-xl border border-amber-500/40 bg-amber-500/10 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-3 h-3 rounded-full bg-amber-400 animate-ping" />
-                  <div>
-                    <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                      Active Round #{rounds[0].id}
-                    </span>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                      Bets Pool: ₹{Number(rounds[0].total_pool).toFixed(2)} ({rounds[0].bets_count} bets placed)
-                    </p>
-                  </div>
-                </div>
-                <Badge variant="warning" className="text-xs font-bold uppercase px-2.5 py-1">
-                  {rounds[0].status}
-                </Badge>
-              </div>
-            )}
-
-            {/* Rounds Table (Horizontal scroll for mobile) */}
             {rounds.length === 0 ? (
               <div className="py-12 text-center text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
                 No rounds data found.
@@ -640,7 +778,127 @@ export default function RealSpinProPage() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════════════════ */}
-        {/* TAB 3: RULES & MULTIPLIERS REFERENCE */}
+        {/* TAB 3: OPERATOR MANUAL OVERRIDE (NEXT ROUND LUCKY NUMBER) */}
+        {/* ══════════════════════════════════════════════════════════════════════════ */}
+        {activeTab === "manual_control" && (
+          <div className="mt-3 sm:mt-5 space-y-5 max-w-3xl">
+            <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Flame className="w-4 h-4 text-amber-500" />
+                Next Round Lucky Number Override
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                Select a designated number 0–9 to guarantee the winner for the upcoming round. The algorithm will automatically revert to default profit-driven mode once this round is settled.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
+                Choose Target Winning Number:
+              </label>
+              <div className="grid grid-cols-5 sm:grid-cols-11 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = { ...config, manual_override_number: null };
+                    setConfig(next);
+                    handleSaveConfig(next);
+                  }}
+                  className={cn(
+                    "py-2.5 px-2 rounded-xl border text-xs font-bold transition-all",
+                    config.manual_override_number === null
+                      ? "bg-amber-500 text-neutral-950 border-amber-600 shadow-md font-black"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                  )}
+                >
+                  AUTO
+                </button>
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => {
+                  const isSelected = config.manual_override_number === num;
+                  return (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => {
+                        const next = { ...config, manual_override_number: num };
+                        setConfig(next);
+                        handleSaveConfig(next);
+                      }}
+                      className={cn(
+                        "py-2 px-1 rounded-xl border font-black text-sm transition-all flex flex-col items-center justify-center gap-1",
+                        isSelected
+                          ? "ring-2 ring-amber-500 scale-105 shadow-md bg-amber-500/20 border-amber-500"
+                          : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-amber-400"
+                      )}
+                    >
+                      <span className={cn("w-6 h-6 rounded-full inline-flex items-center justify-center text-xs", NUMBER_COLORS[num])}>
+                        {num}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Override Multiplier */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
+                Optional Override Multiplier:
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {[1, 2, 3].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => {
+                      const next = { ...config, manual_override_multiplier: m };
+                      setConfig(next);
+                      handleSaveConfig(next);
+                    }}
+                    className={cn(
+                      "py-2.5 px-3 rounded-xl border text-xs font-bold transition-all",
+                      config.manual_override_multiplier === m
+                        ? "bg-amber-500 text-neutral-950 border-amber-600 font-black shadow-sm"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                    )}
+                  >
+                    {m}x Multiplier ({m * 9}x Payout)
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-slate-900 dark:text-white block">
+                  Current Status:
+                </span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                  {config.manual_override_number !== null
+                    ? `Overriding Next Round to Number ${config.manual_override_number} (${config.manual_override_multiplier || 1}x)`
+                    : "Automatic Profit-Driven Engine Active"}
+                </span>
+              </div>
+              {config.manual_override_number !== null && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const next = { ...config, manual_override_number: null };
+                    setConfig(next);
+                    handleSaveConfig(next);
+                  }}
+                  className="text-xs font-bold text-rose-600"
+                >
+                  Cancel Override
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════════ */}
+        {/* TAB 4: RULES & MULTIPLIERS REFERENCE */}
         {/* ══════════════════════════════════════════════════════════════════════════ */}
         {activeTab === "reference" && (
           <div className="mt-3 sm:mt-5 space-y-4 sm:space-y-6">
@@ -911,7 +1169,7 @@ export default function RealSpinProPage() {
               </div>
 
               {/* 2x */}
-              <div className="p-3 rounded-xl border border-blue-500/30 bg-blue-500/5 text-center">
+              <div className="p-3 rounded-xl border border-blue-500/30 bg-blue-50/5 text-center">
                 <span className="text-xs font-bold text-blue-700 dark:text-blue-300 block">2x (18x)</span>
                 <Badge variant="primary" className="text-[9px] font-bold my-1">
                   {getWeightPct(config.multipliers["2x"])}%
@@ -934,7 +1192,7 @@ export default function RealSpinProPage() {
               </div>
 
               {/* 3x */}
-              <div className="p-3 rounded-xl border border-purple-500/30 bg-purple-500/5 text-center">
+              <div className="p-3 rounded-xl border border-purple-500/30 bg-purple-50/5 text-center">
                 <span className="text-xs font-bold text-purple-700 dark:text-purple-300 block">3x (27x)</span>
                 <Badge variant="warning" className="text-[9px] font-bold my-1">
                   {getWeightPct(config.multipliers["3x"])}%
@@ -1041,7 +1299,7 @@ export default function RealSpinProPage() {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={handleSaveConfig}
+                onClick={() => handleSaveConfig()}
                 loading={savingConfig}
                 className="bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold text-xs gap-1.5 shadow-md shadow-amber-500/20"
               >
