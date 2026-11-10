@@ -515,6 +515,23 @@ export async function deleteJackpotResult(resultId: number) {
   return res.data;
 }
 
+/* ---------------- Admin: Jackpot: Bids ---------------- */
+
+export async function listJackpotBids(params: any = {}) {
+  const res = await client.get("/admin/jackpot/bids", { params });
+  return res.data;
+}
+
+export async function cancelJackpotBet(bidId: number) {
+  const res = await client.post(`/admin/jackpot/bids/${bidId}/cancel`);
+  return res.data;
+}
+
+export async function updateJackpotBidStatus(bidId: number, status: string) {
+  const res = await client.patch(`/admin/jackpot/bids/${bidId}/status`, { status });
+  return res.data;
+}
+
 /* ---------------- Admin: Notifications ---------------- */
 
 export async function broadcastNotification(title: string, message: string) {
@@ -922,9 +939,17 @@ export async function getRealSpinProStats(): Promise<{
   return res.data;
 }
 
-export async function getRealSpinProBets(limit: number = 50, roundId?: number): Promise<any[]> {
-  const params: any = { limit };
-  if (roundId) params.round_id = roundId;
+export async function getRealSpinProBets(
+  limitOrParams: number | any = 100,
+  roundId?: number
+): Promise<any[]> {
+  let params: any = {};
+  if (typeof limitOrParams === "number") {
+    params.limit = limitOrParams;
+    if (roundId) params.round_id = roundId;
+  } else if (limitOrParams && typeof limitOrParams === "object") {
+    params = limitOrParams;
+  }
   const res = await client.get("/admin/realspinpro/bets", { params });
   return res.data;
 }

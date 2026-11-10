@@ -675,7 +675,7 @@ export default function MarketsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-400">Sequence Number</label>
+                  <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">Sequence Number</label>
                   <Input
                     type="number"
                     value={formData.sequence_number}
@@ -686,9 +686,9 @@ export default function MarketsPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-400">Holiday Status</label>
-                  <div className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-slate-100 px-3">
-                    <span className="text-sm text-slate-600">
+                  <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">Holiday Status</label>
+                  <div className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-3">
+                    <span className="text-sm text-slate-700 dark:text-slate-200 font-medium">
                       {formData.holiday_status ? "Active Holiday" : "Normal"}
                     </span>
                     <div className="ml-auto">
@@ -723,7 +723,7 @@ export default function MarketsPage() {
         title="Delete Market"
         description={confirmDelete?.name}
       >
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
           This will permanently delete the market and all associated data from the database. Are you sure
           you want to continue?
         </p>

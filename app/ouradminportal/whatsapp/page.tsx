@@ -575,15 +575,15 @@ export default function WhatsAppMarketingPage() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Automated Event Notifications
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Instant trigger notifications sent straight to player WhatsApp inbox
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-300">Master WhatsApp Switch:</span>
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Master WhatsApp Switch:</span>
             <button
               type="button"
               onClick={() => setSettings((s) => ({ ...s, master_enabled: !s.master_enabled }))}
@@ -808,13 +808,13 @@ export default function WhatsAppMarketingPage() {
 
         {/* Collapsible Advanced Gateway Configuration */}
         {showConfig && (
-          <Card className="mt-4 p-4 border border-slate-700 bg-slate-950 space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+          <Card className="mt-4 p-4 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
               OpenWA Docker Gateway Settings
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Gateway Base URL</label>
+                <label className="text-xs text-slate-600 dark:text-slate-400 block mb-1">Gateway Base URL</label>
                 <Input
                   value={configUrl}
                   onChange={(e) => setConfigUrl(e.target.value)}
@@ -823,7 +823,7 @@ export default function WhatsAppMarketingPage() {
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Session ID</label>
+                <label className="text-xs text-slate-600 dark:text-slate-400 block mb-1">Session ID</label>
                 <Input
                   value={configSessionId}
                   onChange={(e) => setConfigSessionId(e.target.value)}
@@ -832,7 +832,7 @@ export default function WhatsAppMarketingPage() {
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-400 block mb-1">API Key</label>
+                <label className="text-xs text-slate-600 dark:text-slate-400 block mb-1">API Key</label>
                 <Input
                   value={configApiKey}
                   onChange={(e) => setConfigApiKey(e.target.value)}
@@ -854,10 +854,10 @@ export default function WhatsAppMarketingPage() {
       {/* BROADCAST & LIVE PREVIEW CENTER */}
       <div className="pt-2">
         <div className="mb-3">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
             WhatsApp Broadcast & Marketing Center
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Compose high-conversion personalized campaigns or pick presets to broadcast directly to your players
           </p>
         </div>
@@ -888,7 +888,7 @@ export default function WhatsAppMarketingPage() {
                       className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
                         selectedTemplateKey === tpl.key
                           ? "bg-emerald-600 text-white shadow-sm"
-                          : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                          : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
                       }`}
                     >
                       {tpl.label}
@@ -898,8 +898,8 @@ export default function WhatsAppMarketingPage() {
               </div>
 
               {/* Dynamic Tags Bar */}
-              <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+              <div className="bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
                   Insert Personalized Player Tags:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
@@ -914,10 +914,10 @@ export default function WhatsAppMarketingPage() {
                       key={item.tag}
                       type="button"
                       onClick={() => insertTag(item.tag)}
-                      className="px-2 py-0.5 rounded bg-emerald-950/60 hover:bg-emerald-800/60 text-emerald-300 border border-emerald-500/30 font-mono text-[11px] transition active:scale-95"
+                      className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-800/60 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-mono text-[11px] transition active:scale-95"
                       title={item.desc}
                     >
-                      {item.tag} <span className="text-[10px] text-emerald-400/70">({item.desc})</span>
+                      {item.tag} <span className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70">({item.desc})</span>
                     </button>
                   ))}
                 </div>
@@ -926,23 +926,23 @@ export default function WhatsAppMarketingPage() {
               {/* Target Audience */}
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
                     Target Audience
                   </label>
                   <select
                     value={broadcastTarget}
                     onChange={(e: any) => setBroadcastTarget(e.target.value)}
-                    className="w-full h-9 px-3 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200"
+                    className="w-full h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200"
                   >
                     <option value="active">Active Players Only (Recommended)</option>
                     <option value="all">All Registered Players</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
                     Dispatch Rate
                   </label>
-                  <div className="h-9 px-3 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-300 flex items-center">
+                  <div className="h-9 px-3 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-700 dark:text-slate-300 flex items-center">
                     0.5s per message (Anti-Spam Safe)
                   </div>
                 </div>
@@ -951,7 +951,7 @@ export default function WhatsAppMarketingPage() {
               {/* Message Textarea */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                     Message Content
                   </label>
                   <span className="text-[11px] text-slate-500 font-mono">
@@ -1005,35 +1005,35 @@ export default function WhatsAppMarketingPage() {
             {/* Broadcast History Table */}
             {history.length > 0 && (
               <Card className="p-4 border border-slate-200 dark:border-slate-800 space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   <span>📊</span>
                   <span>Recent Broadcast History</span>
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-slate-800 text-slate-400 text-left">
+                      <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-left">
                         <th className="pb-2">Date & Time</th>
                         <th className="pb-2">Target</th>
                         <th className="pb-2">Preview</th>
                         <th className="pb-2 text-right">Delivered</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                       {history.slice(0, 5).map((h, i) => (
-                        <tr key={h.id || i} className="text-slate-300">
+                        <tr key={h.id || i} className="text-slate-700 dark:text-slate-300">
                           <td className="py-2 font-mono text-[11px] whitespace-nowrap">{h.timestamp}</td>
                           <td className="py-2 capitalize">
-                            <span className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-semibold">
+                            <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-semibold border border-slate-200 dark:border-slate-700">
                               {h.target}
                             </span>
                           </td>
-                          <td className="py-2 text-slate-400 max-w-[200px] truncate" title={h.preview}>
+                          <td className="py-2 text-slate-500 dark:text-slate-400 max-w-[200px] truncate" title={h.preview}>
                             {h.preview}
                           </td>
                           <td className="py-2 text-right whitespace-nowrap">
-                            <span className="text-emerald-400 font-bold">{h.sent}</span>
-                            <span className="text-slate-500"> / {h.total}</span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">{h.sent}</span>
+                            <span className="text-slate-400 dark:text-slate-500"> / {h.total}</span>
                           </td>
                         </tr>
                       ))}

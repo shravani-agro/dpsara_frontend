@@ -72,12 +72,14 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Jackpot Market",
     items: [
       { href: "/ouradminportal/jackpot", label: "Jackpot Market & Results", icon: "💰", permKey: "show_jackpot" },
+      { href: "/ouradminportal/jackpot-bids-history", label: "Jackpot Bids History", icon: "🎲", permKey: "show_bids" },
     ],
   },
   {
     label: "RealSpinPro Game",
     items: [
       { href: "/ouradminportal/realspinpro", label: "RealSpinPro Console", icon: "🎡" },
+      { href: "/ouradminportal/realspinpro-bids-history", label: "RealSpinPro Bids History", icon: "🎰" },
     ],
   },
   {

@@ -291,9 +291,9 @@ export default function JackpotPage() {
                 </Button>
               }
             >
-              <div className="mb-6 p-4 rounded-xl border border-slate-700 bg-slate-800/40 flex flex-wrap gap-4 items-end">
+              <div className="mb-6 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 flex flex-wrap gap-4 items-end">
                 <div className="w-48">
-                  <label className="mb-1 block text-xs font-semibold text-slate-300">Result Time</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Result Time</label>
                   <TimePicker value={newTime} onChange={setNewTime} />
                 </div>
                 <Button onClick={handleAddSlot} disabled={!newTime || isAddingSlot} className="mb-0.5">
@@ -305,7 +305,7 @@ export default function JackpotPage() {
                 <div className="table-wrap">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700">
+                      <tr className="text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                         <th className="py-2.5 px-4">Time Slot</th>
                         <th className="py-2.5 px-4">Schedule Time</th>
                         <th className="text-right px-4">Action</th>
@@ -401,12 +401,12 @@ export default function JackpotPage() {
             >
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-300">Result Date *</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Result Date *</label>
                   <Input type="date" value={resultDate} onChange={(e) => setResultDate(e.target.value)} />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-300">Select Time Slot *</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Select Time Slot *</label>
                   <Select value={sessionLabel} onChange={(e) => setSessionLabel(e.target.value)}>
                     <option value="">-- Choose Slot --</option>
                     {market.schedules?.map((s: any) => (
@@ -418,9 +418,9 @@ export default function JackpotPage() {
                 </div>
 
                 {/* 10 Official Numbers Selector (000 - 999) */}
-                <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4 space-y-3">
+                <div className="rounded-xl border border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-amber-300">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
                       Select Winning Number *
                     </label>
                     <Badge color={OFFICIAL_JACKPOT_NUMBERS.includes(pannaNumber) ? "emerald" : "slate"}>
@@ -445,7 +445,7 @@ export default function JackpotPage() {
                           className={`py-2 px-1 text-center font-mono font-black text-sm rounded-lg border transition-all ${
                             isSelected
                               ? "bg-amber-400 text-slate-950 border-amber-300 shadow-md shadow-amber-500/40 scale-105"
-                              : "bg-slate-800/80 text-amber-300 border-slate-700 hover:border-amber-500/50 hover:bg-slate-800"
+                              : "bg-white dark:bg-slate-800/80 text-amber-700 dark:text-amber-300 border-slate-200 dark:border-slate-700 hover:border-amber-500/50 hover:bg-amber-50/50 dark:hover:bg-slate-800"
                           }`}
                         >
                           {num}
@@ -455,7 +455,7 @@ export default function JackpotPage() {
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-[11px] font-semibold text-slate-400">
+                    <label className="mb-1 block text-[11px] font-semibold text-slate-600 dark:text-slate-400">
                       Or Choose from Dropdown:
                     </label>
                     <Select
@@ -474,7 +474,7 @@ export default function JackpotPage() {
                     </Select>
                   </div>
 
-                  <span className="text-[11px] text-slate-400 block text-center">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 block text-center">
                     Jackpot numbers are strictly triplets: 000, 111, 222, 333, 444, 555, 666, 777, 888, 999.
                   </span>
                 </div>

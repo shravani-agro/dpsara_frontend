@@ -99,15 +99,26 @@ export function Button({
 
 export function Badge({
   children,
-  color = "slate",
+  color,
+  variant,
   className = "",
 }: {
   children: React.ReactNode;
   color?: "slate" | "green" | "red" | "amber" | "orange" | "blue" | "emerald" | "brand" | "violet";
+  variant?: "slate" | "green" | "red" | "amber" | "orange" | "blue" | "emerald" | "brand" | "violet" | "success" | "danger" | "warning" | "primary" | "info" | "secondary";
   className?: string;
 }) {
+  const resolvedColor = color || (
+    variant === "success" ? "emerald" :
+    variant === "danger" ? "red" :
+    variant === "warning" ? "amber" :
+    variant === "primary" ? "brand" :
+    variant === "info" ? "blue" :
+    variant === "secondary" ? "slate" :
+    (variant as any) || "slate"
+  );
   const colors: Record<string, string> = {
-    slate: "bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 shadow-sm",
+    slate: "bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 shadow-sm",
     green: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]",
     red: "bg-red-500/10 text-red-700 dark:text-red-400 ring-1 ring-inset ring-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
     amber: "bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-1 ring-inset ring-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.2)]",
@@ -121,7 +132,7 @@ export function Badge({
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-        colors[color],
+        colors[resolvedColor] || colors.slate,
         className
       )}
     >
@@ -648,7 +659,7 @@ export function TimePickerModal({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 10 }}
             transition={{ type: "spring", damping: 25, stiffness: 400 }}
-            className="w-full max-w-[320px] max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl overflow-hidden border border-slate-200" 
+            className="w-full max-w-[320px] max-h-[90vh] flex flex-col rounded-2xl bg-white dark:bg-slate-900 shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800" 
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
         <div className="flex items-center justify-center gap-6 bg-brand-600 p-6">
@@ -664,7 +675,7 @@ export function TimePickerModal({
            <div className="flex flex-col gap-1.5 text-sm font-semibold">
              <button 
                type="button" 
-               className={cn("rounded-md px-2.5 py-1 transition-colors", !isPM ? "bg-white text-brand-600 shadow-md" : "text-white/70 hover:bg-slate-200")} 
+               className={cn("rounded-md px-2.5 py-1 transition-colors", !isPM ? "bg-white text-brand-600 shadow-md" : "text-white/80 hover:bg-white/20")} 
                onClick={(e) => {
                  e.preventDefault();
                  e.stopPropagation();
@@ -675,7 +686,7 @@ export function TimePickerModal({
              </button>
              <button 
                type="button" 
-               className={cn("rounded-md px-2.5 py-1 transition-colors", isPM ? "bg-white text-brand-600 shadow-md" : "text-white/70 hover:bg-slate-200")} 
+               className={cn("rounded-md px-2.5 py-1 transition-colors", isPM ? "bg-white text-brand-600 shadow-md" : "text-white/80 hover:bg-white/20")} 
                onClick={(e) => {
                  e.preventDefault();
                  e.stopPropagation();
@@ -687,9 +698,9 @@ export function TimePickerModal({
            </div>
         </div>
 
-        <div className="flex justify-center p-4 sm:p-8 bg-slate-50 flex-1 overflow-y-auto min-h-0">
+        <div className="flex justify-center p-4 sm:p-8 bg-slate-50 dark:bg-slate-950/60 flex-1 overflow-y-auto min-h-0">
            <div 
-             className="relative h-[260px] w-[260px] rounded-full bg-slate-50 shadow-inner ring-1 ring-slate-100"
+             className="relative h-[260px] w-[260px] rounded-full bg-slate-100 dark:bg-slate-800/80 shadow-inner ring-1 ring-slate-200 dark:ring-slate-700/80"
              onPointerDown={(e) => {
                (e.target as HTMLElement).setPointerCapture(e.pointerId);
                handleClockAction(e, false);
@@ -725,7 +736,7 @@ export function TimePickerModal({
                     key={n}
                     className={cn(
                       "absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-sm pointer-events-none transition-colors",
-                      isActive ? "text-white font-bold" : "text-slate-500"
+                      isActive ? "text-white font-bold" : "text-slate-700 dark:text-slate-300 font-medium"
                     )}
                     style={{ left: x, top: y }}
                   >
@@ -736,7 +747,7 @@ export function TimePickerModal({
            </div>
         </div>
 
-        <div className="flex shrink-0 justify-end gap-3 p-4 bg-slate-50 border-t border-slate-100">
+        <div className="flex shrink-0 justify-end gap-3 p-4 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800">
            <Button variant="ghost" onClick={onClose}>Cancel</Button>
            <Button variant="primary" onClick={() => {
               onChange(`${pad(tempH)}:${pad(tempM)}`);
@@ -769,8 +780,8 @@ export function TimePicker({ value, onChange, className = "" }: { value: string;
         className={cn("input-base flex items-center justify-between cursor-pointer select-none", className)}
         onClick={() => setOpen(true)}
       >
-        <span className={value ? "text-slate-900" : "text-slate-9000"}>{displayVal}</span>
-        <span className="text-slate-500">🕒</span>
+        <span className={value ? "text-slate-900 dark:text-slate-100" : "text-slate-400 dark:text-slate-500"}>{displayVal}</span>
+        <span className="text-slate-500 dark:text-slate-400">🕒</span>
       </div>
       <TimePickerModal open={open} onClose={() => setOpen(false)} value={value} onChange={onChange} />
     </>

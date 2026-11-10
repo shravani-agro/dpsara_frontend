@@ -354,9 +354,9 @@ export default function StarlinePage() {
                 </Button>
               }
             >
-              <div className="mb-6 p-4 rounded-xl border border-slate-700 bg-slate-800/40 flex flex-wrap gap-4 items-end">
+              <div className="mb-6 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 flex flex-wrap gap-4 items-end">
                 <div className="w-48">
-                  <label className="mb-1 block text-xs font-semibold text-slate-300">Result Time</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Result Time</label>
                   <TimePicker value={newTime} onChange={setNewTime} />
                 </div>
                 <Button onClick={handleAddSlot} disabled={!newTime || isAddingSlot} className="mb-0.5">
@@ -475,12 +475,12 @@ export default function StarlinePage() {
             >
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-300">Result Date *</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Result Date *</label>
                   <Input type="date" value={resultDate} onChange={(e) => setResultDate(e.target.value)} />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-300">Select Time Slot *</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Select Time Slot *</label>
                   <Select value={sessionLabel} onChange={(e) => setSessionLabel(e.target.value)}>
                     <option value="">-- Choose Slot --</option>
                     {market.schedules?.map((s: any) => (
@@ -492,7 +492,7 @@ export default function StarlinePage() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-300">
+                  <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Quick Paste (e.g. 178-6)
                   </label>
                   <Input
@@ -503,9 +503,9 @@ export default function StarlinePage() {
                 </div>
 
                 {/* Starline Dedicated Open Result Inputs */}
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/20 p-3.5 space-y-3">
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 p-3.5 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                       Open Result Format (Pana - Single Ank)
                     </span>
                     <Badge color={openPana.length === 3 && openAnk.length === 1 ? "emerald" : "slate"}>
@@ -515,37 +515,37 @@ export default function StarlinePage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-300">Open Pana (3 Digits) *</label>
+                      <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Open Pana (3 Digits) *</label>
                       <Input
                         placeholder="e.g. 178"
                         maxLength={3}
                         value={openPana}
                         onChange={(e) => handlePanaChange(e.target.value)}
-                        className="font-mono text-center text-lg font-bold tracking-widest text-emerald-300"
+                        className="font-mono text-center text-lg font-bold tracking-widest text-emerald-700 dark:text-emerald-300"
                       />
-                      <span className="text-[10px] text-slate-400">Auto-calculates Single Ank</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">Auto-calculates Single Ank</span>
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-300">Single Ank (1 Digit) *</label>
+                      <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Single Ank (1 Digit) *</label>
                       <Input
                         placeholder="e.g. 6"
                         maxLength={1}
                         value={openAnk}
                         onChange={(e) => setOpenAnk(e.target.value.replace(/\D/g, "").slice(0, 1))}
-                        className="font-mono text-center text-lg font-bold text-amber-400"
+                        className="font-mono text-center text-lg font-bold text-amber-700 dark:text-amber-400"
                       />
-                      <span className="text-[10px] text-slate-400">Sum % 10</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">Sum % 10</span>
                     </div>
                   </div>
 
                   {/* Intelligent Live Sum Calculation Breakdown */}
                   {openPana.length === 3 && (
-                    <div className="rounded-lg bg-slate-900/80 border border-slate-700/60 p-2.5 space-y-1.5 text-xs">
-                      <div className="flex items-center justify-between text-slate-300">
+                    <div className="rounded-lg bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/60 p-2.5 space-y-1.5 text-xs">
+                      <div className="flex items-center justify-between text-slate-700 dark:text-slate-300">
                         <span>
                           Pana Digit Sum:{" "}
-                          <strong className="font-mono text-emerald-400 font-bold">
+                          <strong className="font-mono text-emerald-700 dark:text-emerald-400 font-bold">
                             {openPana[0]} + {openPana[1]} + {openPana[2]} ={" "}
                             {parseInt(openPana[0], 10) + parseInt(openPana[1], 10) + parseInt(openPana[2], 10)}
                           </strong>

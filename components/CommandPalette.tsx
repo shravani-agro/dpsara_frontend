@@ -73,6 +73,8 @@ const STATIC_ACTIONS: ActionItem[] = [
   { id: "nav-realspinpro", href: "/ouradminportal/realspinpro", label: "RealSpinPro Game Console", icon: "🎡", section: "Navigation" },
   { id: "nav-bids", href: "/ouradminportal/bids", label: "Regular Bids History", icon: "🎲", section: "Navigation", permKey: "show_bids" },
   { id: "nav-starline-bids", href: "/ouradminportal/starline-bids-history", label: "Starline Bids History", icon: "🎲", section: "Navigation", permKey: "show_bids" },
+  { id: "nav-jackpot-bids", href: "/ouradminportal/jackpot-bids-history", label: "Jackpot Bids History", icon: "🎲", section: "Navigation", permKey: "show_bids" },
+  { id: "nav-realspinpro-bids", href: "/ouradminportal/realspinpro-bids-history", label: "RealSpinPro Bids History", icon: "🎰", section: "Navigation" },
   { id: "nav-deposits", href: "/ouradminportal/deposits", label: "Deposits Manager", icon: "➕", section: "Navigation", permKey: "show_deposits" },
   { id: "nav-txns", href: "/ouradminportal/transactions", label: "Transactions & Passbook", icon: "💳", section: "Navigation", permKey: "show_commission" },
   { id: "nav-rates", href: "/ouradminportal/game-rates", label: "Game Rates & Odds", icon: "🏷️", section: "Navigation", permKey: "show_markets" },

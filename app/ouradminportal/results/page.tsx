@@ -456,7 +456,7 @@ export default function ResultsPage() {
           {/* Market & Date Selection */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-300">Select Market *</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Select Market *</label>
               <Select
                 value={marketId ?? ""}
                 onChange={(e) => handleMarketChange(e.target.value ? Number(e.target.value) : null)}
@@ -471,7 +471,7 @@ export default function ResultsPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-300">Result Date *</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Result Date *</label>
               <Input
                 type="date"
                 value={resultDate}
@@ -490,7 +490,7 @@ export default function ResultsPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-300">
+              <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">
                 Quick Paste / Auto Split
               </label>
               <Input
@@ -498,7 +498,7 @@ export default function ResultsPage() {
                 value={quickPaste}
                 onChange={(e) => handleQuickPasteChange(e.target.value)}
               />
-              <span className="text-[11px] text-slate-400">Pastes & auto-fills Open and Close fields</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">Pastes & auto-fills Open and Close fields</span>
             </div>
           </div>
 
@@ -520,11 +520,11 @@ export default function ResultsPage() {
           {/* Dedicated Open & Close Inputs Grid */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* OPEN RESULT SECTION */}
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-950/10 p-4 space-y-3">
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
-                  <h4 className="text-sm font-bold uppercase tracking-wider text-emerald-400">Open Result</h4>
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Open Result</h4>
                 </div>
                 <Badge color={openPana && openAnk ? "emerald" : "slate"}>
                   {openPana && openAnk ? `Ready: ${openPana}-${openAnk}` : "Open Session"}
@@ -533,7 +533,7 @@ export default function ResultsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-300">
+                  <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Open Pana (3 Digits)
                   </label>
                   <Input
@@ -543,11 +543,11 @@ export default function ResultsPage() {
                     onChange={(e) => handleOpenPanaChange(e.target.value)}
                     className="font-mono text-center text-lg font-bold tracking-widest"
                   />
-                  <span className="text-[10px] text-slate-400">Auto-calculates Open Ank</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Auto-calculates Open Ank</span>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-300">
+                  <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Open Ank (1 Digit)
                   </label>
                   <Input
@@ -555,15 +555,15 @@ export default function ResultsPage() {
                     value={openAnk}
                     maxLength={1}
                     onChange={(e) => setOpenAnk(e.target.value.replace(/\D/g, "").slice(0, 1))}
-                    className="font-mono text-center text-lg font-bold text-emerald-400"
+                    className="font-mono text-center text-lg font-bold text-emerald-600 dark:text-emerald-400"
                   />
-                  <span className="text-[10px] text-slate-400">Sum % 10 or manual</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Sum % 10 or manual</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between pt-1">
-                <span className="text-xs text-slate-400">
-                  Formatted: <strong className="font-mono text-emerald-300">{openResultFormatted || "—"}</strong>
+                <span className="text-xs text-slate-600 dark:text-slate-400">
+                  Formatted: <strong className="font-mono text-emerald-700 dark:text-emerald-300">{openResultFormatted || "—"}</strong>
                 </span>
                 <Button
                   size="sm"
@@ -578,11 +578,11 @@ export default function ResultsPage() {
             </div>
 
             {/* CLOSE RESULT SECTION */}
-            <div className="rounded-2xl border border-blue-500/20 bg-blue-950/10 p-4 space-y-3">
+            <div className="rounded-2xl border border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-blue-400"></span>
-                  <h4 className="text-sm font-bold uppercase tracking-wider text-blue-400">Close Result</h4>
+                  <span className="h-2.5 w-2.5 rounded-full bg-blue-500"></span>
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">Close Result</h4>
                 </div>
                 <Badge color={closeAnk && closePana ? "blue" : "slate"}>
                   {closeAnk && closePana ? `Ready: ${closeAnk}-${closePana}` : "Close Session"}
@@ -591,7 +591,7 @@ export default function ResultsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-300">
+                  <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Close Ank (1 Digit)
                   </label>
                   <Input
@@ -599,13 +599,13 @@ export default function ResultsPage() {
                     value={closeAnk}
                     maxLength={1}
                     onChange={(e) => setCloseAnk(e.target.value.replace(/\D/g, "").slice(0, 1))}
-                    className="font-mono text-center text-lg font-bold text-blue-400"
+                    className="font-mono text-center text-lg font-bold text-blue-600 dark:text-blue-400"
                   />
-                  <span className="text-[10px] text-slate-400">Sum % 10 or manual</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Sum % 10 or manual</span>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-300">
+                  <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Close Pana (3 Digits)
                   </label>
                   <Input
@@ -615,13 +615,13 @@ export default function ResultsPage() {
                     onChange={(e) => handleClosePanaChange(e.target.value)}
                     className="font-mono text-center text-lg font-bold tracking-widest"
                   />
-                  <span className="text-[10px] text-slate-400">Auto-calculates Close Ank</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Auto-calculates Close Ank</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between pt-1">
-                <span className="text-xs text-slate-400">
-                  Formatted: <strong className="font-mono text-blue-300">{closeResultFormatted || "—"}</strong>
+                <span className="text-xs text-slate-600 dark:text-slate-400">
+                  Formatted: <strong className="font-mono text-blue-700 dark:text-blue-300">{closeResultFormatted || "—"}</strong>
                 </span>
                 <Button
                   size="sm"
@@ -776,10 +776,10 @@ export default function ResultsPage() {
         title="Declared Results History"
         subtitle="View and manage recent regular market results"
       >
-        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-sm text-slate-400">
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-sm text-slate-600 dark:text-slate-400">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs">Date:</span>
+              <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Date:</span>
               <Input
                 type="date"
                 className="h-8 w-40 text-xs px-2"
@@ -791,7 +791,7 @@ export default function ResultsPage() {
               </Button>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs">Market:</span>
+              <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Market:</span>
               <Select
                 className="h-8 w-44 text-xs px-2"
                 value={filterMarket}
@@ -807,7 +807,7 @@ export default function ResultsPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs">Search:</span>
+            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Search:</span>
             <Input
               className="h-8 w-40 text-xs px-2"
               placeholder="Search result or name..."
