@@ -126,8 +126,8 @@ export function decodeToken(token: string): any | null {
       typeof atob === "function"
         ? atob(payload)
         : typeof (globalThis as any).Buffer !== "undefined"
-        ? (globalThis as any).Buffer.from(payload, "base64").toString("utf-8")
-        : null;
+          ? (globalThis as any).Buffer.from(payload, "base64").toString("utf-8")
+          : null;
     if (!raw) return null;
     return JSON.parse(raw);
   } catch {
