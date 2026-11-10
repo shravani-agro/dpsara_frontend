@@ -1024,8 +1024,25 @@ export async function getWinGoStats(): Promise<{
   return res.data;
 }
 
-export async function getWinGoBets(params: any = {}): Promise<any[]> {
-  const queryParams = typeof params === "number" ? { limit: params } : params;
+export async function getWinGoBets(
+  paramsOrLimit: any = {},
+  period?: string,
+  user_id?: number,
+  status?: string,
+  search?: string,
+  bet_type?: string
+): Promise<any[]> {
+  let queryParams: any = {};
+  if (typeof paramsOrLimit === "number") {
+    queryParams.limit = paramsOrLimit;
+    if (period) queryParams.period = period;
+    if (user_id) queryParams.user_id = user_id;
+    if (status) queryParams.status = status;
+    if (search) queryParams.search = search;
+    if (bet_type) queryParams.bet_type = bet_type;
+  } else if (typeof paramsOrLimit === "object" && paramsOrLimit !== null) {
+    queryParams = { ...paramsOrLimit };
+  }
   const res = await client.get("/admin/wingo/bets", { params: queryParams });
   return res.data;
 }
