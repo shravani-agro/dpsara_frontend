@@ -38,7 +38,14 @@ export default function RegularBidDataPage() {
   const loadMarkets = useCallback(async () => {
     try {
       const data = await listMarkets({});
-      const regularMarkets = data.filter((m: any) => m.market_type === "regular" || !m.market_type);
+      const regularMarkets = data.filter(
+        (m: any) =>
+          (m.market_type === "regular" || !m.market_type) &&
+          m.market_type !== "starline" &&
+          m.market_type !== "jackpot" &&
+          !m.is_starline &&
+          !m.is_jackpot
+      );
       setMarkets(regularMarkets);
       if (regularMarkets.length > 0) {
         setMarketId(regularMarkets[0].id.toString());

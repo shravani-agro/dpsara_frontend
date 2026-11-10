@@ -57,7 +57,16 @@ export default function BidsPage() {
   const loadMarkets = useCallback(async () => {
     try {
       const data = await listMarkets({});
-      setMarkets(data.filter((m: any) => m.market_type === "regular" || !m.market_type));
+      setMarkets(
+        data.filter(
+          (m: any) =>
+            (m.market_type === "regular" || !m.market_type) &&
+            m.market_type !== "starline" &&
+            m.market_type !== "jackpot" &&
+            !m.is_starline &&
+            !m.is_jackpot
+        )
+      );
     } catch {
       setMarkets([]);
     }

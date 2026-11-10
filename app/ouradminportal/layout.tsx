@@ -9,7 +9,7 @@ import { Button, Spinner, cn } from "@/components/ui";
 import { ToastContainer } from "@/components/Toast";
 import { CommandPalette } from "@/components/CommandPalette";
 import { UserModalProvider } from "@/components/UserModalContext";
-import { getWithdrawalCounts } from "@/lib/admin";
+import { getWithdrawalCounts, getRealSpinProSettings } from "@/lib/admin";
 import { prefetchAllUsers } from "@/lib/user-cache";
 
 function playWithdrawalChime() {
@@ -46,26 +46,43 @@ type NavGroup = { label: string; items: NavItem[] };
 const NAV_GROUPS: NavGroup[] = [
   {
     label: "Overview",
-    items: [{ href: "/ouradminportal", label: "Dashboard", icon: "▦", permKey: "show_overview" }],
-  },
-  {
-    label: "Operations",
     items: [
+      { href: "/ouradminportal", label: "Dashboard", icon: "▦", permKey: "show_overview" },
       { href: "/ouradminportal/users", label: "Users", icon: "👤", permKey: "can_manage_users" },
-      { href: "/ouradminportal/markets", label: "Markets", icon: "📈", permKey: "show_markets" },
-      { href: "/ouradminportal/starline", label: "Starline", icon: "⭐", permKey: "show_starline" },
-      { href: "/ouradminportal/jackpot", label: "Jackpot", icon: "💰", permKey: "show_jackpot" },
-      { href: "/ouradminportal/realspinpro", label: "RealSpinPro", icon: "🎡" },
-      { href: "/ouradminportal/results", label: "Results", icon: "🎯", permKey: "show_result" },
     ],
   },
   {
-    label: "Bids",
+    label: "Main Market",
     items: [
-      { href: "/ouradminportal/bids", label: "Regular Bids History", icon: "🎲", permKey: "show_bids" },
+      { href: "/ouradminportal/markets", label: "Main Markets", icon: "📈", permKey: "show_markets" },
+      { href: "/ouradminportal/results", label: "Declare Results", icon: "🎯", permKey: "show_result" },
+      { href: "/ouradminportal/bids", label: "Main Bids History", icon: "🎲", permKey: "show_bids" },
+      { href: "/ouradminportal/regular-bids", label: "Main Bid Live Data", icon: "📊", permKey: "show_bid_data" },
+    ],
+  },
+  {
+    label: "Starline Market",
+    items: [
+      { href: "/ouradminportal/starline", label: "Starline Markets", icon: "⭐", permKey: "show_starline" },
       { href: "/ouradminportal/starline-bids-history", label: "Starline Bids History", icon: "🎲", permKey: "show_bids" },
-      { href: "/ouradminportal/regular-bids", label: "Regular Bid Data", icon: "📊", permKey: "show_bid_data" },
-      { href: "/ouradminportal/starline-bids", label: "Starline Bid Data", icon: "📈", permKey: "show_bid_data" },
+      { href: "/ouradminportal/starline-bids", label: "Starline Bid Live Data", icon: "📈", permKey: "show_bid_data" },
+    ],
+  },
+  {
+    label: "Jackpot Market",
+    items: [
+      { href: "/ouradminportal/jackpot", label: "Jackpot Market & Results", icon: "💰", permKey: "show_jackpot" },
+    ],
+  },
+  {
+    label: "RealSpinPro Game",
+    items: [
+      { href: "/ouradminportal/realspinpro", label: "RealSpinPro Console", icon: "🎡" },
+    ],
+  },
+  {
+    label: "Player Analytics",
+    items: [
       { href: "/ouradminportal/user-bid-data", label: "User Bid Data", icon: "👤", permKey: "show_bid_data" },
     ],
   },
@@ -110,11 +127,13 @@ function NavContent({
   query,
   onNavigate,
   pendingWithdrawals = 0,
+  realspinproLive = null,
 }: {
   pathname: string;
   query: string;
   onNavigate?: () => void;
   pendingWithdrawals?: number;
+  realspinproLive?: boolean | null;
 }) {
   const { isSubAdmin, hasPermission, assignedUserIds } = useAuth();
   const q = query.trim().toLowerCase();
@@ -152,6 +171,9 @@ function NavContent({
             const active = isActive(item, pathname);
             const isWithdrawals = item.href === "/ouradminportal/withdrawals";
             const isRealSpinPro = item.href === "/ouradminportal/realspinpro";
+            const isJackpot = item.href === "/ouradminportal/jackpot";
+            const isStarline = item.href === "/ouradminportal/starline";
+            const isMainMarkets = item.href === "/ouradminportal/markets";
             return (
               <Link
                 key={item.href}
@@ -169,8 +191,32 @@ function NavContent({
                   </span>
                 )}
                 {isRealSpinPro && (
-                  <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-500 bg-amber-500/10 rounded border border-amber-500/25">
-                    Game
+                  <span
+                    className={cn(
+                      "ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded border",
+                      realspinproLive === true
+                        ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30 animate-pulse"
+                        : realspinproLive === false
+                        ? "text-slate-400 bg-slate-500/10 border-slate-500/25"
+                        : "text-amber-500 bg-amber-500/10 border-amber-500/25"
+                    )}
+                  >
+                    {realspinproLive === true ? "LIVE" : realspinproLive === false ? "OFF" : "GAME"}
+                  </span>
+                )}
+                {isJackpot && (
+                  <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 rounded border border-amber-500/25">
+                    PANNA
+                  </span>
+                )}
+                {isStarline && (
+                  <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-purple-400 bg-purple-500/10 rounded border border-purple-500/25">
+                    12 SLOTS
+                  </span>
+                )}
+                {isMainMarkets && (
+                  <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-sky-400 bg-sky-500/10 rounded border border-sky-500/25">
+                    MAIN
                   </span>
                 )}
               </Link>
@@ -199,6 +245,7 @@ export default function DashboardLayout({
   const [navQuery, setNavQuery] = useState("");
   const { theme, setTheme } = useTheme();
   const [pendingWithdrawals, setPendingWithdrawals] = useState(0);
+  const [realspinproLive, setRealspinproLive] = useState<boolean | null>(null);
   const [showWithdrawalPopup, setShowWithdrawalPopup] = useState(false);
   const prevPendingRef = React.useRef<number | null>(null);
 
@@ -215,6 +262,29 @@ export default function DashboardLayout({
     if (match.permKey && !hasPermission(match.permKey)) return false;
     return true;
   }, [isSubAdmin, pathname, hasPermission]);
+
+  useEffect(() => {
+    if (isLoginPage || !authenticated) return;
+    let mounted = true;
+
+    const checkRealSpinPro = async () => {
+      try {
+        const rsp = await getRealSpinProSettings();
+        if (mounted && rsp) {
+          setRealspinproLive(Boolean(rsp.enabled));
+        }
+      } catch {
+        // ignore polling errors
+      }
+    };
+
+    checkRealSpinPro();
+    const rspInterval = setInterval(checkRealSpinPro, 12000);
+    return () => {
+      mounted = false;
+      clearInterval(rspInterval);
+    };
+  }, [authenticated, isLoginPage]);
 
   useEffect(() => {
     if (isLoginPage || !authenticated) return;
@@ -305,7 +375,7 @@ export default function DashboardLayout({
             />
           </div>
         </div>
-        <NavContent pathname={pathname} query={navQuery} pendingWithdrawals={pendingWithdrawals} />
+        <NavContent pathname={pathname} query={navQuery} pendingWithdrawals={pendingWithdrawals} realspinproLive={realspinproLive} />
         <div className="border-t border-slate-200 dark:border-slate-800 p-3 bg-slate-50/50 dark:bg-slate-850/30">
           <div className="flex items-center justify-between px-2 pb-1">
             <span className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
@@ -370,7 +440,7 @@ export default function DashboardLayout({
               />
             </div>
           </div>
-          <NavContent pathname={pathname} query={navQuery} onNavigate={() => setOpen(false)} pendingWithdrawals={pendingWithdrawals} />
+          <NavContent pathname={pathname} query={navQuery} onNavigate={() => setOpen(false)} pendingWithdrawals={pendingWithdrawals} realspinproLive={realspinproLive} />
           <div className="border-t border-slate-200 dark:border-slate-800 p-3 bg-slate-50/50 dark:bg-slate-850/30">
             <div className="px-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
               Signed in as

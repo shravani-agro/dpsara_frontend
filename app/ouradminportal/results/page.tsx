@@ -69,7 +69,15 @@ export default function ResultsPage() {
     try {
       const data = await listMarkets({});
       // Only regular / main markets on this page
-      setMarkets(data.filter((m: any) => m.market_type !== "starline" && m.market_type !== "jackpot"));
+      setMarkets(
+        data.filter(
+          (m: any) =>
+            m.market_type !== "starline" &&
+            m.market_type !== "jackpot" &&
+            !m.is_starline &&
+            !m.is_jackpot
+        )
+      );
     } catch {
       setMarkets([]);
     }
@@ -394,7 +402,7 @@ export default function ResultsPage() {
   // Filtered Results List
   const filteredResults = useMemo(() => {
     return declaredResults
-      .filter((r: any) => r.market_type !== "starline" && r.market_type !== "jackpot")
+      .filter((r: any) => r.market_type !== "starline" && r.market_type !== "jackpot" && !r.is_starline && !r.is_jackpot)
       .filter((r: any) => {
         if (filterMarket && r.market_id.toString() !== filterMarket) return false;
         if (filterDate) {

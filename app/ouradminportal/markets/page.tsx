@@ -74,7 +74,15 @@ export default function MarketsPage() {
       const list = Array.isArray(data) ? data : [];
       setMarkets(
         list
-          .filter((m: any) => m.is_active !== false && m.is_active !== 0 && m.market_type !== "starline")
+          .filter(
+            (m: any) =>
+              m.is_active !== false &&
+              m.is_active !== 0 &&
+              m.market_type !== "starline" &&
+              m.market_type !== "jackpot" &&
+              !m.is_starline &&
+              !m.is_jackpot
+          )
           .sort((a: any, b: any) => (a.sequence_number || 0) - (b.sequence_number || 0))
       );
       setOrderChanged(false);

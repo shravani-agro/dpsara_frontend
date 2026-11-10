@@ -58,8 +58,9 @@ export async function GET(request: Request, { params }: { params: { slug: string
     const htmlFile = fs.readFileSync(fullPath, 'utf8');
     let html = htmlFile;
 
-    // 1. Fetch system settings for contact numbers and regular markets
+    // 1. Fetch system settings for contact numbers, regular markets, and realspinpro toggle
     let regularMarkets: { id: any; name: string; slug: string; result: string; status: string }[] = [];
+    let isRealSpinProOn = true;
     try {
       const [settingsRes, homeRes] = await Promise.all([
         fetch(`${API_BASE}/mobile/settings`, { next: { revalidate: 60 } }),
@@ -74,6 +75,14 @@ export async function GET(request: Request, { params }: { params: { slug: string
 
         html = html.replace(/\+91 8377 999 777/g, whatsappNumber);
         html = html.replace(/918377999777/g, cleanWhatsapp);
+
+        if (
+          settingsData.realspinpro_enabled === false ||
+          settingsData.realspinpro_enabled === 0 ||
+          settingsData.realspinpro_enabled === "0"
+        ) {
+          isRealSpinProOn = false;
+        }
       }
 
       if (homeRes.ok) {
@@ -572,6 +581,32 @@ export async function GET(request: Request, { params }: { params: { slug: string
         }
       } catch (err) {
         console.error('SSR Live Data Fetch Error:', err);
+      }
+
+      // C. Handle RealSpinPro Master Toggle Visibility on SSR
+      if (!isRealSpinProOn) {
+        $('#realspinpro-landing-section').remove();
+        $('#realspinpro-floating-pill').remove();
+        $('#nav-item-realspinpro').remove();
+      } else {
+        try {
+          const rspActiveRes = await fetch(`${API_BASE}/spinwheel/round/active`, { next: { revalidate: 10 } }).catch(() => null);
+          if (rspActiveRes && rspActiveRes.ok) {
+            const activeData = await rspActiveRes.json();
+            const roundData = activeData?.data || activeData;
+            if (roundData?.round_id) {
+              $('#rsp-round-id').text(roundData.round_id);
+            }
+            if (roundData?.time_remaining !== undefined) {
+              const rem = Math.max(0, Number(roundData.time_remaining));
+              const mm = String(Math.floor(rem / 60)).padStart(2, '0');
+              const ss = String(rem % 60).padStart(2, '0');
+              $('#rsp-timer').text(`${mm}:${ss}`);
+            }
+          }
+        } catch {
+          // ignore SSR active round fetch error
+        }
       }
 
       // Inject client-side polling script

@@ -231,6 +231,13 @@
                   </div>
                 </div>
               </li>
+              <li class="relative flex items-center" id="nav-item-realspinpro">
+                <a class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-purple-500/15 border border-amber-500/30 text-amber-500 hover:text-amber-400 text-[14px] font-bold whitespace-nowrap transition-all duration-300 hover:scale-105 shadow-[0_0_12px_rgba(245,158,11,0.25)] no-underline" href="#realspinpro-landing-section">
+                  <span class="animate-spin text-base" style="animation-duration: 4s;">🎡</span>
+                  <span>RealSpinPro</span>
+                  <span class="px-1.5 py-0.2 text-[9px] font-black uppercase tracking-wider text-white bg-rose-600 rounded-full animate-pulse leading-none">LIVE</span>
+                </a>
+              </li>
               <li class="relative flex items-center"><a class="inline-flex items-center text-black text-[15px] xl:text-[16px] whitespace-nowrap transition-colors duration-300 hover:text-primary font-medium" href="/blog.html">Blogs</a></li>
             </ul>
           </nav>
@@ -1939,6 +1946,284 @@
           </div>
         </div>
       </section>
+      <!-- ================= REALSPINPRO LIVE WHEEL SECTION ================= -->
+      <section id="realspinpro-landing-section" class="pt-8 max-lg:pt-6 relative scroll-mt-24">
+        <div class="container mx-auto px-4">
+          <div class="text-center mb-8 max-lg:mb-6">
+            <span class="inline-flex items-center justify-center h-[48px] max-sm:h-[42px] px-7 max-sm:px-6 rounded-[12px] bg-gradient-to-b from-[#ffb703] via-[#fb8500] to-[#d90429] text-white text-[18px] max-sm:text-[16px] font-display font-black tracking-[0.6px] leading-none shadow-[0_8px_24px_rgba(251,133,0,0.45)] max-sm:w-full">
+              <span class="inline-flex items-center gap-2">
+                <span class="text-xl animate-spin" style="animation-duration: 4s;">🎡</span>
+                <span>REALSPINPRO LIVE WHEEL</span>
+                <span class="text-xl animate-spin" style="animation-duration: 4s;">🎡</span>
+              </span>
+            </span>
+            <p class="mt-3 text-sm md:text-base text-dark/80 dark:text-slate-300 font-medium max-w-xl mx-auto">
+              Synchronized 60-Second Instant Live Wheel Game • Win Up to 3X Multiplier • Provably Fair Live Entertainment
+            </p>
+          </div>
+
+          <!-- Main RealSpinPro Gaming Card -->
+          <div class="bg-surfaceBg border-2 border-goldLight/40 rounded-3xl p-4 sm:p-6 md:p-8 shadow-[0_16px_40px_rgba(27,19,10,0.08)] relative overflow-hidden transition-all duration-300 hover:border-goldLight hover:shadow-[0_20px_50px_rgba(224,130,10,0.18)]">
+            <!-- Background Glow Highlights -->
+            <div class="absolute -top-24 -left-24 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Top Real-Time Status Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-5 mb-6 border-b border-borderColor">
+              <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
+                  <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                  </span>
+                  <span class="font-display font-black text-sm uppercase tracking-wider text-black dark:text-white">
+                    Round #<span id="rsp-round-id" class="font-mono text-primary">1088</span>
+                  </span>
+                </div>
+                <span id="rsp-phase-badge" class="px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                  🟢 BETTING OPEN
+                </span>
+              </div>
+
+              <!-- Live Countdown Clock -->
+              <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-timeBg border border-borderColor">
+                  <span class="text-xs uppercase font-bold text-dark/70 dark:text-slate-400">Next Spin:</span>
+                  <span id="rsp-timer" class="font-mono font-black text-lg text-primary tracking-widest">00:45</span>
+                </div>
+
+                <!-- Multipliers Pill Strip -->
+                <div class="hidden sm:flex items-center gap-1.5">
+                  <span class="px-2 py-1 rounded-lg text-[11px] font-black bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/25">1X (80%)</span>
+                  <span class="px-2 py-1 rounded-lg text-[11px] font-black bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/25">2X (15%)</span>
+                  <span class="px-2 py-1 rounded-lg text-[11px] font-black bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">3X (5%)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Two-Column Game Arena -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              
+              <!-- Left Column: The Live Wheel (5 cols on lg) -->
+              <div class="lg:col-span-5 flex flex-col items-center justify-center">
+                <div class="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] mx-auto flex items-center justify-center">
+                  <!-- Outer Bezel Ring with Decorative Golden Bulbs -->
+                  <div class="absolute inset-0 rounded-full border-4 border-[#F9B12B] shadow-[0_0_30px_rgba(249,177,43,0.35),inset_0_0_20px_rgba(0,0,0,0.6)] bg-[#120f0b]"></div>
+                  
+                  <!-- Top Pointer Needle (12 o'clock) -->
+                  <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-30 drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
+                    <svg width="28" height="32" viewBox="0 0 28 32" fill="none">
+                      <path d="M14 30L4 6C3 4 5 1 8 1H20C23 1 25 4 24 6L14 30Z" fill="#F9B12B" stroke="#16100E" stroke-width="2"/>
+                      <circle cx="14" cy="7" r="3" fill="#FFFFFF"/>
+                    </svg>
+                  </div>
+
+                  <!-- Rotating Roulette Wheel -->
+                  <div id="rsp-wheel" class="relative w-[260px] h-[260px] sm:w-[300px] sm:h-[300px] rounded-full overflow-hidden transition-transform duration-[4000ms] will-change-transform" style="transition-timing-function: cubic-bezier(0.12, 0.8, 0.2, 1);">
+                    <svg class="w-full h-full select-none pointer-events-none" viewBox="0 0 300 300">
+                      <!-- 10 Segments (0 to 9, 36 deg each) -->
+                      <!-- Segment 0: -18 to +18 deg (Top, Blue) -->
+                      <g transform="rotate(0, 150, 150)">
+                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#2563eb" stroke="#16100E" stroke-width="1.5"/>
+                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="900" font-family="sans-serif">0</text>
+                      </g>
+                      <!-- Segment 1: 36 deg (Yellow) -->
+                      <g transform="rotate(36, 150, 150)">
+                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#ca8a04" stroke="#16100E" stroke-width="1.5"/>
+                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="900" font-family="sans-serif">1</text>
+                      </g>
+                      <!-- Segment 2: 72 deg (Purple) -->
+                      <g transform="rotate(72, 150, 150)">
+                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#9333ea" stroke="#16100E" stroke-width="1.5"/>
+                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="900" font-family="sans-serif">2</text>
+                      </g>
+                      <!-- Segment 3: 108 deg (Pink) -->
+                      <g transform="rotate(108, 150, 150)">
+                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#db2777" stroke="#16100E" stroke-width="1.5"/>
+                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="900" font-family="sans-serif">3</text>
+                      </g>
+                      <!-- Segment 4: 144 deg (Emerald) -->
+                      <g transform="rotate(144, 150, 150)">
+                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#059669" stroke="#16100E" stroke-width="1.5"/>
+                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="900" font-family="sans-serif">4</text>
+                      </g>
+                      <!-- Segment 5: 180 deg (Red) -->
+                      <g transform="rotate(180, 150, 150)">
+                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#dc2626" stroke="#16100E" stroke-width="1.5"/>
+                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="900" font-family="sans-serif">5</text>
+                      </g>
+                      <!-- Segment 6: 216 deg (Orange) -->
+                      <g transform="rotate(216, 150, 150)">
+                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#ea580c" stroke="#16100E" stroke-width="1.5"/>
+                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="900" font-family="sans-serif">6</text>
+                      </g>
+                      <!-- Segment 7: 252 deg (Cyan) -->
+                      <g transform="rotate(252, 150, 150)">
+                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#0891b2" stroke="#16100E" stroke-width="1.5"/>
+                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="900" font-family="sans-serif">7</text>
+                      </g>
+                      <!-- Segment 8: 288 deg (Indigo) -->
+                      <g transform="rotate(288, 150, 150)">
+                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#4f46e5" stroke="#16100E" stroke-width="1.5"/>
+                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="900" font-family="sans-serif">8</text>
+                      </g>
+                      <!-- Segment 9: 324 deg (Violet) -->
+                      <g transform="rotate(324, 150, 150)">
+                        <path d="M150,150 L103.6,7.2 A150,150 0 0,1 196.4,7.2 Z" fill="#7c3aed" stroke="#16100E" stroke-width="1.5"/>
+                        <text x="150" y="38" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="900" font-family="sans-serif">9</text>
+                      </g>
+                      <!-- Golden Center Hub -->
+                      <circle cx="150" cy="150" r="48" fill="#16100E" stroke="#F9B12B" stroke-width="3"/>
+                      <circle cx="150" cy="150" r="40" fill="url(#goldGradient)" stroke="#FFE29A" stroke-width="1"/>
+                      <defs>
+                        <radialGradient id="goldGradient" cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stop-color="#FFF0A0"/>
+                          <stop offset="60%" stop-color="#F9B12B"/>
+                          <stop offset="100%" stop-color="#C57D06"/>
+                        </radialGradient>
+                      </defs>
+                      <text x="150" y="145" text-anchor="middle" fill="#16100E" font-size="14" font-weight="900" font-family="sans-serif">REAL</text>
+                      <text x="150" y="162" text-anchor="middle" fill="#16100E" font-size="12" font-weight="900" font-family="sans-serif">SPIN</text>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Recent Winning Numbers History Strip -->
+                <div class="w-full mt-6 text-center">
+                  <div class="text-[11px] font-bold uppercase tracking-wider text-dark/60 dark:text-slate-400 mb-2">Recent Round Results</div>
+                  <div class="flex items-center justify-center gap-1.5 flex-wrap" id="rsp-history-strip">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black text-white bg-blue-600 shadow-sm">0 <span class="text-[10px] opacity-75">1X</span></span>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black text-white bg-emerald-600 shadow-sm">4 <span class="text-[10px] opacity-75">2X</span></span>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black text-white bg-cyan-600 shadow-sm">7 <span class="text-[10px] opacity-75">3X</span></span>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black text-white bg-purple-600 shadow-sm">2 <span class="text-[10px] opacity-75">1X</span></span>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black text-white bg-red-600 shadow-sm">5 <span class="text-[10px] opacity-75">1X</span></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: Interactive Target Board & Live Controls (7 cols on lg) -->
+              <div class="lg:col-span-7 flex flex-col justify-between h-full space-y-5">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-base sm:text-lg font-extrabold uppercase tracking-wide text-black dark:text-white m-0">
+                      Pick Your Numbers (0 — 9)
+                    </h4>
+                    <span class="text-xs font-semibold text-dark/70 dark:text-slate-400">
+                      Demo Chips: <strong id="rsp-demo-balance" class="text-primary font-mono font-bold">₹5,000</strong>
+                    </span>
+                  </div>
+
+                  <!-- 10 Number Buttons Grid -->
+                  <div class="grid grid-cols-5 gap-2 sm:gap-2.5 mb-4">
+                    <button type="button" data-rsp-num="0" class="rsp-num-btn group relative flex flex-col items-center justify-center h-14 sm:h-16 rounded-xl bg-blue-600 text-white font-display font-black text-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-md">
+                      <span>0</span>
+                      <span class="rsp-bet-badge hidden absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-yellow-400 text-black shadow">₹0</span>
+                    </button>
+                    <button type="button" data-rsp-num="1" class="rsp-num-btn group relative flex flex-col items-center justify-center h-14 sm:h-16 rounded-xl bg-yellow-600 text-white font-display font-black text-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-md">
+                      <span>1</span>
+                      <span class="rsp-bet-badge hidden absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-yellow-400 text-black shadow">₹0</span>
+                    </button>
+                    <button type="button" data-rsp-num="2" class="rsp-num-btn group relative flex flex-col items-center justify-center h-14 sm:h-16 rounded-xl bg-purple-600 text-white font-display font-black text-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-md">
+                      <span>2</span>
+                      <span class="rsp-bet-badge hidden absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-yellow-400 text-black shadow">₹0</span>
+                    </button>
+                    <button type="button" data-rsp-num="3" class="rsp-num-btn group relative flex flex-col items-center justify-center h-14 sm:h-16 rounded-xl bg-pink-600 text-white font-display font-black text-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-md">
+                      <span>3</span>
+                      <span class="rsp-bet-badge hidden absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-yellow-400 text-black shadow">₹0</span>
+                    </button>
+                    <button type="button" data-rsp-num="4" class="rsp-num-btn group relative flex flex-col items-center justify-center h-14 sm:h-16 rounded-xl bg-emerald-600 text-white font-display font-black text-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-md">
+                      <span>4</span>
+                      <span class="rsp-bet-badge hidden absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-yellow-400 text-black shadow">₹0</span>
+                    </button>
+                    <button type="button" data-rsp-num="5" class="rsp-num-btn group relative flex flex-col items-center justify-center h-14 sm:h-16 rounded-xl bg-red-600 text-white font-display font-black text-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-md">
+                      <span>5</span>
+                      <span class="rsp-bet-badge hidden absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-yellow-400 text-black shadow">₹0</span>
+                    </button>
+                    <button type="button" data-rsp-num="6" class="rsp-num-btn group relative flex flex-col items-center justify-center h-14 sm:h-16 rounded-xl bg-orange-600 text-white font-display font-black text-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-md">
+                      <span>6</span>
+                      <span class="rsp-bet-badge hidden absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-yellow-400 text-black shadow">₹0</span>
+                    </button>
+                    <button type="button" data-rsp-num="7" class="rsp-num-btn group relative flex flex-col items-center justify-center h-14 sm:h-16 rounded-xl bg-cyan-600 text-white font-display font-black text-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-md">
+                      <span>7</span>
+                      <span class="rsp-bet-badge hidden absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-yellow-400 text-black shadow">₹0</span>
+                    </button>
+                    <button type="button" data-rsp-num="8" class="rsp-num-btn group relative flex flex-col items-center justify-center h-14 sm:h-16 rounded-xl bg-indigo-600 text-white font-display font-black text-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-md">
+                      <span>8</span>
+                      <span class="rsp-bet-badge hidden absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-yellow-400 text-black shadow">₹0</span>
+                    </button>
+                    <button type="button" data-rsp-num="9" class="rsp-num-btn group relative flex flex-col items-center justify-center h-14 sm:h-16 rounded-xl bg-violet-600 text-white font-display font-black text-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-md">
+                      <span>9</span>
+                      <span class="rsp-bet-badge hidden absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-yellow-400 text-black shadow">₹0</span>
+                    </button>
+                  </div>
+
+                  <!-- Chip Value Selector -->
+                  <div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
+                    <span class="text-xs font-bold uppercase tracking-wider text-dark/70 dark:text-slate-400 shrink-0 mr-1">Chip:</span>
+                    <button type="button" data-rsp-chip="10" class="rsp-chip-btn px-3 py-1.5 rounded-full text-xs font-black border-2 border-primary bg-primary text-black transition-all shadow-sm">₹10</button>
+                    <button type="button" data-rsp-chip="50" class="rsp-chip-btn px-3 py-1.5 rounded-full text-xs font-black border-2 border-borderColor bg-surfaceBg text-black dark:text-white transition-all shadow-sm">₹50</button>
+                    <button type="button" data-rsp-chip="100" class="rsp-chip-btn px-3 py-1.5 rounded-full text-xs font-black border-2 border-borderColor bg-surfaceBg text-black dark:text-white transition-all shadow-sm">₹100</button>
+                    <button type="button" data-rsp-chip="500" class="rsp-chip-btn px-3 py-1.5 rounded-full text-xs font-black border-2 border-borderColor bg-surfaceBg text-black dark:text-white transition-all shadow-sm">₹500</button>
+                    <button type="button" data-rsp-chip="1000" class="rsp-chip-btn px-3 py-1.5 rounded-full text-xs font-black border-2 border-borderColor bg-surfaceBg text-black dark:text-white transition-all shadow-sm">₹1,000</button>
+                  </div>
+
+                  <!-- Control Buttons Row -->
+                  <div class="flex items-center gap-3">
+                    <button type="button" id="rsp-spin-btn" class="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-xl bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-black font-display font-black text-sm uppercase tracking-wider shadow-[0_6px_18px_rgba(249,177,43,0.35)] transition-all duration-200 hover:brightness-105 active:scale-95 cursor-pointer">
+                      <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg>
+                      <span>SPIN &amp; TEST LUCK</span>
+                    </button>
+                    <button type="button" id="rsp-clear-btn" class="h-12 px-4 rounded-xl border border-borderColor bg-surfaceBg text-dark dark:text-slate-300 font-bold text-xs uppercase tracking-wider transition-all hover:bg-timeBg">
+                      ↺ Clear
+                    </button>
+                  </div>
+
+                  <!-- Live Outcome Alert Notification Box -->
+                  <div id="rsp-outcome-box" class="hidden mt-3 p-3.5 rounded-xl border border-goldLight/40 bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-amber-500/10 text-center animate-fade-in">
+                    <p id="rsp-outcome-msg" class="text-sm font-black text-black dark:text-white m-0">🎉 Winner Announced!</p>
+                  </div>
+                </div>
+
+                <!-- Call-To-Action: Play with Real Money in Official App -->
+                <div class="pt-4 border-t border-borderColor">
+                  <a href="https://github.com/shravani-agro/dpsara_frontend/releases/latest/download/dpsara.apk" class="relative group flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-[#16100E] via-[#241a15] to-[#16100E] border border-amber-500/50 shadow-[0_8px_25px_rgba(238,157,7,0.35)] hover:shadow-[0_10px_35px_rgba(238,157,7,0.55)] transition-all no-underline overflow-hidden">
+                    <span class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full transition-transform duration-1000 group-hover:translate-x-full"></span>
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-xl bg-gradient-to-b from-gradGoldTop to-gradGoldBottom flex items-center justify-center text-black font-black text-xl shrink-0 shadow">
+                        <svg class="w-5 h-5 fill-current" viewBox="0 0 512 512"><path d="M144 268.4V358c0 6.9 4.5 14 11.4 14H184v52c0 13.3 10.7 24 24 24s24-10.7 24-24v-52h49v52c0 7.5 3.4 14.2 8.8 18.6 3.9 3.4 9.1 5.4 14.7 5.4h.5c13.3 0 24-10.7 24-24v-52h27.6c7 0 11.4-7.1 11.4-13.9V192H144v76.4zM408 176c-13.3 0-24 10.7-24 24v96c0 13.3 10.7 24 24 24s24-10.7 24-24v-96c0-13.3-10.7-24-24-24zM104 176c-13.3 0-24 10.7-24 24v96c0 13.3 10.7 24 24 24s24-10.7 24-24v-96c0-13.3-10.7-24-24-24z"/></svg>
+                      </div>
+                      <div class="flex flex-col text-left">
+                        <span class="text-sm sm:text-base font-display font-black text-white uppercase tracking-wide">Play RealSpinPro in DPSara App</span>
+                        <span class="text-xs text-amber-400 font-semibold">Min Bet ₹1 • Instant UPI Withdrawals • 24x7 Settlement</span>
+                      </div>
+                    </div>
+                    <span class="shrink-0 px-3 py-1.5 rounded-xl bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-black text-xs font-black uppercase tracking-wider hidden sm:inline-block shadow">
+                      Download APK ➔
+                    </span>
+                  </a>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= FLOATING REALSPINPRO QUICK LAUNCHER ================= -->
+      <div id="realspinpro-floating-pill" class="fixed right-4 bottom-20 sm:bottom-24 z-50 transition-all duration-300">
+        <a href="#realspinpro-landing-section" class="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-gradient-to-r from-[#18110b] via-[#2a1a0f] to-[#18110b] border border-amber-500/60 text-white shadow-[0_6px_22px_rgba(238,157,7,0.5)] hover:shadow-[0_8px_30px_rgba(238,157,7,0.75)] hover:scale-105 active:scale-95 transition-all no-underline group">
+          <span class="text-2xl animate-spin" style="animation-duration: 3s;">🎡</span>
+          <div class="flex flex-col text-left leading-none">
+            <span class="text-[12px] font-black tracking-wider uppercase text-amber-400">RealSpinPro</span>
+            <span class="text-[10px] text-slate-300 flex items-center gap-1 mt-0.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Live Game
+            </span>
+          </div>
+        </a>
+      </div>
+
       <section class="pt-6 md:pt-10 pb-10 scroll-mt-24" data-scroll-restore="" id="home-seo-content">
         <div class="mx-auto px-4 max-w-[1202px]">
           <div class="mb-[30px] space-y-5 md:space-y-10 border border-borderColor rounded-xl px-3 py-2 md:px-4 md:py-2.5 max-sm:h-[56px] h-[80px] overflow-auto bg-surfaceBg shadow-sm">

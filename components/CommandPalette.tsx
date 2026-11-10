@@ -70,6 +70,7 @@ const STATIC_ACTIONS: ActionItem[] = [
   { id: "nav-markets", href: "/ouradminportal/markets", label: "Markets Management", icon: "📈", section: "Navigation", permKey: "show_markets" },
   { id: "nav-starline", href: "/ouradminportal/starline", label: "Starline Markets", icon: "⭐", section: "Navigation", permKey: "show_starline" },
   { id: "nav-jackpot", href: "/ouradminportal/jackpot", label: "Jackpot Games", icon: "💰", section: "Navigation", permKey: "show_jackpot" },
+  { id: "nav-realspinpro", href: "/ouradminportal/realspinpro", label: "RealSpinPro Game Console", icon: "🎡", section: "Navigation" },
   { id: "nav-bids", href: "/ouradminportal/bids", label: "Regular Bids History", icon: "🎲", section: "Navigation", permKey: "show_bids" },
   { id: "nav-starline-bids", href: "/ouradminportal/starline-bids-history", label: "Starline Bids History", icon: "🎲", section: "Navigation", permKey: "show_bids" },
   { id: "nav-deposits", href: "/ouradminportal/deposits", label: "Deposits Manager", icon: "➕", section: "Navigation", permKey: "show_deposits" },
