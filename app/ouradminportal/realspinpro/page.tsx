@@ -126,8 +126,8 @@ export default function RealSpinProPage() {
         getRealSpinProRounds(30).catch(() => []),
       ]);
       if (statsData) setStats(statsData);
-      if (betsData) setBets(betsData);
-      if (roundsData) setRounds(roundsData);
+      if (betsData) setBets(Array.isArray(betsData) ? betsData : []);
+      if (roundsData) setRounds(Array.isArray(roundsData) ? roundsData : []);
     } catch (_) {
       // Ignored during periodic polling
     } finally {
