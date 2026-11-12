@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateMarkets();
     updateGameRates();
     initRealSpinPro();
-    initWinGo();
+    // initWinGo(); // Commented out (Win Go Color Prediction disabled)
 
     // Auto Refresh every 10 seconds for real-time live results
     setInterval(() => {

@@ -983,6 +983,69 @@ export async function getRealSpinProRounds(limit: number = 30): Promise<any[]> {
   return res.data;
 }
 
+/* ---------------- Fun Target ---------------- */
+export interface FunTargetConfig {
+  mode: "profit_driven" | "random";
+  target_margin: number;
+  min_win_rate_percent: number;
+  max_losing_streak_trigger: number;
+  double_bonus_percent: number;
+  coins_percent: number;
+  chest_percent: number;
+  manual_override_number?: number | null;
+  manual_override_globe?: "chest" | "coins" | "double_bonus" | null;
+}
+
+export interface FunTargetSettings {
+  enabled: boolean;
+  config?: FunTargetConfig;
+}
+
+export async function getFunTargetSettings(): Promise<FunTargetSettings> {
+  const res = await client.get("/admin/funtarget/settings");
+  return res.data;
+}
+
+export async function updateFunTargetSettings(
+  payload: { enabled?: boolean; config?: FunTargetConfig } | boolean
+): Promise<any> {
+  const body = typeof payload === "boolean" ? { enabled: payload } : payload;
+  const res = await client.put("/admin/funtarget/settings", body);
+  return res.data;
+}
+
+export async function getFunTargetStats(): Promise<{
+  total_wagered: number;
+  total_payout: number;
+  total_profit: number;
+  total_players: number;
+  total_rounds: number;
+  house_edge_pct: number;
+}> {
+  const res = await client.get("/admin/funtarget/stats");
+  return res.data;
+}
+
+export async function getFunTargetBets(
+  limitOrParams: number | any = 100,
+  roundId?: number
+): Promise<any[]> {
+  let params: any = {};
+  if (typeof limitOrParams === "number") {
+    params.limit = limitOrParams;
+    if (roundId) params.round_id = roundId;
+  } else if (limitOrParams && typeof limitOrParams === "object") {
+    params = limitOrParams;
+  }
+  const res = await client.get("/admin/funtarget/bets", { params });
+  return res.data;
+}
+
+export async function getFunTargetRounds(limit: number = 30): Promise<any[]> {
+  const res = await client.get("/admin/funtarget/rounds", { params: { limit } });
+  return res.data;
+}
+
 /* ---------------- Win Go Color Prediction ---------------- */
 export interface WingoConfig {
   mode: "profit_driven" | "random";
