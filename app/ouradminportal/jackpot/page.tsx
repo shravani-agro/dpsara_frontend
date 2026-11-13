@@ -26,6 +26,7 @@ import {
   deleteJackpotResult,
   getJackpotStats,
   getJackpotBidsSummary,
+  getJackpotSmartAnalysis,
 } from "@/lib/admin";
 
 const OFFICIAL_JACKPOT_NUMBERS = [
@@ -82,9 +83,10 @@ export default function JackpotPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [isDeclaring, setIsDeclaring] = useState(false);
 
-  // Slot Live Bets Breakdown
+  // Slot Live Bets & Smart Analysis Breakdown
   const [slotBids, setSlotBids] = useState<Record<string, number>>({});
   const [loadingSlotBids, setLoadingSlotBids] = useState(false);
+  const [smartAnalysis, setSmartAnalysis] = useState<any | null>(null);
 
   // New Slot State
   const [newTime, setNewTime] = useState("");
@@ -134,10 +136,11 @@ export default function JackpotPage() {
     loadResults();
   }, [load, loadStats, loadResults]);
 
-  // Whenever sessionLabel or resultDate changes, fetch live bets on numbers
+  // Whenever sessionLabel or resultDate changes, fetch live bets & smart profitability analysis
   useEffect(() => {
     if (!market || !sessionLabel || !resultDate) {
       setSlotBids({});
+      setSmartAnalysis(null);
       return;
     }
     let active = true;
@@ -161,6 +164,18 @@ export default function JackpotPage() {
       })
       .finally(() => {
         if (active) setLoadingSlotBids(false);
+      });
+
+    getJackpotSmartAnalysis({
+      market_id: market.id,
+      session: sessionLabel,
+      bid_date: resultDate,
+    })
+      .then((res: any) => {
+        if (active && res) setSmartAnalysis(res);
+      })
+      .catch(() => {
+        if (active) setSmartAnalysis(null);
       });
 
     return () => {
@@ -656,18 +671,86 @@ export default function JackpotPage() {
                   </Select>
                 </div>
 
-                {/* Live Exposure Preview for Selected Slot */}
+                {/* Live Exposure Preview & Smart Analysis for Selected Slot */}
                 {sessionLabel && (
-                  <div className="p-3.5 rounded-xl border border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20 space-y-1.5">
-                    <div className="flex items-center justify-between text-xs font-bold text-blue-700 dark:text-blue-300">
-                      <span>Live Slot Bets: {sessionLabel}</span>
-                      <span>
-                        {loadingSlotBids ? "Calculating..." : `₹${slotTotalWagered.toLocaleString("en-IN")}`}
-                      </span>
+                  <div className="space-y-2">
+                    <div className="p-3.5 rounded-xl border border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20 space-y-1.5">
+                      <div className="flex items-center justify-between text-xs font-bold text-blue-700 dark:text-blue-300">
+                        <span>Live Slot Bets: {sessionLabel}</span>
+                        <span>
+                          {loadingSlotBids ? "Calculating..." : `₹${slotTotalWagered.toLocaleString("en-IN")}`}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Total collection from all active triplet bets in this slot.
+                      </p>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Check amounts below to verify house payout liability before declaring.
-                    </p>
+
+                    {/* AI Smart Recommendations */}
+                    {smartAnalysis && (
+                      <div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-950/20 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                            <span>🛡️</span> Smart Outcome Recommendations
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                            (Click to Auto-Fill)
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                          {smartAnalysis.max_profit_recommendation && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setError(null);
+                                setPannaNumber(smartAnalysis.max_profit_recommendation.number);
+                              }}
+                              className={`p-2.5 rounded-lg border text-left transition-all ${
+                                pannaNumber === smartAnalysis.max_profit_recommendation.number
+                                  ? "bg-emerald-500 text-white border-emerald-600 shadow-md ring-2 ring-emerald-400"
+                                  : "bg-white dark:bg-slate-800/90 hover:bg-emerald-50 dark:hover:bg-slate-700/80 border-emerald-300 dark:border-emerald-700"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between font-black text-sm">
+                                <span>🟢 Max House Profit</span>
+                                <span>♠ {smartAnalysis.max_profit_recommendation.number} ♠</span>
+                              </div>
+                              <div className="text-[10px] opacity-90 mt-1">
+                                House Profit: ₹{smartAnalysis.max_profit_recommendation.house_profit.toLocaleString("en-IN")} ({smartAnalysis.max_profit_recommendation.margin_pct}% Margin)
+                              </div>
+                            </button>
+                          )}
+
+                          {smartAnalysis.balanced_win_recommendation ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setError(null);
+                                setPannaNumber(smartAnalysis.balanced_win_recommendation.number);
+                              }}
+                              className={`p-2.5 rounded-lg border text-left transition-all ${
+                                pannaNumber === smartAnalysis.balanced_win_recommendation.number
+                                  ? "bg-blue-600 text-white border-blue-700 shadow-md ring-2 ring-blue-400"
+                                  : "bg-white dark:bg-slate-800/90 hover:bg-blue-50 dark:hover:bg-slate-700/80 border-blue-300 dark:border-blue-700"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between font-black text-sm">
+                                <span>🔵 Player Retention Win</span>
+                                <span>♠ {smartAnalysis.balanced_win_recommendation.number} ♠</span>
+                              </div>
+                              <div className="text-[10px] opacity-90 mt-1">
+                                Payout: ₹{smartAnalysis.balanced_win_recommendation.potential_payout.toLocaleString("en-IN")} • House Keeps: ₹{smartAnalysis.balanced_win_recommendation.house_profit.toLocaleString("en-IN")}
+                              </div>
+                            </button>
+                          ) : (
+                            <div className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-800/60 text-slate-500 text-[11px] flex items-center justify-center text-center">
+                              No active player bets yield safe positive margin for this slot.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -689,6 +772,9 @@ export default function JackpotPage() {
                     {OFFICIAL_JACKPOT_NUMBERS.map((num) => {
                       const isSelected = pannaNumber === num;
                       const betAmt = slotBids[num] || 0;
+                      const analysisItem = smartAnalysis?.numbers_analysis?.find((a: any) => a.number === num);
+                      const isDeficit = analysisItem?.risk_status === "DEFICIT";
+
                       return (
                         <button
                           key={num}
@@ -700,13 +786,24 @@ export default function JackpotPage() {
                           className={`py-2 px-1 text-center font-mono font-black text-sm rounded-lg border transition-all flex flex-col items-center justify-center ${
                             isSelected
                               ? "bg-amber-400 text-slate-950 border-amber-300 shadow-md shadow-amber-500/40 scale-105"
+                              : isDeficit
+                              ? "bg-rose-50/80 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 hover:border-rose-500"
                               : "bg-white dark:bg-slate-800/80 text-amber-700 dark:text-amber-300 border-slate-200 dark:border-slate-700 hover:border-amber-500/50 hover:bg-amber-50/50 dark:hover:bg-slate-800"
                           }`}
                         >
                           <span>{num}</span>
-                          {betAmt > 0 && (
-                            <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                          {betAmt > 0 ? (
+                            <span className={`text-[9px] font-bold mt-0.5 ${isDeficit ? "text-rose-600 dark:text-rose-400" : "text-slate-500 dark:text-slate-400"}`}>
                               ₹{betAmt}
+                            </span>
+                          ) : (
+                            <span className="text-[8px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
+                              ₹0
+                            </span>
+                          )}
+                          {analysisItem && isDeficit && (
+                            <span className="text-[7px] text-rose-600 font-black tracking-tighter uppercase mt-0.5">
+                              Deficit
                             </span>
                           )}
                         </button>
@@ -751,9 +848,27 @@ export default function JackpotPage() {
                     Slot: <strong className="text-slate-900 dark:text-white font-bold">{sessionLabel || "Not Selected"}</strong>
                   </span>
                   {pannaNumber && slotBids[pannaNumber] !== undefined && (
-                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold block mt-1">
-                      Bets on {pannaNumber}: ₹{slotBids[pannaNumber].toLocaleString("en-IN")}
-                    </span>
+                    <div className="mt-2 space-y-1">
+                      <span className="text-xs text-slate-700 dark:text-slate-300 font-bold block">
+                        Player Bets on {pannaNumber}: ₹{slotBids[pannaNumber].toLocaleString("en-IN")}
+                      </span>
+                      {(() => {
+                        const item = smartAnalysis?.numbers_analysis?.find((a: any) => a.number === pannaNumber);
+                        if (!item) return null;
+                        if (item.risk_status === "DEFICIT") {
+                          return (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-1 rounded-md border border-rose-300 dark:border-rose-800">
+                              ⚠️ Warning: Deficit of ₹{Math.abs(item.house_profit).toLocaleString("en-IN")} to platform (Payout: ₹{item.potential_payout.toLocaleString("en-IN")})
+                            </span>
+                          );
+                        }
+                        return (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-md border border-emerald-300 dark:border-emerald-800">
+                            🛡️ House Net Profit: ₹{item.house_profit.toLocaleString("en-IN")} ({item.margin_pct}% Margin)
+                          </span>
+                        );
+                      })()}
+                    </div>
                   )}
                 </div>
 

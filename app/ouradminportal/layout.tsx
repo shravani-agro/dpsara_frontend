@@ -9,7 +9,7 @@ import { Button, Spinner, cn } from "@/components/ui";
 import { ToastContainer } from "@/components/Toast";
 import { CommandPalette } from "@/components/CommandPalette";
 import { UserModalProvider } from "@/components/UserModalContext";
-import { getWithdrawalCounts, getRealSpinProSettings, getFunTargetSettings /*, getWinGoSettings*/ } from "@/lib/admin";
+import { getWithdrawalCounts, getRealSpinProSettings } from "@/lib/admin";
 import { prefetchAllUsers } from "@/lib/user-cache";
 
 function playWithdrawalChime() {
@@ -83,13 +83,14 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/ouradminportal/realspinpro-bids-history", label: "RealSpinPro Bids History", icon: "🎰" },
     ],
   },
-  {
-    label: "Fun Target Game",
-    items: [
-      { href: "/ouradminportal/funtarget", label: "Fun Target Console", icon: "🎯" },
-      { href: "/ouradminportal/funtarget-bids-history", label: "Fun Target Bids History", icon: "📋" },
-    ],
-  },
+  // Commented out (Fun Target Game disabled)
+  // {
+  //   label: "Fun Target Game",
+  //   items: [
+  //     { href: "/ouradminportal/funtarget", label: "Fun Target Console", icon: "🎯" },
+  //     { href: "/ouradminportal/funtarget-bids-history", label: "Fun Target Bids History", icon: "📋" },
+  //   ],
+  // },
   // Commented out (Win Go Color Prediction disabled)
   // {
   //   label: "Win Go Game",
@@ -146,16 +147,12 @@ function NavContent({
   onNavigate,
   pendingWithdrawals = 0,
   realspinproLive = null,
-  funtargetLive = null,
-  // wingoLive = null,
 }: {
   pathname: string;
   query: string;
   onNavigate?: () => void;
   pendingWithdrawals?: number;
   realspinproLive?: boolean | null;
-  funtargetLive?: boolean | null;
-  // wingoLive?: boolean | null;
 }) {
   const { isSubAdmin, hasPermission, assignedUserIds } = useAuth();
   const q = query.trim().toLowerCase();
@@ -193,8 +190,6 @@ function NavContent({
             const active = isActive(item, pathname);
             const isWithdrawals = item.href === "/ouradminportal/withdrawals";
             const isRealSpinPro = item.href === "/ouradminportal/realspinpro";
-            const isFunTarget = item.href === "/ouradminportal/funtarget";
-            // const isWinGo = item.href === "/ouradminportal/wingo";
             const isJackpot = item.href === "/ouradminportal/jackpot";
             const isStarline = item.href === "/ouradminportal/starline";
             const isMainMarkets = item.href === "/ouradminportal/markets";
@@ -228,34 +223,6 @@ function NavContent({
                     {realspinproLive === true ? "LIVE" : realspinproLive === false ? "OFF" : "GAME"}
                   </span>
                 )}
-                {isFunTarget && (
-                  <span
-                    className={cn(
-                      "ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded border",
-                      funtargetLive === true
-                        ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30 animate-pulse"
-                        : funtargetLive === false
-                        ? "text-slate-400 bg-slate-500/10 border-slate-500/25"
-                        : "text-amber-500 bg-amber-500/10 border-amber-500/25"
-                    )}
-                  >
-                    {funtargetLive === true ? "LIVE" : funtargetLive === false ? "OFF" : "GAME"}
-                  </span>
-                )}
-                {/* {isWinGo && (
-                  <span
-                    className={cn(
-                      "ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded border",
-                      wingoLive === true
-                        ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30 animate-pulse"
-                        : wingoLive === false
-                        ? "text-slate-400 bg-slate-500/10 border-slate-500/25"
-                        : "text-amber-500 bg-amber-500/10 border-amber-500/25"
-                    )}
-                  >
-                    {wingoLive === true ? "LIVE" : wingoLive === false ? "OFF" : "GAME"}
-                  </span>
-                )} */}
                 {isJackpot && (
                   <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 rounded border border-amber-500/25">
                     PANNA
@@ -298,8 +265,6 @@ export default function DashboardLayout({
   const { theme, setTheme } = useTheme();
   const [pendingWithdrawals, setPendingWithdrawals] = useState(0);
   const [realspinproLive, setRealspinproLive] = useState<boolean | null>(null);
-  const [funtargetLive, setFuntargetLive] = useState<boolean | null>(null);
-  // const [wingoLive, setWingoLive] = useState<boolean | null>(null);
   const [showWithdrawalPopup, setShowWithdrawalPopup] = useState(false);
   const prevPendingRef = React.useRef<number | null>(null);
 
@@ -330,23 +295,6 @@ export default function DashboardLayout({
       } catch {
         // ignore polling errors
       }
-      try {
-        const ft = await getFunTargetSettings();
-        if (mounted && ft) {
-          setFuntargetLive(Boolean(ft.enabled));
-        }
-      } catch {
-        // ignore polling errors
-      }
-      // Win Go status polling commented out
-      // try {
-      //   const wg = await getWinGoSettings();
-      //   if (mounted && wg) {
-      //     setWingoLive(Boolean(wg.enabled));
-      //   }
-      // } catch {
-      //   // ignore polling errors
-      // }
     };
 
     checkGames();
@@ -446,7 +394,7 @@ export default function DashboardLayout({
             />
           </div>
         </div>
-        <NavContent pathname={pathname} query={navQuery} pendingWithdrawals={pendingWithdrawals} realspinproLive={realspinproLive} funtargetLive={funtargetLive} />
+        <NavContent pathname={pathname} query={navQuery} pendingWithdrawals={pendingWithdrawals} realspinproLive={realspinproLive} />
         <div className="border-t border-slate-200 dark:border-slate-800 p-3 bg-slate-50/50 dark:bg-slate-850/30">
           <div className="flex items-center justify-between px-2 pb-1">
             <span className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
@@ -511,7 +459,7 @@ export default function DashboardLayout({
               />
             </div>
           </div>
-          <NavContent pathname={pathname} query={navQuery} onNavigate={() => setOpen(false)} pendingWithdrawals={pendingWithdrawals} realspinproLive={realspinproLive} funtargetLive={funtargetLive} />
+          <NavContent pathname={pathname} query={navQuery} onNavigate={() => setOpen(false)} pendingWithdrawals={pendingWithdrawals} realspinproLive={realspinproLive} />
           <div className="border-t border-slate-200 dark:border-slate-800 p-3 bg-slate-50/50 dark:bg-slate-850/30">
             <div className="px-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
               Signed in as

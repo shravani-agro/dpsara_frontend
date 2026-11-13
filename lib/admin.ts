@@ -541,6 +541,15 @@ export async function getJackpotBidsSummary(params: {
   return res.data;
 }
 
+export async function getJackpotSmartAnalysis(params: {
+  market_id: number;
+  session?: string;
+  bid_date?: string;
+}) {
+  const res = await client.get("/admin/jackpot/smart-analysis", { params });
+  return res.data;
+}
+
 export async function getJackpotStats(): Promise<{
   total_wagered: number;
   total_payout: number;
