@@ -60,12 +60,12 @@ const NUMBER_COLORS: Record<number, string> = {
 const DEFAULT_CONFIG: RealSpinProConfig = {
   mode: "profit_driven",
   target_margin: 20,
-  min_win_rate_percent: 70,
+  min_win_rate_percent: 75,
   max_losing_streak_trigger: 3,
   multipliers: {
-    "1x": 80,
-    "2x": 15,
-    "3x": 5,
+    "1x": 95,
+    "2x": 4,
+    "3x": 1,
   },
   manual_override_number: null,
   manual_override_multiplier: 1,
@@ -143,12 +143,12 @@ export default function RealSpinProPage() {
         setConfig({
           mode: data.config.mode || "profit_driven",
           target_margin: data.config.target_margin ?? 20,
-          min_win_rate_percent: data.config.min_win_rate_percent ?? 70,
+          min_win_rate_percent: data.config.min_win_rate_percent ?? 75,
           max_losing_streak_trigger: data.config.max_losing_streak_trigger ?? 3,
           multipliers: {
-            "1x": data.config.multipliers?.["1x"] ?? 80,
-            "2x": data.config.multipliers?.["2x"] ?? 15,
-            "3x": data.config.multipliers?.["3x"] ?? 5,
+            "1x": data.config.multipliers?.["1x"] ?? 95,
+            "2x": data.config.multipliers?.["2x"] ?? 4,
+            "3x": data.config.multipliers?.["3x"] ?? 1,
           },
           manual_override_number: data.config.manual_override_number ?? null,
           manual_override_multiplier: data.config.manual_override_multiplier ?? 1,
