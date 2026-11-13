@@ -1062,8 +1062,11 @@ export interface WingoConfig {
   min_win_rate_percent: number;
   max_losing_streak_trigger: number;
   manual_override_number?: number | null;
+  manual_override_color?: "red" | "green" | "violet" | null;
   kill_switch?: boolean;
 }
+
+export type WinGoConfig = WingoConfig;
 
 export interface WingoSettings {
   enabled: boolean;

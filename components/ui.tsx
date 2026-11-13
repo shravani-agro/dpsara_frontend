@@ -16,6 +16,7 @@ export function Card({
   headerRight,
   className = "",
   bodyClassName = "",
+  onClick,
 }: {
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
@@ -25,10 +26,14 @@ export function Card({
   headerRight?: React.ReactNode;
   className?: string;
   bodyClassName?: string;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
 }) {
   const headerActions = actions || headerRight;
   return (
-    <div className={cn("card animate-fade-in group hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300", className)}>
+    <div
+      onClick={onClick}
+      className={cn("card animate-fade-in group hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300", className)}
+    >
       {(title || headerActions) && (
         <div className="flex flex-col gap-2.5 border-b border-slate-100 dark:border-slate-800/80 px-4 py-3 sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between bg-slate-50/80 dark:bg-slate-800/40">
           <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
@@ -59,14 +64,16 @@ export function Button({
   loading = false,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "danger" | "success" | "ghost" | "outline";
+  variant?: "primary" | "secondary" | "danger" | "success" | "ghost" | "outline" | "default" | "destructive";
   size?: "sm" | "md" | "lg" | "icon";
   loading?: boolean;
 }) {
   const variants: Record<string, string> = {
     primary: "bg-brand-600 hover:bg-brand-500 text-white shadow-glow focus-visible:ring-brand-500/40",
+    default: "bg-brand-600 hover:bg-brand-500 text-white shadow-glow focus-visible:ring-brand-500/40",
     secondary: "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 focus-visible:ring-slate-300 dark:focus-visible:ring-slate-700",
     danger: "bg-red-600 hover:bg-red-500 text-white focus-visible:ring-red-500/40",
+    destructive: "bg-red-600 hover:bg-red-500 text-white focus-visible:ring-red-500/40",
     success: "bg-emerald-600 hover:bg-emerald-500 text-white focus-visible:ring-emerald-500/40",
     ghost: "bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 focus-visible:ring-slate-300 dark:focus-visible:ring-slate-700",
     outline: "border border-slate-200 dark:border-slate-800 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 focus-visible:ring-slate-300 dark:focus-visible:ring-slate-700",
@@ -104,8 +111,8 @@ export function Badge({
   className = "",
 }: {
   children: React.ReactNode;
-  color?: "slate" | "green" | "red" | "amber" | "orange" | "blue" | "emerald" | "brand" | "violet";
-  variant?: "slate" | "green" | "red" | "amber" | "orange" | "blue" | "emerald" | "brand" | "violet" | "success" | "danger" | "warning" | "primary" | "info" | "secondary";
+  color?: "slate" | "green" | "red" | "rose" | "amber" | "orange" | "blue" | "emerald" | "brand" | "violet";
+  variant?: "slate" | "green" | "red" | "rose" | "amber" | "orange" | "blue" | "emerald" | "brand" | "violet" | "success" | "danger" | "warning" | "primary" | "info" | "secondary" | "outline" | "default";
   className?: string;
 }) {
   const resolvedColor = color || (
@@ -115,12 +122,15 @@ export function Badge({
     variant === "primary" ? "brand" :
     variant === "info" ? "blue" :
     variant === "secondary" ? "slate" :
+    variant === "outline" ? "slate" :
+    variant === "default" ? "slate" :
     (variant as any) || "slate"
   );
   const colors: Record<string, string> = {
     slate: "bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 shadow-sm",
     green: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]",
     red: "bg-red-500/10 text-red-700 dark:text-red-400 ring-1 ring-inset ring-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
+    rose: "bg-rose-500/10 text-rose-700 dark:text-rose-400 ring-1 ring-inset ring-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.2)]",
     amber: "bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-1 ring-inset ring-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.2)]",
     orange: "bg-orange-500/10 text-orange-700 dark:text-orange-400 ring-1 ring-inset ring-orange-500/20 shadow-[0_0_10px_rgba(249,115,22,0.2)]",
     blue: "bg-sky-500/10 text-sky-700 dark:text-sky-400 ring-1 ring-inset ring-sky-500/20 shadow-[0_0_10px_rgba(14,165,233,0.2)]",
@@ -236,30 +246,86 @@ export function Modal({
   );
 }
 
-export function Spinner({ className = "" }: { className?: string }) {
+export function Spinner({
+  className = "",
+  size = "md",
+}: {
+  className?: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const sizes: Record<string, string> = {
+    sm: "h-4 w-4 border",
+    md: "h-8 w-8 border-2",
+    lg: "h-12 w-12 border-2",
+  };
   return (
     <div className={cn("flex items-center justify-center py-10", className)}>
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 dark:border-slate-700 border-t-brand-500" />
+      <div className={cn("animate-spin rounded-full border-slate-200 dark:border-slate-700 border-t-brand-500", sizes[size] || sizes.md)} />
     </div>
   );
 }
 
-export function ErrorMsg({ msg }: { msg?: string | null }) {
-  if (!msg) return null;
+export function ErrorMsg({
+  msg,
+  error,
+  message,
+  onRetry,
+  onDismiss,
+  retryLabel = "Retry",
+}: {
+  msg?: string | null;
+  error?: string | null;
+  message?: string | null;
+  onRetry?: () => void;
+  onDismiss?: () => void;
+  retryLabel?: string;
+}) {
+  const text = msg || error || message;
+  if (!text) return null;
   return (
     <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-600 dark:text-red-400">
       <span>⚠</span>
-      <span>{msg}</span>
+      <span className="min-w-0 flex-1 break-words">{text}</span>
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="shrink-0 rounded-lg border border-red-500/30 px-2.5 py-1 text-xs font-bold hover:bg-red-500/15 transition"
+        >
+          {retryLabel}
+        </button>
+      )}
+      {onDismiss && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="shrink-0 rounded-lg px-1.5 py-1 text-xs font-bold hover:bg-red-500/15 transition"
+          aria-label="Dismiss error"
+        >
+          ✕
+        </button>
+      )}
     </div>
   );
 }
 
-export function EmptyState({ title, hint }: { title: string; hint?: string }) {
+export function EmptyState({
+  title,
+  hint,
+  description,
+  action,
+}: {
+  title: string;
+  hint?: string;
+  description?: string;
+  action?: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xl">📭</div>
       <p className="text-sm font-medium text-slate-600 dark:text-slate-300">{title}</p>
-      {hint && <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{hint}</p>}
+      {(hint || description) && <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{hint || description}</p>}
+      {action && <div className="mt-4">{action}</div>}
     </div>
   );
 }
@@ -270,12 +336,14 @@ export function PageHeader({
   actions,
   icon,
   onBack,
+  children,
 }: {
   title: React.ReactNode;
   description?: React.ReactNode;
   actions?: React.ReactNode;
   icon?: React.ReactNode;
   onBack?: () => void;
+  children?: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -301,7 +369,12 @@ export function PageHeader({
           {description && <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400 line-clamp-2 sm:line-clamp-none">{description}</p>}
         </div>
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">{actions}</div>}
+      {(actions || children) && (
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          {actions}
+          {children}
+        </div>
+      )}
     </div>
   );
 }
@@ -475,12 +548,13 @@ export function StatCard({
   label: string;
   value: React.ReactNode;
   icon?: React.ReactNode;
-  accent?: "brand" | "emerald" | "amber" | "sky" | "violet";
+  accent?: "brand" | "emerald" | "amber" | "sky" | "violet" | "rose";
   delta?: { value: string; positive?: boolean };
 }) {
   const accents: Record<string, string> = {
     brand: "from-brand-600/30 to-brand-500/5 text-brand-700 dark:text-brand-400 shadow-brand-500/20",
     emerald: "from-emerald-600/30 to-emerald-500/5 text-emerald-700 dark:text-emerald-400 shadow-emerald-500/20",
+    rose: "from-rose-600/30 to-rose-500/5 text-rose-700 dark:text-rose-400 shadow-rose-500/20",
     amber: "from-amber-600/30 to-amber-500/5 text-amber-700 dark:text-amber-400 shadow-amber-500/20",
     sky: "from-sky-600/30 to-sky-500/5 text-sky-700 dark:text-sky-400 shadow-sky-500/20",
     violet: "from-violet-600/30 to-violet-500/5 text-violet-700 dark:text-violet-400 shadow-violet-500/20",

@@ -349,9 +349,7 @@ export default function JackpotBidsHistoryPage() {
 
           {/* Date Range */}
           <DateRangeFilter
-            dateFrom={dateFrom}
-            dateTo={dateTo}
-            onChange={(df, dt) => {
+            onFilterChange={({ dateFrom: df, dateTo: dt }) => {
               setDateFrom(df);
               setDateTo(dt);
             }}
@@ -628,7 +626,7 @@ export default function JackpotBidsHistoryPage() {
       {/* Details Modal */}
       {selectedBid && (
         <Modal
-          isOpen={true}
+          open={true}
           onClose={() => setSelectedBid(null)}
           title={`Jackpot Bet #${selectedBid.id}`}
         >
@@ -710,7 +708,7 @@ export default function JackpotBidsHistoryPage() {
       {/* Status Update Modal */}
       {statusModalBid && (
         <Modal
-          isOpen={true}
+          open={true}
           onClose={() => setStatusModalBid(null)}
           title={`Update Status: Bet #${statusModalBid.id}`}
         >

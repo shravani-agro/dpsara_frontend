@@ -44,7 +44,7 @@ export default function ResultsPage() {
   const [markets, setMarkets] = useState<any[]>([]);
   const [declaredResults, setDeclaredResults] = useState<any[]>([]);
   const [marketId, setMarketId] = useState<number | null>(null);
-  const [resultDate, setResultDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [resultDate, setResultDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
 
   // Separate Open & Close Result State for Main Markets
   const [openPana, setOpenPana] = useState("");
@@ -58,7 +58,7 @@ export default function ResultsPage() {
   const [loadingResults, setLoadingResults] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
-  const [filterDate, setFilterDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [filterDate, setFilterDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const [filterMarket, setFilterMarket] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<any>(null);
@@ -374,6 +374,7 @@ export default function ResultsPage() {
   }
 
   async function handleSettlePendingBets() {
+    if (!confirm("Settle all pending bets for all declared results? This will credit/debit user wallets.")) return;
     setSettling(true);
     setError(null);
     setMsg(null);

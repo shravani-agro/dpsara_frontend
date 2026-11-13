@@ -32,7 +32,7 @@ export default function AuditPage() {
     try {
       const params: any = { limit: 200 };
       if (actionType) params.action_type = actionType;
-      if (adminId) params.admin_id = adminId;
+      if (adminId && /^\d+$/.test(adminId)) params.admin_id = Number(adminId);
       if (dateFrom) params.date_from = new Date(dateFrom).toISOString();
       if (dateTo) {
         const dt = new Date(dateTo);
@@ -104,7 +104,7 @@ export default function AuditPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
           <Input
-            placeholder="Filter by Admin Name..."
+            placeholder="Filter by Admin ID..."
             value={adminId}
             onChange={(e) => setAdminId(e.target.value)}
           />

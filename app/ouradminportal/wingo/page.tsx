@@ -856,10 +856,10 @@ export default function WinGoConsolePage() {
               </button>
               <button
                 type="button"
-                onClick={() => setConfig({ ...config, mode: "fair" })}
+                onClick={() => setConfig({ ...config, mode: "random" })}
                 className={cn(
                   "p-3 rounded-xl border text-left transition",
-                  config.mode === "fair"
+                  config.mode === "random"
                     ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                     : "border-slate-200 dark:border-slate-700 hover:bg-slate-50"
                 )}

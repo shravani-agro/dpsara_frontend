@@ -77,7 +77,7 @@ export default function JackpotPage() {
   // Results Management State (Jackpot = Panna Numbers Only)
   const [declaredResults, setDeclaredResults] = useState<any[]>([]);
   const [loadingResults, setLoadingResults] = useState(true);
-  const [resultDate, setResultDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [resultDate, setResultDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const [sessionLabel, setSessionLabel] = useState("");
   const [pannaNumber, setPannaNumber] = useState("");
   const [msg, setMsg] = useState<string | null>(null);

@@ -378,9 +378,7 @@ export default function RealSpinProBidsHistoryPage() {
 
           {/* Date Range */}
           <DateRangeFilter
-            dateFrom={dateFrom}
-            dateTo={dateTo}
-            onChange={(df, dt) => {
+            onFilterChange={({ dateFrom: df, dateTo: dt }) => {
               setDateFrom(df);
               setDateTo(dt);
             }}
@@ -708,7 +706,7 @@ export default function RealSpinProBidsHistoryPage() {
       {/* Details Modal */}
       {selectedBet && (
         <Modal
-          isOpen={true}
+          open={true}
           onClose={() => setSelectedBet(null)}
           title={`RealSpinPro Bet #${selectedBet.id}`}
         >

@@ -526,7 +526,6 @@ export default function MarketsPage() {
                   onChange={(e) => setFormData({ ...formData, market_type: e.target.value })}
                 >
                   <option value="regular">Regular</option>
-                  <option value="starline">Starline (Multi-Result)</option>
                 </Select>
               </div>
 

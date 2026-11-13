@@ -211,9 +211,10 @@ export default function WithdrawalsPage() {
 
   async function bulkApprove() {
     if (selected.length === 0) return;
+    if (!window.confirm(`Mark ${selected.length} withdrawal request(s) as done (paid)? Only do this after transferring the money.`)) return;
     try {
       await bulkApproveWithdrawals(selected);
-      toast.success(`${selected.length} withdrawals approved`);
+      toast.success(`${selected.length} withdrawals marked as paid`);
       setSelected([]);
       load();
     } catch (e: any) {

@@ -90,7 +90,7 @@ export default function StarlinePage() {
   // Results Management State (Starline = Open Result Only)
   const [declaredResults, setDeclaredResults] = useState<any[]>([]);
   const [loadingResults, setLoadingResults] = useState(true);
-  const [resultDate, setResultDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [resultDate, setResultDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const [sessionLabel, setSessionLabel] = useState("");
   const [openPana, setOpenPana] = useState("");
   const [openAnk, setOpenAnk] = useState("");
