@@ -73,6 +73,8 @@ export interface OverviewStats {
   total_users?: number;
   active_users_24h?: number;
   total_bets_today?: number;
+  daily_users?: number;
+  active_users_today?: number;
   total_revenue?: number;
   total_deposits?: number;
   total_withdrawals?: number;

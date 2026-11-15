@@ -119,6 +119,8 @@ export default function DashboardPage() {
   const cards = [
     { label: "Total Users", value: stats?.total_users, icon: "👥", accent: "sky" as const },
     { label: "Active (24h)", value: stats?.active_users_24h, icon: "⚡", accent: "emerald" as const },
+    { label: "Daily Users", value: stats?.daily_users, icon: "📅", accent: "brand" as const },
+    { label: "Today Active Users", value: stats?.active_users_today, icon: "🟢", accent: "emerald" as const },
     { label: "Bets Placed", value: stats?.total_bets_today, icon: "🎯", accent: "violet" as const },
     { label: "Platform Stakes", value: fmtMoney(stats?.total_revenue), icon: "💰", accent: "brand" as const },
     { label: "Total Deposits", value: fmtMoney(stats?.total_deposits), icon: "⬇", accent: "emerald" as const },
