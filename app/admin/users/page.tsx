@@ -58,6 +58,8 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({ username: "", is_active: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const [selected, setSelected] = useState<any>(null);
   const [detail, setDetail] = useState<any>(null);
@@ -87,6 +89,8 @@ export default function UsersPage() {
       const params: any = {};
       if (filters.username) params.username = filters.username;
       if (filters.is_active !== "") params.is_active = filters.is_active === "true";
+      params.page = currentPage;
+      params.limit = pageSize;
       const data = await listUsers(params);
       setUsers(data);
     } catch (e: any) {
@@ -94,7 +98,7 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, currentPage, pageSize]);
 
   useEffect(() => {
     load();
@@ -245,6 +249,21 @@ export default function UsersPage() {
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </Select>
+          <Select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="w-auto"
+          >
+            <option value={10}>10</option>
+            <option value={20} selected>
+              20
+            </option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </Select>
           <div className="flex gap-2">
             <Button onClick={load} className="w-full sm:w-auto">
               Search
@@ -319,6 +338,30 @@ export default function UsersPage() {
                   },
                 ]}
               />
+            </div>
+
+            {/* Pagination controls */}
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-slate-500">
+                Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, users.length)} of {users.length}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Prev
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
 
             {/* Mobile Compact High-Density Row View */}

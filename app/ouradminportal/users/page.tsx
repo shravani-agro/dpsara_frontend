@@ -69,6 +69,9 @@ export default function UsersPage() {
     datePreset: "all" as DatePreset,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  
 
   const [selected, setSelected] = useState<any>(null);
   const [detail, setDetail] = useState<any>(null);
@@ -100,6 +103,8 @@ export default function UsersPage() {
       if (filters.is_active !== "") params.is_active = filters.is_active === "true";
       if (filters.dateFrom) params.registered_from = `${filters.dateFrom}T00:00:00`;
       if (filters.dateTo) params.registered_to = `${filters.dateTo}T23:59:59`;
+      params.page = currentPage;
+      params.limit = pageSize;
       const data = await listUsers(params);
       setUsers(data);
       primeUserCache(data);
@@ -108,7 +113,7 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, currentPage, pageSize]);
 
   useEffect(() => {
     load();
@@ -305,7 +310,23 @@ export default function UsersPage() {
               );
             })}
 
-            <Button onClick={load} className="h-9 px-4 text-xs font-bold shrink-0">
+            <Select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="h-9 px-4 text-xs font-bold shrink-0"
+          >
+            <option value={10}>10</option>
+            <option value={20} selected>
+              20
+            </option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </Select>
+
+          <Button onClick={load} className="h-9 px-4 text-xs font-bold shrink-0">
               Search
             </Button>
 
@@ -422,6 +443,30 @@ export default function UsersPage() {
                   },
                 ]}
               />
+            </div>
+
+            {/* Pagination controls */}
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-slate-500 dark:text-slate-400">
+                Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, users.length)} of {users.length}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Prev
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
 
             {/* Mobile Compact High-Density Row View */}

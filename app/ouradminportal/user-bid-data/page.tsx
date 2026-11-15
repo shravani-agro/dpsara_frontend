@@ -20,7 +20,7 @@ import {
   listStarlineBids,
   listUsers,
 } from "@/lib/admin";
-import { CachedUser, prefetchAllUsers, primeUserCache } from "@/lib/user-cache";
+import { primeUserCache } from "@/lib/user-cache";
 import { parseApiError } from "@/lib/error-parser";
 import { useUserModal } from "@/components/UserModalContext";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
@@ -104,11 +104,13 @@ export default function UserBidDataPage() {
   const [starlineMarkets, setStarlineMarkets] = useState<any[]>([]);
 
   // Users & Selection
-  const [allUsers, setAllUsers] = useState<CachedUser[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [userSearchQuery, setUserSearchQuery] = useState<string>("");
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [userPage, setUserPage] = useState(1);
+  const [userPageSize] = useState(20);
 
   // Raw Bids
   const [regularBids, setRegularBids] = useState<any[]>([]);
@@ -154,7 +156,7 @@ export default function UserBidDataPage() {
         const [regData, starData, users] = await Promise.all([
           listMarkets({}).catch(() => []),
           listStarlineMarkets({}).catch(() => []),
-          prefetchAllUsers().catch(() => []),
+          listUsers({ limit: userPageSize, page: userPage }).catch(() => []),
         ]);
         if (!isMounted) return;
 
@@ -173,10 +175,9 @@ export default function UserBidDataPage() {
 
         if (Array.isArray(users) && users.length > 0) {
           setAllUsers(users);
+          primeUserCache(users);
         } else {
-          const directUsers = await listUsers({ limit: 1000 }).catch(() => []);
-          primeUserCache(directUsers);
-          setAllUsers(directUsers);
+          setAllUsers([]);
         }
       } catch (err: any) {
         console.error("Failed to load initial metadata", err);
@@ -185,7 +186,7 @@ export default function UserBidDataPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [userPage]);
 
   // Selected User Object
   const selectedUser = useMemo(() => {
@@ -622,6 +623,30 @@ export default function UserBidDataPage() {
                   }}
                   className="input-base text-xs w-full"
                 />
+              </div>
+            )}
+
+            {/* User page info */}
+            {allUsers.length > 0 && (
+              <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                <span>Showing {((userPage - 1) * userPageSize) + 1} - {Math.min(userPage * userPageSize, allUsers.length)} of {allUsers.length > userPageSize ? `≈${allUsers.length}` : "all"} users</span>
+                <button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUserPage((prev) => Math.max(1, prev - 1))}
+                  className="px-2 py-1"
+                  disabled={userPage === 1}
+                >
+                  Prev
+                </button>
+                <button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUserPage((prev) => prev + 1)}
+                  className="px-2 py-1"
+                >
+                  Next
+                </button>
               </div>
             )}
 
