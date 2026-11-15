@@ -376,7 +376,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
               rowCells += `<td class="p-2 max-sm:p-1 border-b border-primary/25 border-r border-primary/25 last:border-r-0 text-[18px] max-sm:text-[14px] font-bold align-middle ${textColorClass}">${jodi}</td>`;
             } else {
               if (jodi !== '**' || openPana !== '***' || closePana !== '***') {
-                rowCells += `<td class="p-1.5 max-sm:p-1 border-b border-primary/25 border-r border-primary/25 last:border-r-0 align-middle text-center text-black">
+                rowCells += `<td class="p-1.5 max-sm:p-1 border-b border-primary/25 border-r border-primary/25 last:border-r-0 align-middle text-center text-black dark:text-white">
                   <div class="flex h-full w-full items-center justify-center">
                     <div class="inline-flex items-center justify-center gap-x-1 max-sm:gap-x-px leading-none">
                       <span class="inline-block align-middle text-center font-bold text-[11px] max-sm:text-[8px] leading-[1.15] max-sm:leading-[1.1] w-[1ch] break-all">${openPana}</span>
