@@ -916,6 +916,11 @@ export async function broadcastWhatsAppMessage(payload: { text: string; target?:
   return res.data;
 }
 
+export async function getWhatsAppBroadcastLiveStatus(): Promise<any> {
+  const res = await client.get("/admin/whatsapp/broadcast/live-status");
+  return res.data;
+}
+
 export async function triggerMorningWhatsApp(): Promise<any> {
   const res = await client.post("/admin/whatsapp/trigger-morning");
   return res.data;
