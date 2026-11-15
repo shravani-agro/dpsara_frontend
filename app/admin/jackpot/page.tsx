@@ -13,10 +13,13 @@ import {
   EmptyState,
   TimePicker,
   Badge,
+  cn,
 } from "@/components/ui";
 import { toast } from "@/components/Toast";
 import { parseApiError } from "@/lib/error-parser";
 import {
+  getJackpotSettings,
+  updateJackpotSettings,
   listJackpotMarkets,
   createJackpotMarket,
   updateJackpotMarket,
@@ -55,6 +58,8 @@ const OFFICIAL_JACKPOT_SLOTS = [
 
 export default function JackpotPage() {
   const [market, setMarket] = useState<any>(null);
+  const [enabled, setEnabled] = useState<boolean>(true);
+  const [savingToggle, setSavingToggle] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -76,6 +81,13 @@ export default function JackpotPage() {
     setLoading(true);
     setError(null);
     try {
+      try {
+        const s = await getJackpotSettings();
+        if (s && typeof s.enabled === "boolean") {
+          setEnabled(s.enabled);
+        }
+      } catch {}
+
       const data = await listJackpotMarkets({});
       if (data && data.length > 0) {
         setMarket(data[0]);
@@ -88,6 +100,22 @@ export default function JackpotPage() {
       setLoading(false);
     }
   }, []);
+
+  const handleToggle = async (nextState: boolean) => {
+    setSavingToggle(true);
+    setError(null);
+    try {
+      await updateJackpotSettings({ enabled: nextState });
+      setEnabled(nextState);
+      const stateText = nextState ? "ACTIVATED on Mobile" : "DEACTIVATED / Paused";
+      toast.success(`Jackpot is now ${stateText}`);
+    } catch (err: any) {
+      setError(parseApiError(err));
+      toast.error("Failed to update Jackpot status: " + parseApiError(err));
+    } finally {
+      setSavingToggle(false);
+    }
+  };
 
   const loadResults = useCallback(async () => {
     setLoadingResults(true);
@@ -249,6 +277,35 @@ export default function JackpotPage() {
       <PageHeader
         title="Jackpot Settings & Results"
         description="Manage Jackpot time slots and declare winning results (Only 10 official numbers: 000 - 999)"
+        actions={
+          <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 shadow-xs">
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">App:</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={enabled}
+              onClick={() => handleToggle(!enabled)}
+              disabled={savingToggle}
+              className={cn(
+                "relative inline-flex h-6 w-12 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                enabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-neutral-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out mt-0.5",
+                  enabled ? "translate-x-6" : "translate-x-0.5"
+                )}
+              />
+            </button>
+            <Badge
+              variant={enabled ? "success" : "danger"}
+              className="text-[10px] px-2 py-0.5 font-bold uppercase"
+            >
+              {enabled ? "● LIVE" : "○ OFF"}
+            </Badge>
+          </div>
+        }
       />
       <ErrorMsg msg={error} />
       {msg && (

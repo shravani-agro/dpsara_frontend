@@ -466,6 +466,16 @@ export async function triggerInactiveNudge(inactive_days: number = 3, limit: num
 
 /* ---------------- Admin: Jackpot ---------------- */
 
+export async function getJackpotSettings() {
+  const res = await client.get("/admin/jackpot/settings");
+  return res.data;
+}
+
+export async function updateJackpotSettings(data: { enabled?: boolean }) {
+  const res = await client.put("/admin/jackpot/settings", data);
+  return res.data;
+}
+
 export async function listJackpotMarkets(params: any = {}) {
   const res = await client.get("/admin/jackpot/markets", { params });
   return res.data;
