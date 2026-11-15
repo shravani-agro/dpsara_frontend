@@ -145,7 +145,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
       $('p:contains("Jodi Charts"), p:contains("Jodi charts")').siblings('ul').each((_, ul) => {
         $(ul).empty().append(
           regularMarkets.map(m =>
-            `<li class="break-inside-avoid"><a class="block rounded-lg px-2.5 py-1.5 text-[13px] font-semibold uppercase text-black no-underline transition-colors hover:bg-timeBg hover:text-primary" href="/${m.slug}_jodi.html">${m.name.toUpperCase()}</a></li>`
+            `<li class="break-inside-avoid"><a class="block rounded-lg px-2.5 py-1.5 text-[13px] font-semibold uppercase text-black dark:text-white no-underline transition-colors hover:bg-timeBg hover:text-primary" href="/${m.slug}_jodi.html">${m.name.toUpperCase()}</a></li>`
           ).join('')
         );
       });
@@ -154,7 +154,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
       $('p:contains("Pana Charts"), p:contains("Pana charts")').siblings('ul').each((_, ul) => {
         $(ul).empty().append(
           regularMarkets.map(m =>
-            `<li class="break-inside-avoid"><a class="block rounded-lg px-2.5 py-1.5 text-[13px] font-semibold uppercase text-black no-underline transition-colors hover:bg-timeBg hover:text-primary" href="/${m.slug}_pana.html">${m.name.toUpperCase()}</a></li>`
+            `<li class="break-inside-avoid"><a class="block rounded-lg px-2.5 py-1.5 text-[13px] font-semibold uppercase text-black dark:text-white no-underline transition-colors hover:bg-timeBg hover:text-primary" href="/${m.slug}_pana.html">${m.name.toUpperCase()}</a></li>`
           ).join('')
         );
       });

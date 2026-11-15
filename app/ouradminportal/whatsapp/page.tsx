@@ -36,7 +36,7 @@ export default function WhatsAppMarketingPage() {
   const [status, setStatus] = useState<WhatsAppStatus | null>(null);
   const [settings, setSettings] = useState<WhatsAppSettings>({
     url: "http://127.0.0.1:2785",
-    session_id: "dpsara",
+    session_id: "33f20571-8379-49b2-9e45-9c7b59f6f744",
     api_key: "",
     master_enabled: true,
     notify_deposit: true,
