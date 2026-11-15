@@ -29,6 +29,43 @@ import {
   type WhatsAppSettings,
 } from "@/lib/admin";
 
+const DIWALI_TEMPLATE = `👑 *HAPPY DIWALI TO ALL DPSARA 777 USERS!* 👑
+────────────────────────
+
+Namaste {name}! 🙏
+
+Wishing you and your family a very *Happy & Prosperous Diwali!* 🪔🎆
+
+🌟 *IMPORTANT MARKET UPDATE:*
+All markets are *OPEN* starting today! 🎯
+
+✨ *ENJOY OUR SERVICES:*
+⚡ Fast & Smooth Application Experience
+📲 Quick Withdrawal Processing
+🔒 Safe & Secure Platform
+🎧 Dedicated 24/7 Customer Support
+
+💰 *NEED HELP?*
+For any deposit, withdrawal, or application-related issues, contact our support team anytime. We're always here to help!
+
+🌐 *Visit Our Website:* 👉 {site_url}
+
+🙏 Thank you for being a valuable member of the DPSARA family!
+
+✨ *DPSARA 777 – Har Pal Aapke Saath!* ✨
+
+🪔 *PLAY SAFE • STAY CONNECTED • HAPPY DIWALI!* 🎆`;
+
+const CUSTOM_STARTER_TEMPLATE = `📢 *ANNOUNCEMENT FROM DPSARA 777* 📢
+────────────────────────
+
+Namaste {name}! 🙏
+
+[Write your custom message here]
+
+🌐 *Visit Our Website:* 👉 {site_url}
+✨ *DPSARA 777 – Har Pal Aapke Saath!* ✨`;
+
 export default function WhatsAppMarketingPage() {
   const [loading, setLoading] = useState(true);
   const [statusLoading, setStatusLoading] = useState(false);
@@ -49,10 +86,10 @@ export default function WhatsAppMarketingPage() {
   });
 
   const [templates, setTemplates] = useState<Record<string, string>>({});
-  const [selectedTemplateKey, setSelectedTemplateKey] = useState<string>("morning");
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState<string>("diwali");
 
   // Broadcast state
-  const [broadcastText, setBroadcastText] = useState("");
+  const [broadcastText, setBroadcastText] = useState(DIWALI_TEMPLATE);
   const [broadcastTarget, setBroadcastTarget] = useState<"all" | "active">("active");
   const [broadcasting, setBroadcasting] = useState(false);
 
@@ -102,7 +139,12 @@ export default function WhatsAppMarketingPage() {
       if (tData) {
         const tpls = tData as Record<string, string>;
         setTemplates(tpls);
-        if (tpls.morning) setBroadcastText(tpls.morning);
+        if (tpls.diwali) {
+          setBroadcastText(tpls.diwali);
+          setSelectedTemplateKey("diwali");
+        } else if (tpls.morning && !broadcastText) {
+          setBroadcastText(tpls.morning);
+        }
       }
       if (hData) setHistory(hData);
     } catch (e: any) {
@@ -265,6 +307,17 @@ export default function WhatsAppMarketingPage() {
 
   const handleSelectTemplate = (key: string) => {
     setSelectedTemplateKey(key);
+    if (key === "custom") {
+      // If user switches to custom mode, preserve existing text if typed, otherwise load clean starter
+      if (!broadcastText.trim()) {
+        setBroadcastText(templates.custom || CUSTOM_STARTER_TEMPLATE);
+      }
+      return;
+    }
+    if (key === "diwali") {
+      setBroadcastText(templates.diwali || DIWALI_TEMPLATE);
+      return;
+    }
     if (templates[key]) {
       setBroadcastText(templates[key]);
     }
@@ -873,6 +926,8 @@ export default function WhatsAppMarketingPage() {
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {[
+                    { key: "diwali", label: "🪔 Diwali / Festive Special", highlight: true },
+                    { key: "custom", label: "✍️ Custom Message", custom: true },
                     { key: "morning", label: "🌅 Good Morning Schedule" },
                     { key: "night", label: "🌙 Good Night Settlement" },
                     { key: "weekend_dhamaka", label: "🔥 Weekend Dhamaka Offer" },
@@ -885,9 +940,15 @@ export default function WhatsAppMarketingPage() {
                       key={tpl.key}
                       type="button"
                       onClick={() => handleSelectTemplate(tpl.key)}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition active:scale-95 ${
                         selectedTemplateKey === tpl.key
-                          ? "bg-emerald-600 text-white shadow-sm"
+                          ? tpl.highlight
+                            ? "bg-amber-500 text-slate-950 font-bold shadow-md ring-2 ring-amber-400"
+                            : "bg-emerald-600 text-white shadow-sm"
+                          : tpl.highlight
+                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/25"
+                          : tpl.custom
+                          ? "bg-brand-500/15 text-brand-700 dark:text-brand-300 border border-brand-500/30 hover:bg-brand-500/25"
                           : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
                       }`}
                     >
@@ -950,23 +1011,53 @@ export default function WhatsAppMarketingPage() {
 
               {/* Message Textarea */}
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                    Message Content
-                  </label>
-                  <span className="text-[11px] text-slate-500 font-mono">
-                    {broadcastText.length} characters
-                  </span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                      Message Content
+                    </label>
+                    {selectedTemplateKey === "custom" && (
+                      <span className="rounded bg-brand-500/20 px-1.5 py-0.5 text-[10px] font-bold text-brand-700 dark:text-brand-300">
+                        ✍️ Custom Writing Mode
+                      </span>
+                    )}
+                    {selectedTemplateKey === "diwali" && (
+                      <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                        🪔 Diwali Special Preset
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTemplateKey("custom");
+                        setBroadcastText("");
+                      }}
+                      className="text-[11px] text-slate-400 hover:text-rose-500 transition"
+                      title="Clear textarea to write custom text"
+                    >
+                      Clear ✕
+                    </button>
+                    <span className="text-[11px] text-slate-500 font-mono">
+                      {broadcastText.length} characters
+                    </span>
+                  </div>
                 </div>
                 <textarea
-                  rows={10}
+                  rows={13}
                   value={broadcastText}
-                  onChange={(e) => setBroadcastText(e.target.value)}
+                  onChange={(e) => {
+                    setBroadcastText(e.target.value);
+                    if (selectedTemplateKey !== "custom" && selectedTemplateKey !== "diwali") {
+                      setSelectedTemplateKey("custom");
+                    }
+                  }}
                   placeholder="Type your WhatsApp broadcast message here... (*bold*, _italic_, emojis supported)"
                   className="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 font-mono leading-relaxed focus:border-emerald-500 focus:outline-none"
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Formatting tip: wrap words in <code>*bold*</code> for bold, <code>_italics_</code> for italics, and paste links directly.
+                  Formatting tip: wrap words in <code>*bold*</code> for bold, <code>_italics_</code> for italics, and paste links directly. Dynamic tags like <code>&#123;name&#125;</code> and <code>&#123;site_url&#125;</code> will automatically replace each player's actual name and website link.
                 </p>
               </div>
 
