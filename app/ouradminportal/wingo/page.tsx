@@ -520,7 +520,7 @@ export default function WinGoConsolePage() {
 
           <div className="flex items-center gap-2">
             <Button
-              className="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs"
+              className="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-700 font-bold text-xs"
               size="sm"
               disabled={savingConfig || selectedOverrideNum === config.manual_override_number}
               onClick={() => handleSetOverride(selectedOverrideNum)}

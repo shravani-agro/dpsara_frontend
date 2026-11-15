@@ -226,7 +226,7 @@ export default function SeoPage({ params }: Props) {
             </Link>
             <Link
               href="/all-satta-matka-chart.html"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/15 bg-white/5 text-white font-semibold text-xs hover:bg-white/10 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/15 bg-white/5 text-slate-900 dark:text-slate-100 font-semibold text-xs hover:bg-white/10 transition-colors"
             >
               📊 All Matka Charts
             </Link>

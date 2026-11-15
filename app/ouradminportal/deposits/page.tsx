@@ -223,7 +223,7 @@ export default function DepositsPage() {
                 >
                   <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-white" : statusDot[s.id] ?? "bg-slate-500"}`} />
                   {s.label}
-                  <span className={`rounded-full px-1.5 text-[10px] font-bold ${active ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-500"}`}>
+                  <span className={`rounded-full px-1.5 text-[10px] font-bold ${active ? "bg-white/20 text-slate-900 dark:text-slate-700" : "bg-slate-100 dark:bg-slate-700 text-slate-500"}`}>
                     {count}
                   </span>
                 </button>

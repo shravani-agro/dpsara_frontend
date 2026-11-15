@@ -840,13 +840,13 @@ export default function JackpotPage() {
                             setError(null);
                             setPannaNumber(num);
                           }}
-                          className={`py-2 px-1 text-center font-mono font-black text-sm rounded-lg border transition-all flex flex-col items-center justify-center ${
-                            isSelected
-                              ? "bg-amber-400 text-slate-950 border-amber-300 shadow-md shadow-amber-500/40 scale-105"
-                              : isDeficit
-                              ? "bg-rose-50/80 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 hover:border-rose-500"
-                              : "bg-white dark:bg-slate-800/80 text-amber-700 dark:text-amber-300 border-slate-200 dark:border-slate-700 hover:border-amber-500/50 hover:bg-amber-50/50 dark:hover:bg-slate-800"
-                          }`}
+className={`py-2 px-1 text-center font-mono font-black text-sm rounded-lg border transition-all flex flex-col items-center justify-center ${
+                              isSelected
+                                ? "bg-amber-400 text-slate-700 border-amber-300 shadow-md shadow-amber-500/40 scale-105"
+                                : isDeficit
+                                ? "bg-rose-50/80 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 hover:border-rose-500"
+                                : "bg-white dark:bg-slate-800/80 text-amber-700 dark:text-amber-300 border-slate-200 dark:border-slate-700 hover:border-amber-500/50 hover:bg-amber-50/50 dark:hover:bg-slate-800"
+                              }`}
                         >
                           <span>{num}</span>
                           {betAmt > 0 ? (
@@ -932,7 +932,7 @@ export default function JackpotPage() {
                 <Button
                   onClick={declareResult}
                   disabled={!OFFICIAL_JACKPOT_NUMBERS.includes(pannaNumber) || !sessionLabel || isDeclaring}
-                  className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-black py-2.5 text-sm"
+                  className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-slate-700 font-black py-2.5 text-sm"
                 >
                   {isDeclaring
                     ? "Processing..."

@@ -655,7 +655,7 @@ export default function UsersPage() {
                       className={cn(
                         "inline-flex h-8 min-w-[32px] px-2 items-center justify-center rounded-lg text-xs font-semibold transition",
                         currentPage === p
-                          ? "bg-amber-500 text-slate-950 shadow-sm font-bold ring-1 ring-amber-600/30"
+                          ? "bg-amber-500 text-slate-700 shadow-sm font-bold ring-1 ring-amber-600/30"
                           : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/60"
                       )}
                     >

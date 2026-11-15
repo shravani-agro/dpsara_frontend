@@ -166,7 +166,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
       $('#footer-charts h3:contains("Jodi Charts")').siblings('ul').each((_, ul) => {
         $(ul).empty().append(
           regularMarkets.map(m =>
-            `<li class="leading-tight border-b border-[rgba(22,16,14,0.08)]"><a class="block px-3 py-1.5 sm:px-3 sm:py-2 text-center text-[11px] sm:text-[14px] font-semibold text-black transition-colors hover:text-primary scroll-mt-24" href="/${m.slug}_jodi.html" id="footer-chart-jodi-${m.slug}">${m.name.toUpperCase()}</a></li>`
+            `<li class="leading-tight border-b border-[rgba(22,16,14,0.08)]"><a class="block px-3 py-1.5 sm:px-3 sm:py-2 text-center text-[11px] sm:text-[14px] font-semibold text-black dark:text-white transition-colors hover:text-primary scroll-mt-24" href="/${m.slug}_jodi.html" id="footer-chart-jodi-${m.slug}">${m.name.toUpperCase()}</a></li>`
           ).join('')
         );
       });
@@ -175,7 +175,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
       $('#footer-charts h3:contains("Pana Charts")').siblings('ul').each((_, ul) => {
         $(ul).empty().append(
           regularMarkets.map(m =>
-            `<li class="leading-tight border-b border-[rgba(22,16,14,0.08)]"><a class="block px-3 py-1.5 sm:px-3 sm:py-2 text-center text-[11px] sm:text-[14px] font-semibold text-black transition-colors hover:text-primary scroll-mt-24" href="/${m.slug}_pana.html" id="footer-chart-pana-${m.slug}">${m.name.toUpperCase()}</a></li>`
+            `<li class="leading-tight border-b border-[rgba(22,16,14,0.08)]"><a class="block px-3 py-1.5 sm:px-3 sm:py-2 text-center text-[11px] sm:text-[14px] font-semibold text-black dark:text-white transition-colors hover:text-primary scroll-mt-24" href="/${m.slug}_pana.html" id="footer-chart-pana-${m.slug}">${m.name.toUpperCase()}</a></li>`
           ).join('')
         );
       });
@@ -425,7 +425,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
                 <div class="border border-borderColor bg-surfaceBg rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
                     <div class="flex items-center justify-between mb-4">
-                      <h3 class="text-xl font-extrabold text-black uppercase tracking-tight">${m.name}</h3>
+                      <h3 class="text-xl font-extrabold text-black dark:text-white uppercase tracking-tight">${m.name}</h3>
                       <span class="text-xs px-3 py-1 rounded-full font-bold ${m.status && m.status.toLowerCase().includes('close') ? 'bg-danger/10 text-danger' : 'bg-successGreen/10 text-successGreen'}">
                         ${m.status || 'ACTIVE'}
                       </span>
@@ -436,10 +436,10 @@ export async function GET(request: Request, { params }: { params: { slug: string
                     </div>
                   </div>
                   <div class="flex items-center gap-3">
-                    <a href="/${m.slug}_jodi.html" class="flex-1 text-center py-3 px-4 bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-black font-bold text-sm rounded-xl hover:opacity-90 transition-opacity no-underline shadow-sm">
+                    <a href="/${m.slug}_jodi.html" class="flex-1 text-center py-3 px-4 bg-gradient-to-b from-gradGoldTop to-gradGoldBottom text-black dark:text-white font-bold text-sm rounded-xl hover:opacity-90 transition-opacity no-underline shadow-sm">
                       Jodi Chart
                     </a>
-                    <a href="/${m.slug}_pana.html" class="flex-1 text-center py-3 px-4 border-2 border-primary text-black font-bold text-sm rounded-xl hover:bg-primary/10 transition-colors no-underline">
+                    <a href="/${m.slug}_pana.html" class="flex-1 text-center py-3 px-4 border-2 border-primary text-black dark:text-white font-bold text-sm rounded-xl hover:bg-primary/10 transition-colors no-underline">
                       Pana Chart
                     </a>
                   </div>
@@ -546,11 +546,11 @@ export async function GET(request: Request, { params }: { params: { slug: string
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0 flex-1">
                       <div class="flex items-center gap-1">
-                        <h5 class="not-italic uppercase mb-0 font-display font-bold text-black leading-tight text-[18px] max-sm:text-[17px] tracking-wider truncate">
+                        <h5 class="not-italic uppercase mb-0 font-display font-bold text-black dark:text-white leading-tight text-[18px] max-sm:text-[17px] tracking-wider truncate">
                           ${m.name.toUpperCase()}
                         </h5>
                       </div>
-                      <span class="block text-left text-[20px] max-sm:text-[18px] font-bold text-black leading-none mt-1">
+                      <span class="block text-left text-[20px] max-sm:text-[18px] font-bold text-black dark:text-white leading-none mt-1">
                         ${m.result}
                       </span>
                     </div>
