@@ -630,7 +630,7 @@ export default function UserBidDataPage() {
             {allUsers.length > 0 && (
               <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
                 <span>Showing {((userPage - 1) * userPageSize) + 1} - {Math.min(userPage * userPageSize, allUsers.length)} of {allUsers.length > userPageSize ? `≈${allUsers.length}` : "all"} users</span>
-                <button
+                <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setUserPage((prev) => Math.max(1, prev - 1))}
@@ -638,15 +638,15 @@ export default function UserBidDataPage() {
                   disabled={userPage === 1}
                 >
                   Prev
-                </button>
-                <button
+                </Button>
+                <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setUserPage((prev) => prev + 1)}
                   className="px-2 py-1"
                 >
                   Next
-                </button>
+                </Button>
               </div>
             )}
 

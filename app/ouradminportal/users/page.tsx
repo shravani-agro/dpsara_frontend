@@ -71,7 +71,7 @@ export default function UsersPage() {
   const [submitting, setSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  
+  const [totalUsers, setTotalUsers] = useState<number>(0);
 
   const [selected, setSelected] = useState<any>(null);
   const [detail, setDetail] = useState<any>(null);
@@ -107,6 +107,8 @@ export default function UsersPage() {
       params.limit = pageSize;
       const data = await listUsers(params);
       setUsers(data);
+      const total = typeof (data as any)?.total === "number" ? (data as any).total : data.length;
+      setTotalUsers(total);
       primeUserCache(data);
     } catch (e: any) {
       setError(parseApiError(e, "Failed to load users"));
@@ -252,6 +254,42 @@ export default function UsersPage() {
     { id: "security", label: "Security & Actions", icon: "🛡️" },
   ];
 
+  const totalPages = Math.max(1, Math.ceil(totalUsers / pageSize));
+  const startItem = totalUsers === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, totalUsers);
+
+  const goToPage = (page: number) => {
+    const target = Math.max(1, Math.min(totalPages, page));
+    if (target !== currentPage) {
+      setCurrentPage(target);
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  };
+
+  const getPageNumbers = () => {
+    const pages: (number | "ellipsis")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) {
+        pages.push("ellipsis");
+      }
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      if (currentPage < totalPages - 2) {
+        pages.push("ellipsis");
+      }
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader title="Users" description="Manage accounts, balances and access" />
@@ -269,7 +307,10 @@ export default function UsersPage() {
               value={filters.username}
               onChange={(e) => setFilters((prev) => ({ ...prev, username: e.target.value }))}
               onKeyDown={(e) => {
-                if (e.key === "Enter") load();
+                if (e.key === "Enter") {
+                  setCurrentPage(1);
+                  load();
+                }
               }}
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 py-2 pl-9 pr-9 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
             />
@@ -278,6 +319,7 @@ export default function UsersPage() {
                 type="button"
                 onClick={() => {
                   setFilters((prev) => ({ ...prev, username: "" }));
+                  setCurrentPage(1);
                 }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
               >
@@ -297,7 +339,10 @@ export default function UsersPage() {
                 <button
                   key={st.id}
                   type="button"
-                  onClick={() => setFilters((prev) => ({ ...prev, is_active: st.id }))}
+                  onClick={() => {
+                    setFilters((prev) => ({ ...prev, is_active: st.id }));
+                    setCurrentPage(1);
+                  }}
                   className={cn(
                     "px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95",
                     active
@@ -326,22 +371,29 @@ export default function UsersPage() {
             <option value={100}>100</option>
           </Select>
 
-          <Button onClick={load} className="h-9 px-4 text-xs font-bold shrink-0">
+          <Button
+            onClick={() => {
+              setCurrentPage(1);
+              load();
+            }}
+            className="h-9 px-4 text-xs font-bold shrink-0"
+          >
               Search
             </Button>
 
             {(filters.username || filters.is_active !== "" || filters.datePreset !== "all") && (
               <Button
                 variant="outline"
-                onClick={() =>
+                onClick={() => {
                   setFilters({
                     username: "",
                     is_active: "",
                     dateFrom: "",
                     dateTo: "",
                     datePreset: "all",
-                  })
-                }
+                  });
+                  setCurrentPage(1);
+                }}
                 className="h-9 px-3 text-xs shrink-0 text-rose-600 border-rose-200 hover:bg-rose-50"
               >
                 Reset ✕
@@ -356,6 +408,7 @@ export default function UsersPage() {
             initialPreset={filters.datePreset}
             onFilterChange={({ dateFrom, dateTo, preset }) => {
               setFilters((prev) => ({ ...prev, dateFrom, dateTo, datePreset: preset }));
+              setCurrentPage(1);
             }}
             compact
           />
@@ -367,7 +420,7 @@ export default function UsersPage() {
           <div className="flex items-center gap-2">
             <span>Users</span>
             <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-              {users.length}
+              {totalUsers > 0 ? totalUsers : users.length}
             </span>
           </div>
         }
@@ -445,30 +498,6 @@ export default function UsersPage() {
               />
             </div>
 
-            {/* Pagination controls */}
-            <div className="mt-4 flex items-center justify-between">
-              <div className="text-sm text-slate-500 dark:text-slate-400">
-                Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, users.length)} of {users.length}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Prev
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => prev + 1)}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-
             {/* Mobile Compact High-Density Row View */}
             <div className="md:hidden">
               {/* Mobile Table Header */}
@@ -476,7 +505,7 @@ export default function UsersPage() {
                 <div className="flex items-center gap-1.5">
                   <span>User</span>
                   <span className="rounded-full bg-slate-200 dark:bg-slate-700 px-1.5 py-0.2 text-[9px] font-semibold text-slate-700 dark:text-slate-300">
-                    {users.length}
+                    {totalUsers > 0 ? totalUsers : users.length}
                   </span>
                 </div>
                 <span>Balance & Status</span>
@@ -575,6 +604,87 @@ export default function UsersPage() {
                   })}
                 </div>
               )}
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3.5 mt-2 border-t border-slate-200/80 dark:border-slate-800">
+              <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                <span>
+                  Showing <strong className="font-semibold text-slate-900 dark:text-white">{startItem}</strong>–<strong className="font-semibold text-slate-900 dark:text-white">{endItem}</strong> of <strong className="font-semibold text-slate-900 dark:text-white">{totalUsers}</strong> users
+                </span>
+                <span className="hidden sm:inline text-slate-300 dark:text-slate-700">•</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                  Page <strong className="font-semibold text-slate-900 dark:text-white">{currentPage}</strong> of <strong className="font-semibold text-slate-900 dark:text-white">{totalPages}</strong>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1 flex-wrap justify-center">
+                {/* First */}
+                <button
+                  type="button"
+                  onClick={() => goToPage(1)}
+                  disabled={currentPage === 1 || loading}
+                  title="First Page"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-700/60 disabled:pointer-events-none disabled:opacity-40"
+                >
+                  «
+                </button>
+                {/* Prev */}
+                <button
+                  type="button"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1 || loading}
+                  title="Previous Page"
+                  className="inline-flex h-8 px-2.5 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-700/60 disabled:pointer-events-none disabled:opacity-40"
+                >
+                  ‹ Prev
+                </button>
+
+                {/* Pages */}
+                {getPageNumbers().map((p, idx) =>
+                  p === "ellipsis" ? (
+                    <span key={`ell-${idx}`} className="px-1.5 text-xs text-slate-400">
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => goToPage(p)}
+                      disabled={loading}
+                      className={cn(
+                        "inline-flex h-8 min-w-[32px] px-2 items-center justify-center rounded-lg text-xs font-semibold transition",
+                        currentPage === p
+                          ? "bg-amber-500 text-slate-950 shadow-sm font-bold ring-1 ring-amber-600/30"
+                          : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/60"
+                      )}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
+
+                {/* Next */}
+                <button
+                  type="button"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage >= totalPages || loading}
+                  title="Next Page"
+                  className="inline-flex h-8 px-2.5 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-700/60 disabled:pointer-events-none disabled:opacity-40"
+                >
+                  Next ›
+                </button>
+                {/* Last */}
+                <button
+                  type="button"
+                  onClick={() => goToPage(totalPages)}
+                  disabled={currentPage >= totalPages || loading}
+                  title="Last Page"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-700/60 disabled:pointer-events-none disabled:opacity-40"
+                >
+                  »
+                </button>
+              </div>
             </div>
           </>
         )}

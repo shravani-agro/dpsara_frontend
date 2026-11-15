@@ -63,17 +63,17 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Starline Market",
     items: [
-      { href: "/ouradminportal/starline", label: "Starline Markets", icon: "⭐", permKey: "show_starline" },
+      { href: "/ouradminportal/starline", label: "Starline Result Uploading", icon: "⭐", permKey: "show_starline" },
       { href: "/ouradminportal/starline-bids-history", label: "Starline Bids History", icon: "🎲", permKey: "show_bids" },
-      { href: "/ouradminportal/starline-bids", label: "Starline Bid Live Data", icon: "📈", permKey: "show_bid_data" },
+      { href: "/ouradminportal/starline-bids", label: "Starline Live Bid Data", icon: "📈", permKey: "show_starline_bids" },
     ],
   },
   {
     label: "Jackpot Market",
     items: [
-      { href: "/ouradminportal/jackpot", label: "Jackpot Market & Results", icon: "💰", permKey: "show_jackpot" },
+      { href: "/ouradminportal/jackpot", label: "Jackpot Result Uploading", icon: "💰", permKey: "show_jackpot" },
       { href: "/ouradminportal/jackpot-bids-history", label: "Jackpot Bids History", icon: "🎲", permKey: "show_bids" },
-      { href: "/ouradminportal/jackpot-bids", label: "Jackpot Bid Live Data", icon: "📊", permKey: "show_bid_data" },
+      { href: "/ouradminportal/jackpot-bids", label: "Jackpot Live Bid Data", icon: "📊", permKey: "show_jackpot_bids" },
     ],
   },
   {

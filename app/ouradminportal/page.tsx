@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 import { Card, Select, Spinner, ErrorMsg, StatCard, PageHeader, Badge, Button } from "@/components/ui";
 import { DateRangeFilter } from "@/components/DateRangeFilter";
 import { UserCell } from "@/components/UserCell";
@@ -39,6 +41,9 @@ const tooltipStyle = {
 } as const;
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { isSubAdmin, loading: authLoading } = useAuth();
+
   const [stats, setStats] = useState<any>(null);
   const [markets, setMarkets] = useState<any[]>([]);
   const [topBettors, setTopBettors] = useState<any[]>([]);
@@ -50,6 +55,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!authLoading && isSubAdmin) {
+      router.replace("/ouradminportal/regular-bids");
+    }
+  }, [isSubAdmin, authLoading, router]);
+
   // Live Auto-Refresh Heartbeat
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [countdown, setCountdown] = useState(30);
@@ -57,6 +68,7 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
 
   const load = useCallback(async (isSilent = false) => {
+    if (isSubAdmin) return;
     if (!isSilent) setLoading(true);
     setIsRefreshing(true);
     setError(null);

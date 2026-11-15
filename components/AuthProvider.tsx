@@ -24,17 +24,21 @@ export interface SubAdminPermissions {
   show_deposits: boolean;
   show_withdrawals: boolean;
   show_bids: boolean;
+  show_starline_bids: boolean;
+  show_jackpot_bids: boolean;
   [key: string]: boolean;
 }
 
 const DEFAULT_PERMISSIONS: SubAdminPermissions = {
   show_bid_data: true,
+  show_starline_bids: true,
   show_starline: true,
+  show_jackpot_bids: true,
   show_jackpot: true,
-  can_add_result: true,
-  can_update_result: true,
-  can_delete_result: true,
-  show_result: true,
+  can_add_result: false,
+  can_update_result: false,
+  can_delete_result: false,
+  show_result: false,
   show_commission: false,
   show_overview: false,
   show_agent_report: false,
@@ -86,25 +90,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (isSub) {
       const parsedPerms: SubAdminPermissions = {
-        can_add_result: payload.can_add_result ?? true,
-        can_update_result: payload.can_update_result ?? true,
-        can_delete_result: payload.can_delete_result ?? true,
-        show_commission: payload.show_commission ?? true,
-        show_overview: payload.show_overview ?? true,
         show_bid_data: payload.show_bid_data ?? true,
-        show_result: payload.show_result ?? true,
-        show_agent_report: payload.show_agent_report ?? true,
-        can_approve_deposit: payload.can_approve_deposit ?? true,
-        can_approve_withdrawal: payload.can_approve_withdrawal ?? true,
-        can_manage_users: payload.can_manage_users ?? true,
-        show_markets: payload.show_markets ?? true,
+        show_starline_bids: payload.show_starline_bids ?? true,
         show_starline: payload.show_starline ?? true,
+        show_jackpot_bids: payload.show_jackpot_bids ?? true,
         show_jackpot: payload.show_jackpot ?? true,
-        show_support: payload.show_support ?? true,
+        can_add_result: payload.can_add_result ?? false,
+        can_update_result: payload.can_update_result ?? false,
+        can_delete_result: payload.can_delete_result ?? false,
+        show_commission: payload.show_commission ?? false,
+        show_overview: payload.show_overview ?? false,
+        show_result: payload.show_result ?? false,
+        show_agent_report: payload.show_agent_report ?? false,
+        can_approve_deposit: payload.can_approve_deposit ?? false,
+        can_approve_withdrawal: payload.can_approve_withdrawal ?? false,
+        can_manage_users: payload.can_manage_users ?? false,
+        show_markets: payload.show_markets ?? false,
+        show_support: payload.show_support ?? false,
         show_settings: payload.show_settings ?? false,
-        show_deposits: payload.show_deposits ?? true,
-        show_withdrawals: payload.show_withdrawals ?? true,
-        show_bids: payload.show_bids ?? true,
+        show_deposits: payload.show_deposits ?? false,
+        show_withdrawals: payload.show_withdrawals ?? false,
+        show_bids: payload.show_bids ?? false,
       };
       setPermissions(parsedPerms);
     } else {
@@ -129,6 +135,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         show_deposits: true,
         show_withdrawals: true,
         show_bids: true,
+        show_starline_bids: true,
+        show_jackpot_bids: true,
       });
     }
   };

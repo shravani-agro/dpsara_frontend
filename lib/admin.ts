@@ -205,8 +205,22 @@ export async function getDepositCounts() {
 /* ---------------- Admin: Users ---------------- */
 
 export async function listUsers(params: any = {}) {
-  const res = await client.get("/admin/users", { params });
+  const queryParams = { ...params };
+  if (queryParams.page && queryParams.limit && queryParams.skip === undefined) {
+    queryParams.skip = (queryParams.page - 1) * queryParams.limit;
+  }
+  const res = await client.get("/admin/users", { params: queryParams });
+  const countHeader = res.headers["x-total-count"];
+  const total = countHeader ? parseInt(countHeader, 10) : (Array.isArray(res.data) ? res.data.length : 0);
+  if (Array.isArray(res.data)) {
+    (res.data as any).total = !isNaN(total) ? total : res.data.length;
+  }
   return res.data;
+}
+
+export async function getUsersCount(params: any = {}) {
+  const res = await client.get("/admin/users/count", { params });
+  return res.data?.total ?? 0;
 }
 
 export async function getUser(userId: number) {
@@ -794,6 +808,8 @@ export interface SubAdmin {
   show_deposits: boolean;
   show_withdrawals: boolean;
   show_bids: boolean;
+  show_starline_bids?: boolean;
+  show_jackpot_bids?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -821,6 +837,8 @@ export interface SubAdminPayload {
   show_deposits?: boolean;
   show_withdrawals?: boolean;
   show_bids?: boolean;
+  show_starline_bids?: boolean;
+  show_jackpot_bids?: boolean;
 }
 
 export async function getSubAdmins(): Promise<SubAdmin[]> {

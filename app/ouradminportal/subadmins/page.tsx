@@ -52,27 +52,13 @@ export default function SubAdminsPage() {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [userSearch, setUserSearch] = useState("");
 
-  // Permissions state
+  // Permissions state (The 5 permitted subadmin operations)
   const [perms, setPerms] = useState<Record<string, boolean>>({
-    can_add_result: true,
-    can_update_result: true,
-    can_delete_result: true,
-    show_commission: true,
-    show_overview: true,
     show_bid_data: true,
-    show_result: true,
-    show_agent_report: true,
-    can_approve_deposit: true,
-    can_approve_withdrawal: true,
-    can_manage_users: true,
-    show_markets: true,
+    show_starline_bids: true,
     show_starline: true,
+    show_jackpot_bids: true,
     show_jackpot: true,
-    show_support: true,
-    show_settings: false,
-    show_deposits: true,
-    show_withdrawals: true,
-    show_bids: true,
   });
 
   const loadData = useCallback(async () => {
@@ -106,25 +92,11 @@ export default function SubAdminsPage() {
     setSelectedUserIds([]);
     setUserSearch("");
     setPerms({
-      can_add_result: true,
-      can_update_result: true,
-      can_delete_result: true,
-      show_commission: true,
-      show_overview: true,
       show_bid_data: true,
-      show_result: true,
-      show_agent_report: true,
-      can_approve_deposit: true,
-      can_approve_withdrawal: true,
-      can_manage_users: true,
-      show_markets: true,
+      show_starline_bids: true,
       show_starline: true,
+      show_jackpot_bids: true,
       show_jackpot: true,
-      show_support: true,
-      show_settings: false,
-      show_deposits: true,
-      show_withdrawals: true,
-      show_bids: true,
     });
     setModalOpen(true);
   };
@@ -140,25 +112,11 @@ export default function SubAdminsPage() {
     setSelectedUserIds(assigned);
     setUserSearch("");
     setPerms({
-      can_add_result: sub.can_add_result ?? true,
-      can_update_result: sub.can_update_result ?? true,
-      can_delete_result: sub.can_delete_result ?? true,
-      show_commission: sub.show_commission ?? true,
-      show_overview: sub.show_overview ?? true,
       show_bid_data: sub.show_bid_data ?? true,
-      show_result: sub.show_result ?? true,
-      show_agent_report: sub.show_agent_report ?? true,
-      can_approve_deposit: sub.can_approve_deposit ?? true,
-      can_approve_withdrawal: sub.can_approve_withdrawal ?? true,
-      can_manage_users: sub.can_manage_users ?? true,
-      show_markets: sub.show_markets ?? true,
+      show_starline_bids: sub.show_starline_bids ?? true,
       show_starline: sub.show_starline ?? true,
+      show_jackpot_bids: sub.show_jackpot_bids ?? true,
       show_jackpot: sub.show_jackpot ?? true,
-      show_support: sub.show_support ?? true,
-      show_settings: sub.show_settings ?? false,
-      show_deposits: sub.show_deposits ?? true,
-      show_withdrawals: sub.show_withdrawals ?? true,
-      show_bids: sub.show_bids ?? true,
     });
     setModalOpen(true);
   };
@@ -192,83 +150,13 @@ export default function SubAdminsPage() {
   };
 
   const setAllPermissions = (value: boolean) => {
-    const updated: Record<string, boolean> = {};
-    Object.keys(perms).forEach((key) => {
-      updated[key] = value;
+    setPerms({
+      show_bid_data: value,
+      show_starline_bids: value,
+      show_starline: value,
+      show_jackpot_bids: value,
+      show_jackpot: value,
     });
-    setPerms(updated);
-  };
-
-  const applyPreset = (preset: "all" | "results" | "finance" | "readonly") => {
-    if (preset === "all") {
-      setAllPermissions(true);
-    } else if (preset === "results") {
-      setPerms({
-        can_add_result: true,
-        can_update_result: true,
-        can_delete_result: true,
-        show_result: true,
-        show_overview: true,
-        show_bid_data: true,
-        show_commission: false,
-        show_agent_report: false,
-        can_approve_deposit: false,
-        can_approve_withdrawal: false,
-        can_manage_users: false,
-        show_markets: true,
-        show_starline: true,
-        show_jackpot: true,
-        show_support: false,
-        show_settings: false,
-        show_deposits: false,
-        show_withdrawals: false,
-        show_bids: true,
-      });
-    } else if (preset === "finance") {
-      setPerms({
-        can_add_result: false,
-        can_update_result: false,
-        can_delete_result: false,
-        show_result: false,
-        show_overview: true,
-        show_bid_data: false,
-        show_commission: true,
-        show_agent_report: true,
-        can_approve_deposit: true,
-        can_approve_withdrawal: true,
-        can_manage_users: true,
-        show_markets: false,
-        show_starline: false,
-        show_jackpot: false,
-        show_support: true,
-        show_settings: false,
-        show_deposits: true,
-        show_withdrawals: true,
-        show_bids: true,
-      });
-    } else if (preset === "readonly") {
-      setPerms({
-        can_add_result: false,
-        can_update_result: false,
-        can_delete_result: false,
-        show_result: true,
-        show_overview: true,
-        show_bid_data: true,
-        show_commission: true,
-        show_agent_report: true,
-        can_approve_deposit: false,
-        can_approve_withdrawal: false,
-        can_manage_users: true,
-        show_markets: true,
-        show_starline: true,
-        show_jackpot: true,
-        show_support: true,
-        show_settings: false,
-        show_deposits: true,
-        show_withdrawals: true,
-        show_bids: true,
-      });
-    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -287,7 +175,29 @@ export default function SubAdminsPage() {
       const payload: SubAdminPayload = {
         username: formUsername.trim(),
         assigned_user_ids: selectedUserIds.join(","),
-        ...perms,
+        // The 5 allowed permissions
+        show_bid_data: !!perms.show_bid_data,
+        show_starline_bids: !!perms.show_starline_bids,
+        show_starline: !!perms.show_starline,
+        show_jackpot_bids: !!perms.show_jackpot_bids,
+        show_jackpot: !!perms.show_jackpot,
+        // All other permissions removed/disabled for subadmins
+        can_add_result: false,
+        can_update_result: false,
+        can_delete_result: false,
+        show_commission: false,
+        show_overview: false,
+        show_result: false,
+        show_agent_report: false,
+        can_approve_deposit: false,
+        can_approve_withdrawal: false,
+        can_manage_users: false,
+        show_markets: false,
+        show_support: false,
+        show_settings: false,
+        show_deposits: false,
+        show_withdrawals: false,
+        show_bids: false,
       };
       if (formPassword.trim()) {
         payload.password = formPassword.trim();
@@ -337,12 +247,11 @@ export default function SubAdminsPage() {
 
   const activePermsCount = (sub: SubAdmin) => {
     const permKeys = [
-      "can_add_result", "can_update_result", "can_delete_result",
-      "show_commission", "show_overview", "show_bid_data",
-      "show_result", "show_agent_report", "can_approve_deposit",
-      "can_approve_withdrawal", "can_manage_users", "show_markets",
-      "show_starline", "show_jackpot", "show_support", "show_deposits",
-      "show_withdrawals", "show_bids"
+      "show_bid_data",
+      "show_starline_bids",
+      "show_starline",
+      "show_jackpot_bids",
+      "show_jackpot",
     ];
     return permKeys.filter((k) => (sub as any)[k] === true).length;
   };
@@ -456,38 +365,33 @@ export default function SubAdminsPage() {
 
                       <td className="px-5 py-4">
                         <div className="flex flex-wrap gap-1 max-w-md">
-                          {sub.can_add_result && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40">
-                              + Results
-                            </span>
-                          )}
-                          {sub.can_update_result && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-cyan-50 text-cyan-700 border border-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-300 dark:border-cyan-800/40">
-                              Edit Results
-                            </span>
-                          )}
-                          {sub.can_delete_result && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/40">
-                              Delete Results
-                            </span>
-                          )}
-                          {sub.can_approve_deposit && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40">
-                              Approve Deposits
-                            </span>
-                          )}
-                          {sub.can_approve_withdrawal && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/40">
-                              Approve Withdrawals
-                            </span>
-                          )}
                           {sub.show_bid_data && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/40">
-                              Bid Data
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/40">
+                              <span>📊</span> Main Bid Live Data
                             </span>
                           )}
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                            {activePermsCount(sub)}/18 Granted
+                          {sub.show_starline_bids && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/40">
+                              <span>📈</span> Starline Live Bid Data
+                            </span>
+                          )}
+                          {sub.show_starline && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/40">
+                              <span>⭐</span> Starline Result Uploading
+                            </span>
+                          )}
+                          {sub.show_jackpot_bids && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-800/40">
+                              <span>📊</span> Jackpot Live Bid Data
+                            </span>
+                          )}
+                          {sub.show_jackpot && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40">
+                              <span>💰</span> Jackpot Result Uploading
+                            </span>
+                          )}
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                            {activePermsCount(sub)}/5 Granted
                           </span>
                         </div>
                       </td>
@@ -709,159 +613,95 @@ export default function SubAdminsPage() {
                 </div>
               </div>
 
-              {/* Permissions Section (Matching Kalyan36Bazar PermissionSelect + Extended) */}
+              {/* Permissions Section (The 5 permitted subadmin operations) */}
               <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 bg-slate-50/50 dark:bg-slate-850/30 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <span>🛡️</span>
-                      <span>Sub-Admin Modular Permissions</span>
+                      <span>Sub-Admin Permissions</span>
                     </h4>
                     <p className="text-xs text-slate-500">
-                      Toggle exact feature permissions for this sub-admin.
+                      Configure permissions for live bid data and result uploading.
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 text-xs">
+                  <div className="flex gap-2 text-xs">
                     <button
                       type="button"
-                      onClick={() => applyPreset("all")}
-                      className="px-2 py-1 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-300"
+                      onClick={() => setAllPermissions(true)}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-semibold hover:bg-emerald-200 transition"
                     >
-                      All
+                      Select All
                     </button>
                     <button
                       type="button"
-                      onClick={() => applyPreset("results")}
-                      className="px-2 py-1 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-medium hover:bg-emerald-200"
+                      onClick={() => setAllPermissions(false)}
+                      className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-300 transition"
                     >
-                      Results Operator
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyPreset("finance")}
-                      className="px-2 py-1 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-medium hover:bg-amber-200"
-                    >
-                      Finance Operator
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyPreset("readonly")}
-                      className="px-2 py-1 rounded bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 font-medium hover:bg-indigo-200"
-                    >
-                      View Only
+                      Clear All
                     </button>
                   </div>
                 </div>
 
-                {/* Category 1: Results Declarations */}
-                <div>
-                  <h5 className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-2">
-                    🎯 Results Management
-                  </h5>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                    {[
-                      { key: "can_add_result", label: "Add / Declare Result", desc: "Allow declaring opening/closing market results" },
-                      { key: "can_update_result", label: "Update Result", desc: "Allow editing already declared results" },
-                      { key: "can_delete_result", label: "Delete / Rollback Result", desc: "Allow rolling back and voiding declared results" },
-                      { key: "show_result", label: "Show Results Section", desc: "View results management page in sidebar" },
-                    ].map((item) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {[
+                    {
+                      key: "show_bid_data",
+                      icon: "📊",
+                      label: "Main Bid Live Data",
+                      desc: "View live incoming bets & real-time bid sheets for Main markets (/regular-bids)",
+                    },
+                    {
+                      key: "show_starline_bids",
+                      icon: "📈",
+                      label: "Starline Live Bid Data",
+                      desc: "View real-time live bets & bid figures for Starline hourly markets (/starline-bids)",
+                    },
+                    {
+                      key: "show_starline",
+                      icon: "⭐",
+                      label: "Starline Result Uploading",
+                      desc: "Manage Starline hourly games and declare / upload results (/starline)",
+                    },
+                    {
+                      key: "show_jackpot_bids",
+                      icon: "📊",
+                      label: "Jackpot Live Bid Data",
+                      desc: "View real-time live bets & bid figures for Jackpot hourly markets (/jackpot-bids)",
+                    },
+                    {
+                      key: "show_jackpot",
+                      icon: "💰",
+                      label: "Jackpot Result Uploading",
+                      desc: "Manage Jackpot hourly games and declare / upload results (/jackpot)",
+                    },
+                  ].map((item) => {
+                    const isChecked = !!perms[item.key];
+                    return (
                       <label
                         key={item.key}
-                        className={`flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer transition ${
-                          perms[item.key]
-                            ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60"
-                            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-60"
+                        className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition shadow-sm ${
+                          isChecked
+                            ? "bg-brand-50/50 dark:bg-brand-950/20 border-brand-300 dark:border-brand-800/60"
+                            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-60 hover:opacity-100"
                         }`}
                       >
                         <input
                           type="checkbox"
-                          checked={!!perms[item.key]}
+                          checked={isChecked}
                           onChange={(e) => setPerms({ ...perms, [item.key]: e.target.checked })}
-                          className="mt-0.5 h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500"
+                          className="mt-1 h-4 w-4 rounded text-brand-600 focus:ring-brand-500"
                         />
-                        <div>
-                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{item.label}</p>
-                          <p className="text-[10px] text-slate-400 leading-tight mt-0.5">{item.desc}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                            <span>{item.icon}</span>
+                            <span>{item.label}</span>
+                          </p>
+                          <p className="text-[11px] text-slate-400 leading-snug mt-1">{item.desc}</p>
                         </div>
                       </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Category 2: Finance & Payments */}
-                <div>
-                  <h5 className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-2">
-                    💸 Deposits & Withdrawals
-                  </h5>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                    {[
-                      { key: "can_approve_deposit", label: "Approve Deposits", desc: "Manually approve pending deposits & credit wallet" },
-                      { key: "show_deposits", label: "View Deposits Queue", desc: "Access the deposits page in sidebar" },
-                      { key: "can_approve_withdrawal", label: "Approve Withdrawals", desc: "Approve and process user withdrawal payouts" },
-                      { key: "show_withdrawals", label: "View Withdrawals Queue", desc: "Access the withdrawals page in sidebar" },
-                    ].map((item) => (
-                      <label
-                        key={item.key}
-                        className={`flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer transition ${
-                          perms[item.key]
-                            ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-800/60"
-                            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-60"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={!!perms[item.key]}
-                          onChange={(e) => setPerms({ ...perms, [item.key]: e.target.checked })}
-                          className="mt-0.5 h-4 w-4 rounded text-amber-600 focus:ring-amber-500"
-                        />
-                        <div>
-                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{item.label}</p>
-                          <p className="text-[10px] text-slate-400 leading-tight mt-0.5">{item.desc}</p>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Category 3: Analytics, Bids & Operations */}
-                <div>
-                  <h5 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mb-2">
-                    📊 Bids, Games & Operations
-                  </h5>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                    {[
-                      { key: "show_overview", label: "Show Dashboard", desc: "Overview cards & high-level stats" },
-                      { key: "can_manage_users", label: "Manage Users", desc: "View and edit user details & balances" },
-                      { key: "show_bids", label: "Bids History", desc: "Access regular and starline bets history" },
-                      { key: "show_bid_data", label: "Real-Time Bid Data", desc: "Examine live bet distribution & risk sheets" },
-                      { key: "show_commission", label: "Collection & P/L", desc: "View today collection and ledger reports" },
-                      { key: "show_agent_report", label: "Agent Report", desc: "Access agent performance breakdowns" },
-                      { key: "show_markets", label: "Regular Markets", desc: "View market timings and settings" },
-                      { key: "show_starline", label: "Starline Markets", desc: "Access Starline game operations" },
-                      { key: "show_jackpot", label: "Jackpot Markets", desc: "Access Jackpot game operations" },
-                      { key: "show_support", label: "Support Chat", desc: "Chat with users and reply to queries" },
-                    ].map((item) => (
-                      <label
-                        key={item.key}
-                        className={`flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer transition ${
-                          perms[item.key]
-                            ? "bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-300 dark:border-indigo-800/60"
-                            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-60"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={!!perms[item.key]}
-                          onChange={(e) => setPerms({ ...perms, [item.key]: e.target.checked })}
-                          className="mt-0.5 h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <div>
-                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{item.label}</p>
-                          <p className="text-[10px] text-slate-400 leading-tight mt-0.5">{item.desc}</p>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
 
