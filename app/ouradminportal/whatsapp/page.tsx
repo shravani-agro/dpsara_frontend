@@ -94,8 +94,9 @@ export default function WhatsAppMarketingPage() {
   const [broadcastTarget, setBroadcastTarget] = useState<"all" | "active">("active");
   const [broadcasting, setBroadcasting] = useState(false);
 
-  // Broadcast history
+  // Broadcast history & live background progress
   const [history, setHistory] = useState<any[]>([]);
+  const [liveBroadcast, setLiveBroadcast] = useState<any>(null);
 
   // Test message state
   const [testPhone, setTestPhone] = useState("");
@@ -161,6 +162,32 @@ export default function WhatsAppMarketingPage() {
       if (qrPollRef.current) clearInterval(qrPollRef.current);
     };
   }, [loadAll]);
+
+  // Periodic poll for live background broadcast progress
+  useEffect(() => {
+    let isMounted = true;
+    const pollLiveStatus = async () => {
+      try {
+        const live = await getWhatsAppBroadcastLiveStatus();
+        if (isMounted) {
+          setLiveBroadcast(live);
+          if (live?.is_running) {
+            const h = await getWhatsAppBroadcastHistory().catch(() => []);
+            if (isMounted && h?.length) setHistory(h);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    pollLiveStatus();
+    const interval = setInterval(pollLiveStatus, 3000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const refreshStatus = async (showToast = true) => {
     setStatusLoading(true);
@@ -335,7 +362,7 @@ export default function WhatsAppMarketingPage() {
     }
 
     const targetDesc = broadcastTarget === "active" ? "all ACTIVE players" : "ALL registered players";
-    if (!confirm(`Are you sure you want to broadcast this WhatsApp message to ${targetDesc}?`)) {
+    if (!confirm(`Broadcast this campaign to ${targetDesc} in the background? You can freely click anywhere and continue working.`)) {
       return;
     }
 
@@ -345,21 +372,27 @@ export default function WhatsAppMarketingPage() {
         text: broadcastText.trim(),
         target: broadcastTarget,
       });
-      toast.success(res.message || "Broadcast completed successfully!");
+      toast.success(
+        res.message || "🚀 Broadcast launched in background! You can navigate or click anywhere freely while messages send."
+      );
+      const live = await getWhatsAppBroadcastLiveStatus().catch(() => null);
+      if (live) setLiveBroadcast(live);
       const hData = await getWhatsAppBroadcastHistory().catch(() => []);
       setHistory(hData);
     } catch (e: any) {
-      toast.error(parseApiError(e, "Failed to execute WhatsApp broadcast"));
+      toast.error(parseApiError(e, "Failed to launch WhatsApp broadcast"));
     } finally {
       setBroadcasting(false);
     }
   };
 
   const handleTriggerMorningNow = async () => {
-    if (!confirm("Send Good Morning / Market Opening broadcast to active players right now?")) return;
+    if (!confirm("Send Good Morning / Market Opening broadcast to active players in the background? You can navigate anywhere freely.")) return;
     try {
       const res = await triggerMorningWhatsApp();
-      toast.success(res.message || "Good Morning broadcast executed!");
+      toast.success(res.message || "🌅 Good Morning broadcast running in background! You can navigate anywhere.");
+      const live = await getWhatsAppBroadcastLiveStatus().catch(() => null);
+      if (live) setLiveBroadcast(live);
       const hData = await getWhatsAppBroadcastHistory().catch(() => []);
       setHistory(hData);
     } catch (e: any) {
@@ -368,10 +401,12 @@ export default function WhatsAppMarketingPage() {
   };
 
   const handleTriggerNightNow = async () => {
-    if (!confirm("Send Good Night / Settlement summary broadcast to active players right now?")) return;
+    if (!confirm("Send Good Night / Settlement summary broadcast to active players in the background? You can navigate anywhere freely.")) return;
     try {
       const res = await triggerNightWhatsApp();
-      toast.success(res.message || "Good Night broadcast executed!");
+      toast.success(res.message || "🌙 Good Night broadcast running in background! You can navigate anywhere.");
+      const live = await getWhatsAppBroadcastLiveStatus().catch(() => null);
+      if (live) setLiveBroadcast(live);
       const hData = await getWhatsAppBroadcastHistory().catch(() => []);
       setHistory(hData);
     } catch (e: any) {
@@ -916,6 +951,35 @@ export default function WhatsAppMarketingPage() {
           </p>
         </div>
 
+        {/* Live Background Broadcast Banner */}
+        {liveBroadcast?.is_running && (
+          <div className="mb-4 rounded-xl border border-emerald-500/40 bg-emerald-500/15 p-4 text-xs text-emerald-900 dark:text-emerald-200 shadow-lg shadow-emerald-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-pulse">
+            <div className="flex items-center gap-3">
+              <span className="flex h-3 w-3 relative shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              </span>
+              <div>
+                <p className="font-bold text-sm text-emerald-950 dark:text-white flex items-center gap-2">
+                  <span>🚀 WhatsApp Campaign Broadcasting in Background</span>
+                  <span className="text-[10px] bg-emerald-500/30 text-emerald-900 dark:text-emerald-200 px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold border border-emerald-500/30">
+                    Target: {liveBroadcast.target}
+                  </span>
+                </p>
+                <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5">
+                  Progress: <strong>{liveBroadcast.sent}</strong> sent &bull; <strong>{liveBroadcast.failed}</strong> failed &bull; <strong>{liveBroadcast.skipped}</strong> skipped of <strong>{liveBroadcast.total}</strong> players
+                  <span className="ml-2 font-semibold text-emerald-600 dark:text-emerald-400">
+                    ({Math.round(((liveBroadcast.sent + liveBroadcast.failed + liveBroadcast.skipped) / Math.max(1, liveBroadcast.total)) * 100)}%)
+                  </span>
+                </p>
+              </div>
+            </div>
+            <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-500/20 px-2.5 py-1 rounded-lg shrink-0">
+              Safe to navigate anywhere ✓
+            </span>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left Column: Composer */}
           <div className="lg:col-span-7 space-y-4">
@@ -1060,6 +1124,19 @@ export default function WhatsAppMarketingPage() {
                 <p className="text-[11px] text-slate-500 mt-1">
                   Formatting tip: wrap words in <code>*bold*</code> for bold, <code>_italics_</code> for italics, and paste links directly. Dynamic tags like <code>&#123;name&#125;</code> and <code>&#123;site_url&#125;</code> will automatically replace each player's actual name and website link.
                 </p>
+              </div>
+
+              {/* Background Broadcast Safety Banner */}
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2.5">
+                <span className="text-base leading-none">⚡</span>
+                <div className="space-y-0.5">
+                  <p className="font-bold text-emerald-900 dark:text-emerald-200">
+                    Runs 100% in Background
+                  </p>
+                  <p className="text-[11px] text-emerald-700/90 dark:text-emerald-300/80 leading-normal">
+                    When you click <strong>Broadcast to Players</strong>, it launches immediately in the background on the server. You can freely click anywhere, close your browser, or navigate other pages while messages are delivered.
+                  </p>
+                </div>
               </div>
 
               {/* Action Buttons */}
