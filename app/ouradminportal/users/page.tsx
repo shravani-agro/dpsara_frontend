@@ -30,12 +30,13 @@ import {
   listBids,
   listDeposits,
   listWithdrawals,
+  listTransactions,
   getUserContacts,
   getUserLocations,
 } from "@/lib/admin";
 import { primeUserCache } from "@/lib/user-cache";
 import { parseApiError } from "@/lib/error-parser";
-import { fmtMoney, fmtNum, fmtDate } from "@/lib/format";
+import { fmtMoney, fmtNum, fmtDate, fmtDateTime } from "@/lib/format";
 import { toast } from "@/components/Toast";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { UserBetsManager } from "@/components/UserBetsManager";
@@ -81,6 +82,7 @@ export default function UsersPage() {
     dateFrom: "",
     dateTo: "",
     datePreset: "all" as DatePreset,
+    live_today: false,
   });
   const [submitting, setSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -92,11 +94,13 @@ export default function UsersPage() {
   const [userBids, setUserBids] = useState<any[]>([]);
   const [userDeposits, setUserDeposits] = useState<any[]>([]);
   const [userWithdrawals, setUserWithdrawals] = useState<any[]>([]);
+  const [userTransactions, setUserTransactions] = useState<any[]>([]);
   const [userContacts, setUserContacts] = useState<any[]>([]);
   const [userLocations, setUserLocations] = useState<any[]>([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
   const [activeTab, setActiveTab] = useState("overview");
+  const [txSubTab, setTxSubTab] = useState<"all" | "deposits" | "withdrawals">("all");
 
   const [bonusUser, setBonusUser] = useState<any>(null);
   const [bonusAmount, setBonusAmount] = useState("0");
@@ -115,6 +119,7 @@ export default function UsersPage() {
       const params: any = {};
       if (filters.username.trim()) params.username = filters.username.trim();
       if (filters.is_active !== "") params.is_active = filters.is_active === "true";
+      if (filters.live_today) params.active_today = true;
       if (filters.dateFrom) params.registered_from = `${filters.dateFrom}T00:00:00`;
       if (filters.dateTo) params.registered_to = `${filters.dateTo}T23:59:59`;
       params.page = currentPage;
@@ -153,25 +158,29 @@ export default function UsersPage() {
     setUserBids([]);
     setUserDeposits([]);
     setUserWithdrawals([]);
+    setUserTransactions([]);
     setUserContacts([]);
     setUserLocations([]);
     setActiveTab("overview");
+    setTxSubTab("all");
     setLoadingDetails(true);
     try {
-      const [d, b, dep, w, contacts, locations] = await Promise.all([
+      const [d, b, dep, w, txs, contacts, locations] = await Promise.all([
         getUserDetailed(user.id),
-        listBids({ user_id: user.id, limit: 150 }),
-        listDeposits({ user_id: user.id, limit: 50 }),
-        listWithdrawals({ user_id: user.id, limit: 50 }),
-        getUserContacts(user.id),
-        getUserLocations(user.id),
+        listBids({ user_id: user.id, limit: 150 }).catch(() => []),
+        listDeposits({ user_id: user.id, limit: 50 }).catch(() => []),
+        listWithdrawals({ user_id: user.id, limit: 50 }).catch(() => []),
+        listTransactions({ user_id: user.id, limit: 100 }).catch(() => []),
+        getUserContacts(user.id).catch(() => []),
+        getUserLocations(user.id).catch(() => []),
       ]);
       setDetail(d);
-      setUserBids(b);
-      setUserDeposits(dep);
-      setUserWithdrawals(w);
-      setUserContacts(contacts);
-      setUserLocations(locations);
+      setUserBids(b || []);
+      setUserDeposits(dep || []);
+      setUserWithdrawals(w || []);
+      setUserTransactions(txs || []);
+      setUserContacts(contacts || []);
+      setUserLocations(locations || []);
     } catch (e: any) {
       console.error(e);
     } finally {
@@ -343,18 +352,41 @@ export default function UsersPage() {
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
+            {/* Live Players Toggle */}
+            <button
+              type="button"
+              onClick={() => {
+                setFilters((prev) => ({ ...prev, live_today: !prev.live_today }));
+                setCurrentPage(1);
+              }}
+              className={cn(
+                "px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition active:scale-95 flex items-center gap-1.5",
+                filters.live_today
+                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20 ring-2 ring-emerald-400"
+                  : "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800 hover:bg-emerald-100"
+              )}
+            >
+              <span className="relative flex h-2 w-2">
+                {filters.live_today && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                )}
+                <span className={cn("relative inline-flex rounded-full h-2 w-2", filters.live_today ? "bg-white" : "bg-emerald-500")}></span>
+              </span>
+              Live Players (Today)
+            </button>
+
             {[
               { id: "", label: "All Users" },
               { id: "true", label: "Active" },
               { id: "false", label: "Inactive" },
             ].map((st) => {
-              const active = filters.is_active === st.id;
+              const active = !filters.live_today && filters.is_active === st.id;
               return (
                 <button
                   key={st.id}
                   type="button"
                   onClick={() => {
-                    setFilters((prev) => ({ ...prev, is_active: st.id }));
+                    setFilters((prev) => ({ ...prev, is_active: st.id, live_today: false }));
                     setCurrentPage(1);
                   }}
                   className={cn(
@@ -395,7 +427,7 @@ export default function UsersPage() {
               Search
             </Button>
 
-            {(filters.username || filters.is_active !== "" || filters.datePreset !== "all") && (
+            {(filters.username || filters.is_active !== "" || filters.datePreset !== "all" || filters.live_today) && (
               <Button
                 variant="outline"
                 onClick={() => {
@@ -405,6 +437,7 @@ export default function UsersPage() {
                     dateFrom: "",
                     dateTo: "",
                     datePreset: "all",
+                    live_today: false,
                   });
                   setCurrentPage(1);
                 }}
@@ -868,44 +901,174 @@ export default function UsersPage() {
                 )}
 
                 {activeTab === "transactions" && (
-                  <div className="space-y-6">
-                    <Card title="Recent Deposits" bodyClassName="p-0">
-                      <DataTable
-                        getRowKey={(d) => d.id}
-                        rows={userDeposits}
-                        columns={[
-                          { key: "amount", header: "Amount", render: (d) => <span className="text-emerald-400">+{fmtMoney(d.amount)}</span> },
-                          { key: "method", header: "Method", render: (d) => d.method || "N/A" },
-                          {
-                            key: "status", header: "Status", render: (d) => (
-                              <Badge color={d.status === "completed" || d.status === "approved" || d.status === "success" ? "emerald" : d.status === "rejected" || d.status === "failed" ? "red" : "amber"}>
-                                {d.status}
-                              </Badge>
-                            )
-                          },
-                          { key: "date", header: "Date", render: (d) => format(new Date(d.created_at), "dd/MM/yyyy") },
-                        ]}
-                      />
-                    </Card>
+                  <div className="space-y-4">
+                    {/* Sub-tab switcher */}
+                    <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+                      <button
+                        type="button"
+                        onClick={() => setTxSubTab("all")}
+                        className={cn(
+                          "px-3 py-1.5 rounded-lg text-xs font-bold transition",
+                          txSubTab === "all"
+                            ? "bg-brand-500 text-white shadow-sm"
+                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200"
+                        )}
+                      >
+                        Ledger / Passbook ({userTransactions.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTxSubTab("deposits")}
+                        className={cn(
+                          "px-3 py-1.5 rounded-lg text-xs font-bold transition",
+                          txSubTab === "deposits"
+                            ? "bg-brand-500 text-white shadow-sm"
+                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200"
+                        )}
+                      >
+                        Deposits ({userDeposits.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTxSubTab("withdrawals")}
+                        className={cn(
+                          "px-3 py-1.5 rounded-lg text-xs font-bold transition",
+                          txSubTab === "withdrawals"
+                            ? "bg-brand-500 text-white shadow-sm"
+                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200"
+                        )}
+                      >
+                        Withdrawals ({userWithdrawals.length})
+                      </button>
+                    </div>
 
-                    <Card title="Recent Withdrawals" bodyClassName="p-0">
-                      <DataTable
-                        getRowKey={(w) => w.id}
-                        rows={userWithdrawals}
-                        columns={[
-                          { key: "amount", header: "Amount", render: (w) => <span className="text-red-400">-{fmtMoney(w.amount)}</span> },
-                          { key: "method", header: "Method", render: (w) => w.method || w.bank_details || "N/A" },
-                          {
-                            key: "status", header: "Status", render: (w) => (
-                              <Badge color={w.status === "approved" ? "emerald" : w.status === "rejected" ? "red" : "amber"}>
-                                {w.status}
-                              </Badge>
-                            )
-                          },
-                          { key: "date", header: "Date", render: (w) => format(new Date(w.requested_at || w.created_at), "dd/MM/yyyy") },
-                        ]}
-                      />
-                    </Card>
+                    {txSubTab === "all" && (
+                      <Card title={`Wallet Transactions (${userTransactions.length})`} bodyClassName="p-0">
+                        {userTransactions.length === 0 ? (
+                          <div className="p-8 text-center text-sm text-slate-400">
+                            No wallet transactions found for this user.
+                          </div>
+                        ) : (
+                          <DataTable
+                            getRowKey={(t) => t.id}
+                            rows={userTransactions}
+                            columns={[
+                              {
+                                key: "type",
+                                header: "Type",
+                                render: (t) => {
+                                  const isCredit = ["deposit", "win", "bonus", "referral", "refund", "credit"].some(
+                                    (k) => (t.type || "").toLowerCase().includes(k)
+                                  );
+                                  return (
+                                    <Badge color={isCredit ? "emerald" : "red"}>
+                                      {t.type || "transaction"}
+                                    </Badge>
+                                  );
+                                },
+                              },
+                              {
+                                key: "description",
+                                header: "Particulars / Description",
+                                render: (t) => (
+                                  <div className="text-xs">
+                                    <div className="font-medium text-slate-900 dark:text-slate-100">
+                                      {t.description || t.reference_id || "Wallet Transaction"}
+                                    </div>
+                                    {t.reference_id && t.reference_id !== t.description && (
+                                      <div className="text-[10px] text-slate-400 font-mono">Ref: {t.reference_id}</div>
+                                    )}
+                                  </div>
+                                ),
+                              },
+                              {
+                                key: "amount",
+                                header: "Amount",
+                                render: (t) => {
+                                  const isCredit = ["deposit", "win", "bonus", "referral", "refund", "credit"].some(
+                                    (k) => (t.type || "").toLowerCase().includes(k)
+                                  );
+                                  return (
+                                    <span className={cn("font-bold font-mono text-xs", isCredit ? "text-emerald-500" : "text-rose-500")}>
+                                      {isCredit ? "+" : "-"}₹{fmtMoney(t.amount)}
+                                    </span>
+                                  );
+                                },
+                              },
+                              {
+                                key: "balance_after",
+                                header: "Balance After",
+                                render: (t) => (
+                                  <span className="font-mono text-xs text-slate-600 dark:text-slate-300">
+                                    ₹{fmtMoney(t.balance_after)}
+                                  </span>
+                                ),
+                              },
+                              {
+                                key: "status",
+                                header: "Status",
+                                render: (t) => (
+                                  <Badge color={t.status === "completed" || t.status === "success" ? "emerald" : t.status === "failed" ? "red" : "amber"}>
+                                    {t.status || "completed"}
+                                  </Badge>
+                                ),
+                              },
+                              {
+                                key: "date",
+                                header: "Date & Time",
+                                render: (t) => (
+                                  <span className="text-[11px] text-slate-400 whitespace-nowrap">
+                                    {fmtDateTime(t.created_at)}
+                                  </span>
+                                ),
+                              },
+                            ]}
+                          />
+                        )}
+                      </Card>
+                    )}
+
+                    {txSubTab === "deposits" && (
+                      <Card title="Recent Deposits" bodyClassName="p-0">
+                        <DataTable
+                          getRowKey={(d) => d.id}
+                          rows={userDeposits}
+                          columns={[
+                            { key: "amount", header: "Amount", render: (d) => <span className="text-emerald-400 font-mono font-bold">+{fmtMoney(d.amount)}</span> },
+                            { key: "method", header: "Method", render: (d) => d.method || "N/A" },
+                            {
+                              key: "status", header: "Status", render: (d) => (
+                                <Badge color={d.status === "completed" || d.status === "approved" || d.status === "success" ? "emerald" : d.status === "rejected" || d.status === "failed" ? "red" : "amber"}>
+                                  {d.status}
+                                </Badge>
+                              )
+                            },
+                            { key: "date", header: "Date", render: (d) => fmtDateTime(d.created_at) },
+                          ]}
+                        />
+                      </Card>
+                    )}
+
+                    {txSubTab === "withdrawals" && (
+                      <Card title="Recent Withdrawals" bodyClassName="p-0">
+                        <DataTable
+                          getRowKey={(w) => w.id}
+                          rows={userWithdrawals}
+                          columns={[
+                            { key: "amount", header: "Amount", render: (w) => <span className="text-red-400 font-mono font-bold">-{fmtMoney(w.amount)}</span> },
+                            { key: "method", header: "Method", render: (w) => w.method || w.bank_details || "N/A" },
+                            {
+                              key: "status", header: "Status", render: (w) => (
+                                <Badge color={w.status === "approved" ? "emerald" : w.status === "rejected" ? "red" : "amber"}>
+                                  {w.status}
+                                </Badge>
+                              )
+                            },
+                            { key: "date", header: "Date", render: (w) => fmtDateTime(w.requested_at || w.created_at) },
+                          ]}
+                        />
+                      </Card>
+                    )}
                   </div>
                 )}
 
