@@ -31,6 +31,7 @@ import {
   listDeposits,
   listWithdrawals,
   listTransactions,
+  listMarkets,
   getUserContacts,
   getUserLocations,
 } from "@/lib/admin";
@@ -83,7 +84,10 @@ export default function UsersPage() {
     dateTo: "",
     datePreset: "all" as DatePreset,
     live_today: false,
+    playing_today: false,
+    playing_game: "",
   });
+  const [availableMarkets, setAvailableMarkets] = useState<any[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -112,6 +116,14 @@ export default function UsersPage() {
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  useEffect(() => {
+    listMarkets()
+      .then((m: any) => {
+        if (Array.isArray(m)) setAvailableMarkets(m);
+      })
+      .catch(() => {});
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -120,6 +132,8 @@ export default function UsersPage() {
       if (filters.username.trim()) params.username = filters.username.trim();
       if (filters.is_active !== "") params.is_active = filters.is_active === "true";
       if (filters.live_today) params.active_today = true;
+      if (filters.playing_today) params.playing_today = true;
+      if (filters.playing_game) params.playing_game = filters.playing_game;
       if (filters.dateFrom) params.registered_from = `${filters.dateFrom}T00:00:00`;
       if (filters.dateTo) params.registered_to = `${filters.dateTo}T23:59:59`;
       params.page = currentPage;
@@ -375,18 +389,68 @@ export default function UsersPage() {
               Live Players (Today)
             </button>
 
+            {/* Playing Game (Today) Toggle */}
+            <button
+              type="button"
+              onClick={() => {
+                setFilters((prev) => ({
+                  ...prev,
+                  playing_today: !prev.playing_today,
+                  playing_game: !prev.playing_today ? prev.playing_game : "",
+                }));
+                setCurrentPage(1);
+              }}
+              className={cn(
+                "px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition active:scale-95 flex items-center gap-1.5",
+                filters.playing_today
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20 ring-2 ring-indigo-400"
+                  : "bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 hover:bg-indigo-100"
+              )}
+            >
+              <span className="relative flex h-2 w-2">
+                {filters.playing_today && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                )}
+                <span className={cn("relative inline-flex rounded-full h-2 w-2", filters.playing_today ? "bg-white" : "bg-indigo-500")}></span>
+              </span>
+              🎮 Playing Game (Today)
+            </button>
+
+            {/* Game Filter Dropdown */}
+            <Select
+              value={filters.playing_game}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFilters((prev) => ({
+                  ...prev,
+                  playing_game: val,
+                  playing_today: val !== "" ? true : prev.playing_today,
+                }));
+                setCurrentPage(1);
+              }}
+              className="h-9 px-3 text-xs font-semibold shrink-0 max-w-[170px]"
+            >
+              <option value="">🎮 All Playing Games</option>
+              <option value="RealSpinPro">RealSpinPro</option>
+              {availableMarkets.map((m: any) => (
+                <option key={m.id || m.name} value={m.name}>
+                  {m.name}
+                </option>
+              ))}
+            </Select>
+
             {[
               { id: "", label: "All Users" },
               { id: "true", label: "Active" },
               { id: "false", label: "Inactive" },
             ].map((st) => {
-              const active = !filters.live_today && filters.is_active === st.id;
+              const active = !filters.live_today && !filters.playing_today && filters.is_active === st.id;
               return (
                 <button
                   key={st.id}
                   type="button"
                   onClick={() => {
-                    setFilters((prev) => ({ ...prev, is_active: st.id, live_today: false }));
+                    setFilters((prev) => ({ ...prev, is_active: st.id, live_today: false, playing_today: false, playing_game: "" }));
                     setCurrentPage(1);
                   }}
                   className={cn(
@@ -427,7 +491,7 @@ export default function UsersPage() {
               Search
             </Button>
 
-            {(filters.username || filters.is_active !== "" || filters.datePreset !== "all" || filters.live_today) && (
+            {(filters.username || filters.is_active !== "" || filters.datePreset !== "all" || filters.live_today || filters.playing_today || filters.playing_game) && (
               <Button
                 variant="outline"
                 onClick={() => {
@@ -438,6 +502,8 @@ export default function UsersPage() {
                     dateTo: "",
                     datePreset: "all",
                     live_today: false,
+                    playing_today: false,
+                    playing_game: "",
                   });
                   setCurrentPage(1);
                 }}
@@ -524,6 +590,49 @@ export default function UsersPage() {
                     ),
                   },
                   { key: "balance", header: "Balance", render: (u) => <BalanceChip balance={u.wallet_balance} /> },
+                  {
+                    key: "playing_game",
+                    header: "Playing Game (Today)",
+                    render: (u) => {
+                      const hasGames = Array.isArray(u.active_games) && u.active_games.length > 0;
+                      if (!hasGames) {
+                        return (
+                          <span className="text-slate-400 dark:text-slate-500 text-xs">—</span>
+                        );
+                      }
+                      return (
+                        <div className="flex flex-col gap-1 max-w-[220px]">
+                          <div className="flex flex-wrap gap-1">
+                            {u.active_games.slice(0, 2).map((g: string, i: number) => (
+                              <span
+                                key={i}
+                                className="inline-flex items-center gap-1 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 px-2 py-0.5 text-[11px] font-bold"
+                              >
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                {g}
+                              </span>
+                            ))}
+                            {u.active_games.length > 2 && (
+                              <span className="inline-flex items-center rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 text-[10px] font-semibold">
+                                +{u.active_games.length - 2}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400">
+                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                              {u.today_bids_count || 1} bet{(u.today_bids_count || 1) > 1 ? "s" : ""} today
+                            </span>
+                            {u.last_played_at && (
+                              <>
+                                <span>•</span>
+                                <span>{fmtDateTime(u.last_played_at)}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    },
+                  },
                   {
                     key: "status",
                     header: "Status",
@@ -615,6 +724,19 @@ export default function UsersPage() {
                                 </>
                               ) : null}
                             </div>
+                            {Array.isArray(u.active_games) && u.active_games.length > 0 && (
+                              <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                                <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">🎮 Playing:</span>
+                                {u.active_games.map((g: string, i: number) => (
+                                  <span key={i} className="text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.2 rounded border border-indigo-200 dark:border-indigo-800">
+                                    {g}
+                                  </span>
+                                ))}
+                                <span className="text-[10px] text-emerald-600 font-semibold">
+                                  ({u.today_bids_count} bets)
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -773,6 +895,49 @@ export default function UsersPage() {
 
                       </Card>
                     </div>
+
+                    {Array.isArray(selected?.active_games) && selected.active_games.length > 0 && (
+                      <Card
+                        title="🎮 Actively Playing Games Today"
+                        bodyClassName="p-4 bg-gradient-to-r from-indigo-50/50 via-purple-50/20 to-transparent dark:from-indigo-950/30 dark:to-transparent"
+                      >
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {selected.active_games.map((g: string, i: number) => (
+                            <span
+                              key={i}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 px-3 py-1.5 text-xs font-bold"
+                            >
+                              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                              {g}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
+                          <div>
+                            Today&apos;s Total Bets:{" "}
+                            <span className="font-bold text-slate-900 dark:text-slate-100">
+                              {selected.today_bids_count}
+                            </span>
+                          </div>
+                          {selected.last_played_game && (
+                            <div>
+                              Latest Game:{" "}
+                              <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                                {selected.last_played_game}
+                              </span>
+                            </div>
+                          )}
+                          {selected.last_played_at && (
+                            <div>
+                              Last Bet Placed:{" "}
+                              <span className="font-bold text-slate-900 dark:text-slate-100">
+                                {fmtDateTime(selected.last_played_at)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </Card>
+                    )}
 
                     <Card title="Profile Information">
                       {(selected.phone || selected.mobile_number) && (
