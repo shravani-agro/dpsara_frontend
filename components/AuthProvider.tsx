@@ -26,6 +26,7 @@ export interface SubAdminPermissions {
   show_bids: boolean;
   show_starline_bids: boolean;
   show_jackpot_bids: boolean;
+  show_realspinpro: boolean;
   [key: string]: boolean;
 }
 
@@ -35,6 +36,7 @@ const DEFAULT_PERMISSIONS: SubAdminPermissions = {
   show_starline: true,
   show_jackpot_bids: true,
   show_jackpot: true,
+  show_realspinpro: false,
   can_add_result: false,
   can_update_result: false,
   can_delete_result: false,
@@ -111,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         show_deposits: payload.show_deposits ?? false,
         show_withdrawals: payload.show_withdrawals ?? false,
         show_bids: payload.show_bids ?? false,
+        show_realspinpro: payload.show_realspinpro ?? false,
       };
       setPermissions(parsedPerms);
     } else {
@@ -137,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         show_bids: true,
         show_starline_bids: true,
         show_jackpot_bids: true,
+        show_realspinpro: true,
       });
     }
   };

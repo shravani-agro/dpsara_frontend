@@ -57,7 +57,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!authLoading && isSubAdmin) {
-      router.replace("/ouradminportal/regular-bids");
+      router.replace("/ouradminportal/user-bid-data");
     }
   }, [isSubAdmin, authLoading, router]);
 

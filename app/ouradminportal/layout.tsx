@@ -47,8 +47,9 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Overview",
     items: [
-      { href: "/ouradminportal", label: "Dashboard", icon: "▦", permKey: "show_overview" },
-      { href: "/ouradminportal/users", label: "Users", icon: "👤", permKey: "can_manage_users" },
+      { href: "/ouradminportal", label: "Dashboard", icon: "▦", superAdminOnly: true },
+      { href: "/ouradminportal/user-bid-data", label: "User Bid Live Data", icon: "👤", permKey: "show_bid_data" },
+      { href: "/ouradminportal/users", label: "Users", icon: "👥", permKey: "can_manage_users" },
     ],
   },
   {
@@ -79,8 +80,8 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "RealSpinPro Game",
     items: [
-      { href: "/ouradminportal/realspinpro", label: "RealSpinPro Console", icon: "🎡" },
-      { href: "/ouradminportal/realspinpro-bids-history", label: "RealSpinPro Bids History", icon: "🎰" },
+      { href: "/ouradminportal/realspinpro", label: "RealSpinPro Console", icon: "🎡", permKey: "show_realspinpro" },
+      { href: "/ouradminportal/realspinpro-bids-history", label: "RealSpinPro Bids History", icon: "🎰", permKey: "show_realspinpro" },
     ],
   },
   // Commented out (Fun Target Game disabled)
@@ -99,12 +100,6 @@ const NAV_GROUPS: NavGroup[] = [
   //     { href: "/ouradminportal/wingo-bids-history", label: "Win Go Bids History", icon: "📊" },
   //   ],
   // },
-  {
-    label: "Player Analytics",
-    items: [
-      { href: "/ouradminportal/user-bid-data", label: "User Bid Data", icon: "👤", permKey: "show_bid_data" },
-    ],
-  },
   {
     label: "Finance",
     items: [
@@ -160,8 +155,8 @@ function NavContent({
   const isAllowed = (item: NavItem) => {
     if (!isSubAdmin) return true;
     if (item.superAdminOnly) return false;
-    if (item.permKey && !hasPermission(item.permKey)) return false;
-    return true;
+    if (!item.permKey) return false;
+    return hasPermission(item.permKey);
   };
 
   const groups = (q
@@ -275,15 +270,17 @@ export default function DashboardLayout({
 
   const isAllowed = React.useMemo(() => {
     if (!isSubAdmin) return true;
+    if (pathname === "/ouradminportal") return true; // Handled by dashboard redirect to user-bid-data
     const match = ALL_NAV.find((n) => isActive(n, pathname));
-    if (!match) return true;
+    if (!match) return false;
     if (match.superAdminOnly) return false;
-    if (match.permKey && !hasPermission(match.permKey)) return false;
-    return true;
+    if (!match.permKey) return false;
+    return hasPermission(match.permKey);
   }, [isSubAdmin, pathname, hasPermission]);
 
   useEffect(() => {
     if (isLoginPage || !authenticated) return;
+    if (isSubAdmin && !hasPermission("show_realspinpro")) return;
     let mounted = true;
 
     const checkGames = async () => {

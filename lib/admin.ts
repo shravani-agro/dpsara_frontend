@@ -810,6 +810,7 @@ export interface SubAdmin {
   show_bids: boolean;
   show_starline_bids?: boolean;
   show_jackpot_bids?: boolean;
+  show_realspinpro?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -839,6 +840,7 @@ export interface SubAdminPayload {
   show_bids?: boolean;
   show_starline_bids?: boolean;
   show_jackpot_bids?: boolean;
+  show_realspinpro?: boolean;
 }
 
 export async function getSubAdmins(): Promise<SubAdmin[]> {

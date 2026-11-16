@@ -52,13 +52,14 @@ export default function SubAdminsPage() {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [userSearch, setUserSearch] = useState("");
 
-  // Permissions state (The 5 permitted subadmin operations)
+  // Permissions state (The permitted subadmin operations)
   const [perms, setPerms] = useState<Record<string, boolean>>({
     show_bid_data: true,
     show_starline_bids: true,
     show_starline: true,
     show_jackpot_bids: true,
     show_jackpot: true,
+    show_realspinpro: false,
   });
 
   const loadData = useCallback(async () => {
@@ -97,6 +98,7 @@ export default function SubAdminsPage() {
       show_starline: true,
       show_jackpot_bids: true,
       show_jackpot: true,
+      show_realspinpro: false,
     });
     setModalOpen(true);
   };
@@ -117,6 +119,7 @@ export default function SubAdminsPage() {
       show_starline: sub.show_starline ?? true,
       show_jackpot_bids: sub.show_jackpot_bids ?? true,
       show_jackpot: sub.show_jackpot ?? true,
+      show_realspinpro: sub.show_realspinpro ?? false,
     });
     setModalOpen(true);
   };
@@ -181,6 +184,7 @@ export default function SubAdminsPage() {
         show_starline: !!perms.show_starline,
         show_jackpot_bids: !!perms.show_jackpot_bids,
         show_jackpot: !!perms.show_jackpot,
+        show_realspinpro: !!perms.show_realspinpro,
         // All other permissions removed/disabled for subadmins
         can_add_result: false,
         can_update_result: false,
@@ -674,6 +678,12 @@ export default function SubAdminsPage() {
                       icon: "💰",
                       label: "Jackpot Result Uploading",
                       desc: "Manage Jackpot hourly games and declare / upload results (/jackpot)",
+                    },
+                    {
+                      key: "show_realspinpro",
+                      icon: "🎡",
+                      label: "RealSpinPro Game Access",
+                      desc: "Allow access to RealSpinPro live game console & spin wheel bets history (/realspinpro)",
                     },
                   ].map((item) => {
                     const isChecked = !!perms[item.key];
