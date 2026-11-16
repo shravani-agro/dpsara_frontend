@@ -14,6 +14,7 @@ import {
 import { toast } from "@/components/Toast";
 import { listStarlineMarkets, getStarlineBidsSummary } from "@/lib/admin";
 import { parseApiError } from "@/lib/error-parser";
+import { useAuth } from "@/components/AuthProvider";
 
 const BET_TYPES = [
   { key: "single_ank", label: "Single Digit" },
@@ -23,6 +24,7 @@ const BET_TYPES = [
 ];
 
 export default function StarlineBidDataPage() {
+  const { isSubAdmin } = useAuth();
   const [markets, setMarkets] = useState<any[]>([]);
   const [marketId, setMarketId] = useState("");
   const [bidDate, setBidDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -122,9 +124,11 @@ export default function StarlineBidDataPage() {
         description="View and copy formatted accumulated starline bid data."
         actions={
           <div className="flex items-center gap-2">
+            {!isSubAdmin && (
             <Link href="/ouradminportal/user-bid-data?mode=starline">
               <Button variant="outline">User Bid Data 👤</Button>
             </Link>
+          )}
             <Button variant="primary" onClick={copyToClipboard} disabled={loading || !marketId}>
               Copy to Clipboard 📋
             </Button>
@@ -223,3 +227,4 @@ export default function StarlineBidDataPage() {
     </div>
   );
 }
+

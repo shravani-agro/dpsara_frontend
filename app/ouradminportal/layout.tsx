@@ -47,9 +47,9 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Overview",
     items: [
-      { href: "/ouradminportal", label: "Dashboard", icon: "▦", superAdminOnly: true },
-      { href: "/ouradminportal/user-bid-data", label: "User Bid Live Data", icon: "👤", permKey: "show_bid_data" },
-      { href: "/ouradminportal/users", label: "Users", icon: "👥", permKey: "can_manage_users" },
+      { href: "/ouradminportal", label: "Dashboard", icon: "▦" },
+      { href: "/ouradminportal/user-bid-data", label: "User Bid Live Data", icon: "👤", superAdminOnly: true },
+      { href: "/ouradminportal/users", label: "Users", icon: "👥", superAdminOnly: true },
     ],
   },
   {
@@ -155,6 +155,17 @@ function NavContent({
   const isAllowed = (item: NavItem) => {
     if (!isSubAdmin) return true;
     if (item.superAdminOnly) return false;
+    if (item.href === "/ouradminportal") {
+      return (
+        hasPermission("show_bid_data") ||
+        hasPermission("show_starline_bids") ||
+        hasPermission("show_jackpot_bids") ||
+        hasPermission("show_result") ||
+        hasPermission("show_starline") ||
+        hasPermission("show_jackpot") ||
+        hasPermission("show_realspinpro")
+      );
+    }
     if (!item.permKey) return false;
     return hasPermission(item.permKey);
   };

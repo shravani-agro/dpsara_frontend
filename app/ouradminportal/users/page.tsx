@@ -40,6 +40,7 @@ import { toast } from "@/components/Toast";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { UserBetsManager } from "@/components/UserBetsManager";
 import { DateRangeFilter, DatePreset } from "@/components/DateRangeFilter";
+import { useAuth } from "@/components/AuthProvider";
 
 function BalanceChip({ balance }: { balance: number }) {
   const value = Number(balance || 0);
@@ -58,6 +59,19 @@ function BalanceChip({ balance }: { balance: number }) {
 }
 
 export default function UsersPage() {
+  const { isSubAdmin } = useAuth();
+
+  if (isSubAdmin) {
+    return (
+      <div className="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <span className="text-4xl">🛡️</span>
+        <h2 className="mt-4 text-xl font-bold text-slate-800 dark:text-slate-100">Access Restricted</h2>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          Sub-admin accounts do not have access to player information or user management.
+        </p>
+      </div>
+    );
+  }
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

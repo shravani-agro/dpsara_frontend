@@ -17,6 +17,7 @@ import {
 } from "@/lib/admin";
 import { fmtMoney, fmtNum } from "@/lib/format";
 import { parseApiError } from "@/lib/error-parser";
+import { SubAdminLiveBidsDashboard } from "@/components/SubAdminLiveBidsDashboard";
 import {
   BarChart,
   Bar,
@@ -55,11 +56,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!authLoading && isSubAdmin) {
-      router.replace("/ouradminportal/user-bid-data");
-    }
-  }, [isSubAdmin, authLoading, router]);
+  // If sub-admin, render the Unified Live Bids Dashboard directly
+  if (isSubAdmin) {
+    return <SubAdminLiveBidsDashboard />;
+  }
 
   // Live Auto-Refresh Heartbeat
   const [autoRefresh, setAutoRefresh] = useState(true);

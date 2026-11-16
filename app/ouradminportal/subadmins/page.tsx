@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Card,
   Button,
@@ -17,7 +17,6 @@ import {
   createSubAdmin,
   updateSubAdmin,
   deleteSubAdmin,
-  listUsers,
   SubAdmin,
   SubAdminPayload,
 } from "@/lib/admin";
@@ -25,18 +24,61 @@ import { fmtDateTime } from "@/lib/format";
 import { toast } from "@/components/Toast";
 import { parseApiError } from "@/lib/error-parser";
 
-interface UserItem {
-  id: number;
-  username: string;
-  phone: string;
-  full_name?: string | null;
-  wallet_balance?: number;
-}
+const PERMISSION_CONFIG = [
+  {
+    key: "show_bid_data",
+    icon: "📊",
+    label: "Main Bid Live Data",
+    desc: "View live incoming bets & real-time aggregated bid sheets for Main markets (/regular-bids)",
+    color: "blue",
+  },
+  {
+    key: "show_result",
+    icon: "🎯",
+    label: "Main Result Uploading",
+    desc: "Declare and upload open/close results and winning numbers for Main markets (/results)",
+    color: "amber",
+  },
+  {
+    key: "show_starline_bids",
+    icon: "📈",
+    label: "Starline Live Bid Data",
+    desc: "View real-time live bets & bid figures for Starline hourly markets (/starline-bids)",
+    color: "indigo",
+  },
+  {
+    key: "show_starline",
+    icon: "⭐",
+    label: "Starline Result Uploading",
+    desc: "Declare and upload hourly winning pana/digit results for Starline games (/starline)",
+    color: "purple",
+  },
+  {
+    key: "show_jackpot_bids",
+    icon: "📊",
+    label: "Jackpot Live Bid Data",
+    desc: "View real-time live bets & bid figures for Jackpot hourly markets (/jackpot-bids)",
+    color: "violet",
+  },
+  {
+    key: "show_jackpot",
+    icon: "💰",
+    label: "Jackpot Result Uploading",
+    desc: "Declare and upload hourly triple pana results for Jackpot games (/jackpot)",
+    color: "emerald",
+  },
+  {
+    key: "show_realspinpro",
+    icon: "🎡",
+    label: "RealSpinPro Game Access",
+    desc: "Allow access to RealSpinPro live wheel game console & bets history (/realspinpro)",
+    color: "rose",
+  },
+];
 
 export default function SubAdminsPage() {
   const { isSubAdmin } = useAuth();
   const [subAdmins, setSubAdmins] = useState<SubAdmin[]>([]);
-  const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,12 +91,11 @@ export default function SubAdminsPage() {
   const [formUsername, setFormUsername] = useState("");
   const [formPassword, setFormPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [userSearch, setUserSearch] = useState("");
 
-  // Permissions state (The permitted subadmin operations)
+  // Permissions state
   const [perms, setPerms] = useState<Record<string, boolean>>({
     show_bid_data: true,
+    show_result: true,
     show_starline_bids: true,
     show_starline: true,
     show_jackpot_bids: true,
@@ -66,34 +107,27 @@ export default function SubAdminsPage() {
     setLoading(true);
     setError(null);
     try {
-      const [subsData, usersData] = await Promise.all([
-        getSubAdmins(),
-        listUsers({ limit: 1000 }),
-      ]);
+      const subsData = await getSubAdmins();
       setSubAdmins(subsData || []);
-      setUsers(usersData || []);
     } catch (err: any) {
-      setError(parseApiError(err, "Failed to load sub-admins or users"));
+      setError(parseApiError(err, "Failed to load sub-admins"));
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (!isSubAdmin) {
-      loadData();
-    }
-  }, [isSubAdmin, loadData]);
+    loadData();
+  }, [loadData]);
 
   const openCreateModal = () => {
     setEditingSubAdmin(null);
     setFormUsername("");
     setFormPassword("");
     setShowPassword(false);
-    setSelectedUserIds([]);
-    setUserSearch("");
     setPerms({
       show_bid_data: true,
+      show_result: true,
       show_starline_bids: true,
       show_starline: true,
       show_jackpot_bids: true,
@@ -108,13 +142,9 @@ export default function SubAdminsPage() {
     setFormUsername(sub.username);
     setFormPassword(sub.password || "");
     setShowPassword(false);
-    const assigned = sub.assigned_user_ids
-      ? String(sub.assigned_user_ids).split(",").map((s) => s.trim()).filter(Boolean)
-      : [];
-    setSelectedUserIds(assigned);
-    setUserSearch("");
     setPerms({
       show_bid_data: sub.show_bid_data ?? true,
+      show_result: sub.show_result ?? true,
       show_starline_bids: sub.show_starline_bids ?? true,
       show_starline: sub.show_starline ?? true,
       show_jackpot_bids: sub.show_jackpot_bids ?? true,
@@ -124,41 +154,15 @@ export default function SubAdminsPage() {
     setModalOpen(true);
   };
 
-  const toggleUserSelection = (userId: number) => {
-    const sId = String(userId);
-    setSelectedUserIds((prev) =>
-      prev.includes(sId) ? prev.filter((id) => id !== sId) : [...prev, sId]
-    );
-  };
-
-  const filteredUsers = useMemo(() => {
-    if (!userSearch.trim()) return users;
-    const q = userSearch.toLowerCase();
-    return users.filter(
-      (u) =>
-        u.username?.toLowerCase().includes(q) ||
-        u.phone?.includes(q) ||
-        u.full_name?.toLowerCase().includes(q)
-    );
-  }, [users, userSearch]);
-
-  const selectFilteredUsers = () => {
-    const filteredIds = filteredUsers.map((u) => String(u.id));
-    setSelectedUserIds((prev) => Array.from(new Set([...prev, ...filteredIds])));
-  };
-
-  const deselectFilteredUsers = () => {
-    const filteredSet = new Set(filteredUsers.map((u) => String(u.id)));
-    setSelectedUserIds((prev) => prev.filter((id) => !filteredSet.has(id)));
-  };
-
   const setAllPermissions = (value: boolean) => {
     setPerms({
       show_bid_data: value,
+      show_result: value,
       show_starline_bids: value,
       show_starline: value,
       show_jackpot_bids: value,
       show_jackpot: value,
+      show_realspinpro: value,
     });
   };
 
@@ -177,21 +181,21 @@ export default function SubAdminsPage() {
     try {
       const payload: SubAdminPayload = {
         username: formUsername.trim(),
-        assigned_user_ids: selectedUserIds.join(","),
-        // The 5 allowed permissions
+        assigned_user_ids: "", // Sub-admins never have individual player scoping
+        // Explicitly allowed modular permissions
         show_bid_data: !!perms.show_bid_data,
+        show_result: !!perms.show_result,
+        can_add_result: !!perms.show_result,
+        can_update_result: !!perms.show_result,
+        can_delete_result: false,
         show_starline_bids: !!perms.show_starline_bids,
         show_starline: !!perms.show_starline,
         show_jackpot_bids: !!perms.show_jackpot_bids,
         show_jackpot: !!perms.show_jackpot,
         show_realspinpro: !!perms.show_realspinpro,
-        // All other permissions removed/disabled for subadmins
-        can_add_result: false,
-        can_update_result: false,
-        can_delete_result: false,
+        // All sensitive user management & finance permissions stripped
         show_commission: false,
         show_overview: false,
-        show_result: false,
         show_agent_report: false,
         can_approve_deposit: false,
         can_approve_withdrawal: false,
@@ -203,6 +207,7 @@ export default function SubAdminsPage() {
         show_withdrawals: false,
         show_bids: false,
       };
+
       if (formPassword.trim()) {
         payload.password = formPassword.trim();
       }
@@ -250,21 +255,14 @@ export default function SubAdminsPage() {
   }
 
   const activePermsCount = (sub: SubAdmin) => {
-    const permKeys = [
-      "show_bid_data",
-      "show_starline_bids",
-      "show_starline",
-      "show_jackpot_bids",
-      "show_jackpot",
-    ];
-    return permKeys.filter((k) => (sub as any)[k] === true).length;
+    return PERMISSION_CONFIG.filter((cfg) => (sub as any)[cfg.key] === true).length;
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Sub Admins Management"
-        description="Create subordinate administrator accounts, assign specific users, and customize modular permissions."
+        description="Create and manage subordinate operator accounts with modular permissions for live bids and result uploading."
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
@@ -284,21 +282,21 @@ export default function SubAdminsPage() {
         <Card className="p-5 border-l-4 border-l-brand-500">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Sub-Admins</p>
           <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{subAdmins.length}</p>
-          <p className="mt-1 text-xs text-slate-500">Authorized subordinate operators</p>
+          <p className="mt-1 text-xs text-slate-500">Configured portal operators</p>
         </Card>
         <Card className="p-5 border-l-4 border-l-emerald-500">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Result Operators</p>
           <p className="mt-2 text-3xl font-bold text-emerald-500">
-            {subAdmins.filter((s) => s.can_add_result || s.can_update_result).length}
+            {subAdmins.filter((s) => s.show_result || s.show_starline || s.show_jackpot).length}
           </p>
-          <p className="mt-1 text-xs text-slate-500">Granted result declaration rights</p>
+          <p className="mt-1 text-xs text-slate-500">Granted result declaration permissions</p>
         </Card>
-        <Card className="p-5 border-l-4 border-l-amber-500">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Finance Operators</p>
-          <p className="mt-2 text-3xl font-bold text-amber-500">
-            {subAdmins.filter((s) => s.can_approve_deposit || s.can_approve_withdrawal).length}
+        <Card className="p-5 border-l-4 border-l-blue-500">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Live Bids Monitors</p>
+          <p className="mt-2 text-3xl font-bold text-blue-500">
+            {subAdmins.filter((s) => s.show_bid_data || s.show_starline_bids || s.show_jackpot_bids).length}
           </p>
-          <p className="mt-1 text-xs text-slate-500">Can approve deposits / withdrawals</p>
+          <p className="mt-1 text-xs text-slate-500">Can view live incoming market figures</p>
         </Card>
       </div>
 
@@ -311,7 +309,7 @@ export default function SubAdminsPage() {
         ) : subAdmins.length === 0 ? (
           <EmptyState
             title="No sub-admins created yet"
-            hint="Click '+ Create Sub-Admin' to set up a new portal operator with assigned users and granular permissions."
+            hint="Click '+ Create Sub-Admin' to set up a new portal operator with tailored live bids and result permissions."
           />
         ) : (
           <div className="overflow-x-auto">
@@ -319,18 +317,14 @@ export default function SubAdminsPage() {
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 <tr>
                   <th className="px-5 py-3.5">Sub-Admin</th>
-                  <th className="px-5 py-3.5">Assigned Users</th>
-                  <th className="px-5 py-3.5">Key Permissions</th>
+                  <th className="px-5 py-3.5">Granted Permissions</th>
                   <th className="px-5 py-3.5">Created Date</th>
                   <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                 {subAdmins.map((sub) => {
-                  const assignedCount = sub.assigned_user_ids
-                    ? String(sub.assigned_user_ids).split(",").filter(Boolean).length
-                    : 0;
-
+                  const totalGranted = activePermsCount(sub);
                   return (
                     <tr
                       key={sub.id}
@@ -354,48 +348,44 @@ export default function SubAdminsPage() {
                       </td>
 
                       <td className="px-5 py-4">
-                        {assignedCount > 0 ? (
-                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 border border-brand-200/60 dark:border-brand-800/40 text-xs font-semibold">
-                            <span>👤</span>
-                            <span>{assignedCount} Assigned User{assignedCount !== 1 ? "s" : ""}</span>
-                          </div>
-                        ) : (
-                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40 text-xs font-semibold">
-                            <span>🌐</span>
-                            <span>All Users (Unrestricted)</span>
-                          </div>
-                        )}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <div className="flex flex-wrap gap-1 max-w-md">
+                        <div className="flex flex-wrap gap-1.5 max-w-xl">
                           {sub.show_bid_data && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/40">
-                              <span>📊</span> Main Bid Live Data
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/40">
+                              <span>📊</span> Main Live Bids
+                            </span>
+                          )}
+                          {sub.show_result && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/40">
+                              <span>🎯</span> Main Results
                             </span>
                           )}
                           {sub.show_starline_bids && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/40">
-                              <span>📈</span> Starline Live Bid Data
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/40">
+                              <span>📈</span> Starline Live Bids
                             </span>
                           )}
                           {sub.show_starline && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/40">
-                              <span>⭐</span> Starline Result Uploading
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/40">
+                              <span>⭐</span> Starline Results
                             </span>
                           )}
                           {sub.show_jackpot_bids && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-800/40">
-                              <span>📊</span> Jackpot Live Bid Data
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-800/40">
+                              <span>📊</span> Jackpot Live Bids
                             </span>
                           )}
                           {sub.show_jackpot && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40">
-                              <span>💰</span> Jackpot Result Uploading
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40">
+                              <span>💰</span> Jackpot Results
+                            </span>
+                          )}
+                          {sub.show_realspinpro && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/40">
+                              <span>🎡</span> RealSpinPro
                             </span>
                           )}
                           <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                            {activePermsCount(sub)}/5 Granted
+                            {totalGranted}/{PERMISSION_CONFIG.length} Allowed
                           </span>
                         </div>
                       </td>
@@ -437,14 +427,14 @@ export default function SubAdminsPage() {
       {/* Create / Edit Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-6">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
               <div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                   {editingSubAdmin ? `Edit Sub-Admin: ${editingSubAdmin.username}` : "Create New Sub-Admin"}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Set login credentials, assign users, and toggle permissions just like Kalyan36Bazar.
+                  Set login credentials and choose permissions for live bid data and result uploading.
                 </p>
               </div>
               <button
@@ -496,128 +486,7 @@ export default function SubAdminsPage() {
                 </div>
               </div>
 
-              {/* Assign Users Section (Matching Kalyan36Bazar UserMultiSelect) */}
-              <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 bg-slate-50/50 dark:bg-slate-850/30 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span>👤</span>
-                        <span>Assign Users to Sub-Admin</span>
-                      </h4>
-                      {selectedUserIds.length === 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                          <span>🌐</span>
-                          <span>Shows All Users (When Not Selected)</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-100 text-brand-800 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-300 dark:border-brand-800">
-                          <span>👤</span>
-                          <span>{selectedUserIds.length} Specific Users Assigned</span>
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      When no users are selected, this sub-admin sees <strong>ALL users</strong> across the portal. Check specific users below only if you want to restrict them.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-medium shrink-0">
-                    <button
-                      type="button"
-                      onClick={selectFilteredUsers}
-                      className="text-brand-600 dark:text-brand-400 hover:underline"
-                    >
-                      Select Filtered
-                    </button>
-                    <span className="text-slate-300 dark:text-slate-700">|</span>
-                    <button
-                      type="button"
-                      onClick={deselectFilteredUsers}
-                      className="text-slate-500 hover:underline"
-                    >
-                      Deselect Filtered
-                    </button>
-                    <span className="text-slate-300 dark:text-slate-700">|</span>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedUserIds([])}
-                      className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
-                      title="Clear selection to allow access to all users"
-                    >
-                      🌐 Allow All Users (Clear)
-                    </button>
-                  </div>
-                </div>
-
-                {selectedUserIds.length === 0 && (
-                  <div className="px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-                    <span>💡</span>
-                    <span>
-                      <strong>Notice:</strong> Currently no users are selected. This sub-admin will have full access to view and manage <strong>ALL players</strong>.
-                    </span>
-                  </div>
-                )}
-
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">🔍</span>
-                  <input
-                    type="text"
-                    value={userSearch}
-                    onChange={(e) => setUserSearch(e.target.value)}
-                    placeholder="Search users by name, phone or username..."
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2 pl-9 pr-3 text-sm placeholder:text-slate-400 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-56 overflow-y-auto p-2 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 shadow-inner">
-                  {filteredUsers.slice(0, 150).map((user) => {
-                    const isChecked = selectedUserIds.includes(String(user.id));
-                    return (
-                      <label
-                        key={user.id}
-                        className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-colors border text-left ${
-                          isChecked
-                            ? "bg-brand-50/80 dark:bg-brand-950/40 border-brand-300 dark:border-brand-800"
-                            : "hover:bg-slate-50 dark:hover:bg-slate-800/60 border-slate-100 dark:border-slate-800"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => toggleUserSelection(user.id)}
-                          className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                        />
-                        <div className="min-w-0 flex-1 text-xs">
-                          <p className="font-semibold text-slate-900 dark:text-slate-100 truncate">
-                            {user.full_name || user.username}
-                          </p>
-                          <p className="text-slate-400 truncate">
-                            {user.phone} · ₹{user.wallet_balance ?? 0}
-                          </p>
-                        </div>
-                      </label>
-                    );
-                  })}
-                  {filteredUsers.length === 0 && (
-                    <div className="col-span-full py-6 text-center text-xs text-slate-400 italic">
-                      No users match "{userSearch}"
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span>
-                    <strong>{selectedUserIds.length}</strong> of {users.length} users selected
-                  </span>
-                  {selectedUserIds.length > 0 && (
-                    <span className="text-brand-600 dark:text-brand-400 font-semibold">
-                      ✓ Sub-Admin will be restricted to these {selectedUserIds.length} users
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Permissions Section (The 5 permitted subadmin operations) */}
+              {/* Modular Permissions Section */}
               <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 bg-slate-50/50 dark:bg-slate-850/30 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
                   <div>
@@ -626,7 +495,7 @@ export default function SubAdminsPage() {
                       <span>Sub-Admin Permissions</span>
                     </h4>
                     <p className="text-xs text-slate-500">
-                      Configure permissions for live bid data and result uploading.
+                      Enable or disable access to live market sheets and game result declaring.
                     </p>
                   </div>
                   <div className="flex gap-2 text-xs">
@@ -647,45 +516,8 @@ export default function SubAdminsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {[
-                    {
-                      key: "show_bid_data",
-                      icon: "📊",
-                      label: "Main Bid Live Data",
-                      desc: "View live incoming bets & real-time bid sheets for Main markets (/regular-bids)",
-                    },
-                    {
-                      key: "show_starline_bids",
-                      icon: "📈",
-                      label: "Starline Live Bid Data",
-                      desc: "View real-time live bets & bid figures for Starline hourly markets (/starline-bids)",
-                    },
-                    {
-                      key: "show_starline",
-                      icon: "⭐",
-                      label: "Starline Result Uploading",
-                      desc: "Manage Starline hourly games and declare / upload results (/starline)",
-                    },
-                    {
-                      key: "show_jackpot_bids",
-                      icon: "📊",
-                      label: "Jackpot Live Bid Data",
-                      desc: "View real-time live bets & bid figures for Jackpot hourly markets (/jackpot-bids)",
-                    },
-                    {
-                      key: "show_jackpot",
-                      icon: "💰",
-                      label: "Jackpot Result Uploading",
-                      desc: "Manage Jackpot hourly games and declare / upload results (/jackpot)",
-                    },
-                    {
-                      key: "show_realspinpro",
-                      icon: "🎡",
-                      label: "RealSpinPro Game Access",
-                      desc: "Allow access to RealSpinPro live game console & spin wheel bets history (/realspinpro)",
-                    },
-                  ].map((item) => {
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {PERMISSION_CONFIG.map((item) => {
                     const isChecked = !!perms[item.key];
                     return (
                       <label
@@ -740,4 +572,3 @@ export default function SubAdminsPage() {
     </div>
   );
 }
-

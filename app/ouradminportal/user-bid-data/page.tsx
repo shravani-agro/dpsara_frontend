@@ -24,6 +24,7 @@ import { primeUserCache } from "@/lib/user-cache";
 import { parseApiError } from "@/lib/error-parser";
 import { useUserModal } from "@/components/UserModalContext";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+import { useAuth } from "@/components/AuthProvider";
 
 const REGULAR_BET_TYPES = [
   { key: "single_ank", label: "Single Digit" },
@@ -89,7 +90,20 @@ function isSameDate(bDate?: string | null, placedAt?: string | null, targetDate?
 }
 
 export default function UserBidDataPage() {
+  const { isSubAdmin } = useAuth();
   const { openUser } = useUserModal();
+
+  if (isSubAdmin) {
+    return (
+      <div className="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <span className="text-4xl">🛡️</span>
+        <h2 className="mt-4 text-xl font-bold text-slate-800 dark:text-slate-100">Access Restricted</h2>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          Sub-admin accounts do not have access to individual user records.
+        </p>
+      </div>
+    );
+  }
 
   // Mode: regular | starline | both
   const [activeMode, setActiveMode] = useState<"regular" | "starline" | "both">("both");

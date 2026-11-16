@@ -14,6 +14,7 @@ import {
 import { toast } from "@/components/Toast";
 import { listMarkets, getBidsSummary } from "@/lib/admin";
 import { parseApiError } from "@/lib/error-parser";
+import { useAuth } from "@/components/AuthProvider";
 
 const BET_TYPES = [
   { key: "single_ank", label: "Single Digit" },
@@ -27,6 +28,7 @@ const BET_TYPES = [
 ];
 
 export default function RegularBidDataPage() {
+  const { isSubAdmin } = useAuth();
   const [markets, setMarkets] = useState<any[]>([]);
   const [marketId, setMarketId] = useState("");
   const [bidDate, setBidDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -145,9 +147,11 @@ export default function RegularBidDataPage() {
         description="View and copy formatted accumulated bid data."
         actions={
           <div className="flex items-center gap-2">
-            <Link href="/ouradminportal/user-bid-data?mode=regular">
-              <Button variant="outline">User Bid Data 👤</Button>
-            </Link>
+            {!isSubAdmin && (
+              <Link href="/ouradminportal/user-bid-data?mode=regular">
+                <Button variant="outline">User Bid Data 👤</Button>
+              </Link>
+            )}
             <Button variant="primary" onClick={copyToClipboard} disabled={loading || !marketId}>
               Copy to Clipboard 📋
             </Button>
