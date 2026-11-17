@@ -90,7 +90,7 @@ export default function UsersPage() {
   const [availableMarkets, setAvailableMarkets] = useState<any[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(100);
   const [totalUsers, setTotalUsers] = useState<number>(0);
 
   const [selected, setSelected] = useState<any>(null);
@@ -473,12 +473,11 @@ export default function UsersPage() {
             }}
             className="h-9 px-4 text-xs font-bold shrink-0"
           >
-            <option value={10}>10</option>
-            <option value={20} selected>
-              20
-            </option>
+            <option value={20}>20</option>
             <option value={50}>50</option>
-            <option value={100}>100</option>
+            <option value={100}>100 (Default)</option>
+            <option value={200}>200</option>
+            <option value={500}>500</option>
           </Select>
 
           <Button
