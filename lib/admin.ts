@@ -223,6 +223,19 @@ export async function getUsersCount(params: any = {}) {
   return res.data?.total ?? 0;
 }
 
+export interface CreateUserData {
+  phone: string;
+  full_name: string;
+  pin: string;
+  initial_balance?: number;
+  email?: string;
+}
+
+export async function createUser(data: CreateUserData) {
+  const res = await client.post("/admin/users", data);
+  return res.data;
+}
+
 export async function getUser(userId: number) {
   const res = await client.get(`/admin/users/${userId}`);
   return res.data;

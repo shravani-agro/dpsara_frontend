@@ -21,6 +21,7 @@ import {
 } from "@/components/ui";
 import {
   listUsers,
+  createUser,
   toggleUserActive,
   addUserBonus,
   deductUserFunds,
@@ -115,6 +116,80 @@ export default function UsersPage() {
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
+
+  // Add User State
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    phone: "",
+    full_name: "",
+    pin: "",
+    initial_balance: "0",
+    email: "",
+  });
+  const [createSubmitting, setCreateSubmitting] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  const handleCreateUser = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setCreateError(null);
+
+    const cleanPhone = createForm.phone.trim().replace(/\D/g, "");
+    const finalPhone = cleanPhone.length === 12 && cleanPhone.startsWith("91")
+      ? cleanPhone.slice(2)
+      : cleanPhone.length === 11 && cleanPhone.startsWith("0")
+      ? cleanPhone.slice(1)
+      : cleanPhone;
+
+    if (!finalPhone || finalPhone.length !== 10) {
+      setCreateError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    if (!createForm.full_name.trim()) {
+      setCreateError("Please enter the user's name.");
+      return;
+    }
+
+    const cleanPin = createForm.pin.trim();
+    if (!cleanPin || cleanPin.length !== 4 || !/^\d{4}$/.test(cleanPin)) {
+      setCreateError("Please enter a 4-digit PIN.");
+      return;
+    }
+
+    const initBal = parseFloat(createForm.initial_balance) || 0;
+    if (initBal < 0) {
+      setCreateError("Initial balance cannot be negative.");
+      return;
+    }
+
+    setCreateSubmitting(true);
+    try {
+      const newUser = await createUser({
+        phone: finalPhone,
+        full_name: createForm.full_name.trim(),
+        pin: cleanPin,
+        initial_balance: initBal,
+        email: createForm.email.trim() || undefined,
+      });
+
+      toast.success(
+        `User ${newUser.full_name || newUser.username} created successfully with PIN ${cleanPin}!`
+      );
+      setCreateOpen(false);
+      setCreateForm({
+        phone: "",
+        full_name: "",
+        pin: "",
+        initial_balance: "0",
+        email: "",
+      });
+      load();
+    } catch (err: any) {
+      setCreateError(parseApiError(err, "Failed to create user"));
+    } finally {
+      setCreateSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     listMarkets()
@@ -329,7 +404,23 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Users" description="Manage accounts, balances and access" />
+      <PageHeader
+        title="Users"
+        description="Manage accounts, balances and access"
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => {
+              setCreateError(null);
+              setCreateOpen(true);
+            }}
+            className="flex items-center gap-2 shadow-md shadow-brand-500/20"
+          >
+            <span className="text-base leading-none">➕</span>
+            <span>Add User</span>
+          </Button>
+        }
+      />
 
       <ErrorMsg msg={error} />
 
@@ -1476,6 +1567,144 @@ export default function UsersPage() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Create User Modal */}
+      <Modal
+        open={createOpen}
+        onClose={() => {
+          if (!createSubmitting) {
+            setCreateOpen(false);
+            setCreateError(null);
+          }
+        }}
+        title="Add New User"
+      >
+        <form onSubmit={handleCreateUser} className="space-y-4">
+          {createError && (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs sm:text-sm text-red-600 dark:text-red-400">
+              {createError}
+            </div>
+          )}
+
+          <Field label="Mobile Number *">
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                +91
+              </span>
+              <Input
+                type="tel"
+                maxLength={10}
+                value={createForm.phone}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({
+                    ...prev,
+                    phone: e.target.value.replace(/\D/g, "").slice(0, 10),
+                  }))
+                }
+                placeholder="9876543210"
+                className="pl-12 font-mono"
+                required
+                autoFocus
+              />
+            </div>
+            <p className="mt-1 text-[11px] text-slate-400">10-digit mobile number (used for login and WhatsApp)</p>
+          </Field>
+
+          <Field label="Full Name *">
+            <Input
+              type="text"
+              value={createForm.full_name}
+              onChange={(e) =>
+                setCreateForm((prev) => ({ ...prev, full_name: e.target.value }))
+              }
+              placeholder="e.g. Ramesh Kumar"
+              required
+            />
+            <p className="mt-1 text-[11px] text-slate-400">Player or account holder name</p>
+          </Field>
+
+          <Field label="4-Digit PIN *">
+            <Input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={createForm.pin}
+              onChange={(e) =>
+                setCreateForm((prev) => ({
+                  ...prev,
+                  pin: e.target.value.replace(/\D/g, "").slice(0, 4),
+                }))
+              }
+              placeholder="4-digit PIN (e.g. 1234)"
+              className="font-mono tracking-widest text-center text-lg"
+              required
+            />
+            <p className="mt-1 text-[11px] text-slate-400">Player uses this PIN to log in via mobile app</p>
+          </Field>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Field label="Initial Balance (₹)">
+              <Input
+                type="number"
+                min="0"
+                step="any"
+                value={createForm.initial_balance}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({ ...prev, initial_balance: e.target.value }))
+                }
+                placeholder="0"
+                className="font-mono"
+              />
+              <p className="mt-1 text-[11px] text-slate-400">Starting wallet balance (optional)</p>
+            </Field>
+
+            <Field label="Email Address">
+              <Input
+                type="email"
+                value={createForm.email}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({ ...prev, email: e.target.value }))
+                }
+                placeholder="user@example.com"
+              />
+              <p className="mt-1 text-[11px] text-slate-400">Optional email</p>
+            </Field>
+          </div>
+
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-300">
+            💡 The newly created user will be able to log in to the mobile app immediately using their <strong>Mobile Number</strong> and <strong>PIN</strong>.
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={createSubmitting}
+              onClick={() => {
+                setCreateOpen(false);
+                setCreateError(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={createSubmitting}
+              className="min-w-[120px]"
+            >
+              {createSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <Spinner size="sm" />
+                  <span>Creating…</span>
+                </div>
+              ) : (
+                "Create User"
+              )}
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
