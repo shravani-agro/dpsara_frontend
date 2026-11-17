@@ -369,6 +369,7 @@ export default function UsersPage() {
             {/* Live Players Toggle */}
             <button
               type="button"
+              title="Users who opened or used the app today"
               onClick={() => {
                 setFilters((prev) => ({ ...prev, live_today: !prev.live_today }));
                 setCurrentPage(1);
@@ -386,12 +387,13 @@ export default function UsersPage() {
                 )}
                 <span className={cn("relative inline-flex rounded-full h-2 w-2", filters.live_today ? "bg-white" : "bg-emerald-500")}></span>
               </span>
-              Live Players (Today)
+              🟢 Live Players (Today)
             </button>
 
             {/* Playing Game (Today) Toggle */}
             <button
               type="button"
+              title="Users who placed bets today"
               onClick={() => {
                 setFilters((prev) => ({
                   ...prev,
@@ -413,7 +415,7 @@ export default function UsersPage() {
                 )}
                 <span className={cn("relative inline-flex rounded-full h-2 w-2", filters.playing_today ? "bg-white" : "bg-indigo-500")}></span>
               </span>
-              🎮 Playing Game (Today)
+              🎮 Playing Players (Today)
             </button>
 
             {/* Game Filter Dropdown */}
@@ -432,6 +434,10 @@ export default function UsersPage() {
             >
               <option value="">🎮 All Playing Games</option>
               <option value="RealSpinPro">RealSpinPro</option>
+              <option value="Starline">Starline</option>
+              <option value="Jackpot">Jackpot</option>
+              <option value="FunTarget">FunTarget</option>
+              <option value="WinGo">WinGo</option>
               {availableMarkets.map((m: any) => (
                 <option key={m.id || m.name} value={m.name}>
                   {m.name}
@@ -590,13 +596,46 @@ export default function UsersPage() {
                   },
                   { key: "balance", header: "Balance", render: (u) => <BalanceChip balance={u.wallet_balance} /> },
                   {
+                    key: "app_activity",
+                    header: "App Presence",
+                    render: (u) => {
+                      if (u.is_online) {
+                        return (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            Online Now
+                          </span>
+                        );
+                      }
+                      if (u.active_today || u.last_active_at) {
+                        return (
+                          <div className="flex flex-col text-xs leading-tight">
+                            <span className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1 text-[11px]">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                              Active Today
+                            </span>
+                            {u.last_active_at && (
+                              <span className="text-[10px] text-slate-400 mt-0.5">{fmtDateTime(u.last_active_at)}</span>
+                            )}
+                          </div>
+                        );
+                      }
+                      return (
+                        <span className="text-slate-400 dark:text-slate-500 text-xs">Offline</span>
+                      );
+                    },
+                  },
+                  {
                     key: "playing_game",
                     header: "Playing Game (Today)",
                     render: (u) => {
                       const hasGames = Array.isArray(u.active_games) && u.active_games.length > 0;
                       if (!hasGames) {
                         return (
-                          <span className="text-slate-400 dark:text-slate-500 text-xs">—</span>
+                          <span className="text-slate-400 dark:text-slate-500 text-xs">— (No bets today)</span>
                         );
                       }
                       return (
@@ -721,6 +760,19 @@ export default function UsersPage() {
                                   <span>•</span>
                                   <span>{format(new Date(u.created_at), "dd/MM/yy")}</span>
                                 </>
+                              ) : null}
+                            </div>
+                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                              {u.is_online ? (
+                                <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.2 text-[9px] font-bold">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                  Online Now
+                                </span>
+                              ) : u.active_today ? (
+                                <span className="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.2 text-[9px] font-medium">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                  Active Today
+                                </span>
                               ) : null}
                             </div>
                             {Array.isArray(u.active_games) && u.active_games.length > 0 && (
