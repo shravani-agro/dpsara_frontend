@@ -44,6 +44,7 @@ import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { UserBetsManager } from "@/components/UserBetsManager";
 import { DateRangeFilter, DatePreset } from "@/components/DateRangeFilter";
 import { useAuth } from "@/components/AuthProvider";
+import { checkRestrictedKeywords } from "@/lib/content-filter";
 
 function BalanceChip({ balance }: { balance: number }) {
   const value = Number(balance || 0);
@@ -147,6 +148,14 @@ export default function UsersPage() {
 
     if (!createForm.full_name.trim()) {
       setCreateError("Please enter the user's name.");
+      return;
+    }
+
+    const restrictedTerm = checkRestrictedKeywords(createForm.full_name.trim());
+    if (restrictedTerm) {
+      setCreateError(
+        `Name contains a prohibited keyword ("${restrictedTerm}"). Words like matka, satta, sex, etc. are not allowed.`
+      );
       return;
     }
 
