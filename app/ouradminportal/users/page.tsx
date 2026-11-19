@@ -1624,13 +1624,29 @@ export default function UsersPage() {
             <Input
               type="text"
               value={createForm.full_name}
-              onChange={(e) =>
-                setCreateForm((prev) => ({ ...prev, full_name: e.target.value }))
-              }
+              onChange={(e) => {
+                const val = e.target.value;
+                setCreateForm((prev) => ({ ...prev, full_name: val }));
+                const term = checkRestrictedKeywords(val);
+                if (term) {
+                  setCreateError(
+                    `Name contains a prohibited keyword ("${term}"). Words like matka, satta, sex, etc. are not allowed.`
+                  );
+                } else if (createError && createError.includes("prohibited keyword")) {
+                  setCreateError(null);
+                }
+              }}
               placeholder="e.g. Ramesh Kumar"
+              className={checkRestrictedKeywords(createForm.full_name) ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500 ring-1 ring-rose-500" : ""}
               required
             />
-            <p className="mt-1 text-[11px] text-slate-400">Player or account holder name</p>
+            {checkRestrictedKeywords(createForm.full_name) ? (
+              <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-rose-500">
+                <span>⚠️</span> Prohibited keyword detected (&ldquo;{checkRestrictedKeywords(createForm.full_name)}&rdquo;). Words like matka, satta, sex, etc. are not allowed.
+              </p>
+            ) : (
+              <p className="mt-1 text-[11px] text-slate-400">Player or account holder name</p>
+            )}
           </Field>
 
           <Field label="4-Digit PIN *">
@@ -1700,7 +1716,7 @@ export default function UsersPage() {
             <Button
               type="submit"
               variant="primary"
-              disabled={createSubmitting}
+              disabled={createSubmitting || !!checkRestrictedKeywords(createForm.full_name)}
               className="min-w-[120px]"
             >
               {createSubmitting ? (
