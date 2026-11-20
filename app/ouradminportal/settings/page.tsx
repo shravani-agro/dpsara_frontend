@@ -103,8 +103,8 @@ export default function SettingsPage() {
   const [userNotifMessage, setUserNotifMessage] = useState("");
   const [userNotifSending, setUserNotifSending] = useState(false);
 
-  // Payment Gateway states (No credentials taken from Admin Panel - all in .env)
-  const [activeGateway, setActiveGateway] = useState<"cashfree" | "pay100">("pay100");
+  // Payment Gateway states (Default strictly Cashfree)
+  const [activeGateway, setActiveGateway] = useState<"cashfree" | "pay100">("cashfree");
   const [gatewayInfo, setGatewayInfo] = useState<any>(null);
   const [gatewaySaving, setGatewaySaving] = useState(false);
   const [testRunning, setTestRunning] = useState(false);
@@ -564,41 +564,6 @@ export default function SettingsPage() {
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div
-                onClick={() => setActiveGateway("pay100")}
-                className={cn(
-                  "cursor-pointer rounded-2xl border-2 p-5 transition-all duration-200 relative overflow-hidden",
-                  activeGateway === "pay100"
-                    ? "border-brand-500 bg-brand-500/10 shadow-sm"
-                    : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 hover:border-slate-300 dark:hover:border-slate-700"
-                )}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">⚡</span>
-                    <div>
-                      <span className="font-bold text-slate-900 dark:text-slate-100 block">
-                        Pay100 (UPI Intent)
-                      </span>
-                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                        Recommended • 1-Tap UPI
-                      </span>
-                    </div>
-                  </div>
-                  <Badge color={activeGateway === "pay100" ? "emerald" : "slate"}>
-                    {activeGateway === "pay100" ? "ACTIVE" : "STANDBY"}
-                  </Badge>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
-                  Instant UPI intent launching PhonePe, Google Pay, and Paytm directly on the player&apos;s phone with auto-approval.
-                </p>
-                <div className="mt-3 flex items-center justify-between text-[11px]">
-                  <span className={gatewayInfo?.pay100?.configured ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-amber-500 font-medium"}>
-                    {gatewayInfo?.pay100?.configured ? `✓ Ready (${gatewayInfo.pay100.client_id ? "ID: " + gatewayInfo.pay100.client_id : "Configured"})` : "⚠️ Credentials not set in .env"}
-                  </span>
-                </div>
-              </div>
-
-              <div
                 onClick={() => setActiveGateway("cashfree")}
                 className={cn(
                   "cursor-pointer rounded-2xl border-2 p-5 transition-all duration-200 relative overflow-hidden",
@@ -612,7 +577,7 @@ export default function SettingsPage() {
                     <span className="text-2xl">💳</span>
                     <div>
                       <span className="font-bold text-slate-900 dark:text-slate-100 block">Cashfree PG</span>
-                      <span className="text-[11px] text-slate-500">Standard Payment Gateway</span>
+                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Primary Gateway • Web Checkout</span>
                     </div>
                   </div>
                   <Badge color={activeGateway === "cashfree" ? "emerald" : "slate"}>
@@ -620,7 +585,7 @@ export default function SettingsPage() {
                   </Badge>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
-                  Standard checkout flow supporting Cards, Netbanking, Wallets and Cashfree payment page.
+                  Standard checkout flow supporting UPI, Cards, Netbanking, Wallets and Cashfree payment page.
                 </p>
                 <div className="mt-3 flex items-center justify-between text-[11px]">
                   <span className={gatewayInfo?.cashfree?.configured ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-amber-500 font-medium"}>
@@ -629,6 +594,41 @@ export default function SettingsPage() {
                 </div>
                 <div className="mt-3 text-[11px] bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 rounded-xl p-2.5">
                   <strong>Whitelisting Note:</strong> Add both <code>com.dpsara.app</code> (App Package) and <code>https://backend.dpsara777.com</code> (Website) in Cashfree Dashboard.
+                </div>
+              </div>
+
+              <div
+                onClick={() => setActiveGateway("pay100")}
+                className={cn(
+                  "cursor-pointer rounded-2xl border-2 p-5 transition-all duration-200 relative overflow-hidden opacity-75",
+                  activeGateway === "pay100"
+                    ? "border-brand-500 bg-brand-500/10 shadow-sm opacity-100"
+                    : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 hover:border-slate-300 dark:hover:border-slate-700"
+                )}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">⚡</span>
+                    <div>
+                      <span className="font-bold text-slate-900 dark:text-slate-100 block">
+                        Pay100 (UPI Intent)
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        Standby / Secondary
+                      </span>
+                    </div>
+                  </div>
+                  <Badge color={activeGateway === "pay100" ? "emerald" : "slate"}>
+                    {activeGateway === "pay100" ? "ACTIVE" : "STANDBY"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
+                  Instant UPI intent launching PhonePe, Google Pay, and Paytm directly on the player&apos;s phone with auto-approval.
+                </p>
+                <div className="mt-3 flex items-center justify-between text-[11px]">
+                  <span className={gatewayInfo?.pay100?.configured ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-amber-500 font-medium"}>
+                    {gatewayInfo?.pay100?.configured ? `✓ Configured (${gatewayInfo.pay100.client_id ? "ID: " + gatewayInfo.pay100.client_id : "Ready"})` : "⚠️ Credentials not set in .env"}
+                  </span>
                 </div>
               </div>
             </div>
