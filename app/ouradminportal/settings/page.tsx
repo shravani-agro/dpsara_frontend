@@ -103,8 +103,10 @@ export default function SettingsPage() {
   const [userNotifMessage, setUserNotifMessage] = useState("");
   const [userNotifSending, setUserNotifSending] = useState(false);
 
-  // Payment Gateway states (Default strictly Cashfree)
-  const [activeGateway, setActiveGateway] = useState<"cashfree" | "pay100">("cashfree");
+  // Payment Gateway states (Default strictly Cashfree or Manual)
+  const [activeGateway, setActiveGateway] = useState<"cashfree" | "pay100" | "manual">("manual");
+  const [minDepositAmount, setMinDepositAmount] = useState<number>(300);
+  const [manualWhatsApp, setManualWhatsApp] = useState<string>("");
   const [gatewayInfo, setGatewayInfo] = useState<any>(null);
   const [gatewaySaving, setGatewaySaving] = useState(false);
   const [testRunning, setTestRunning] = useState(false);
@@ -150,7 +152,13 @@ export default function SettingsPage() {
         const gw = await getPaymentGatewaySettings();
         setGatewayInfo(gw);
         if (gw.active_gateway) {
-          setActiveGateway(gw.active_gateway === "pay100" ? "pay100" : "cashfree");
+          setActiveGateway(gw.active_gateway as "cashfree" | "pay100" | "manual");
+        }
+        if (gw.min_deposit_amount !== undefined) {
+          setMinDepositAmount(Number(gw.min_deposit_amount) || 300);
+        }
+        if (gw.manual_whatsapp_number) {
+          setManualWhatsApp(gw.manual_whatsapp_number);
         }
       } catch (err) {
         console.warn("Could not load gateway settings:", err);
@@ -443,10 +451,16 @@ export default function SettingsPage() {
     try {
       await updatePaymentGatewaySettings({
         active_gateway: activeGateway,
+        min_deposit_amount: minDepositAmount,
+        manual_whatsapp_number: manualWhatsApp,
       });
       setMsg(
         `Active payment gateway successfully switched to: ${
-          activeGateway === "pay100" ? "Pay100 (Instant UPI Intent)" : "Cashfree PG"
+          activeGateway === "manual"
+            ? "💬 Direct WhatsApp Admin Deposit (Manual)"
+            : activeGateway === "cashfree"
+            ? "💳 Cashfree PG"
+            : "⚡ Pay100 (UPI Intent)"
         }!`
       );
       load();
@@ -552,17 +566,50 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* 1. Deposit Payment Gateway Switcher (No Credentials Input) */}
+      {/* 1. Deposit Payment Gateway Switcher */}
       <Card
         title="💳 Deposit Payment Gateway"
-        subtitle="Switch between Pay100 (Instant UPI Intent) and Cashfree PG. All credentials and keys are securely loaded from backend (.env)."
+        subtitle="Choose how players add funds: Direct WhatsApp Admin Support, Cashfree PG, or Pay100. Configure minimum deposit and WhatsApp contact."
       >
         <form onSubmit={submitGatewaySettings} className="space-y-6">
           <div className="space-y-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Active Deposit Gateway
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Option 1: Manual WhatsApp Deposit */}
+              <div
+                onClick={() => setActiveGateway("manual")}
+                className={cn(
+                  "cursor-pointer rounded-2xl border-2 p-5 transition-all duration-200 relative overflow-hidden",
+                  activeGateway === "manual"
+                    ? "border-emerald-500 bg-emerald-500/10 shadow-sm"
+                    : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 hover:border-slate-300 dark:hover:border-slate-700"
+                )}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">💬</span>
+                    <div>
+                      <span className="font-bold text-slate-900 dark:text-slate-100 block">WhatsApp Support</span>
+                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Direct Admin Deposit</span>
+                    </div>
+                  </div>
+                  <Badge color={activeGateway === "manual" ? "emerald" : "slate"}>
+                    {activeGateway === "manual" ? "ACTIVE" : "STANDBY"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
+                  When user taps Add Cash, a beautiful modal opens with user details &amp; amount, and opens WhatsApp directly to pay admin manually via QR/UPI.
+                </p>
+                <div className="mt-3 flex items-center justify-between text-[11px]">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                    ✓ 100% Safe • No Gateway Rejections
+                  </span>
+                </div>
+              </div>
+
+              {/* Option 2: Cashfree PG */}
               <div
                 onClick={() => setActiveGateway("cashfree")}
                 className={cn(
@@ -577,7 +624,7 @@ export default function SettingsPage() {
                     <span className="text-2xl">💳</span>
                     <div>
                       <span className="font-bold text-slate-900 dark:text-slate-100 block">Cashfree PG</span>
-                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Primary Gateway • Web Checkout</span>
+                      <span className="text-[11px] text-slate-500 font-medium">Automated Web Checkout</span>
                     </div>
                   </div>
                   <Badge color={activeGateway === "cashfree" ? "emerald" : "slate"}>
@@ -592,11 +639,9 @@ export default function SettingsPage() {
                     {gatewayInfo?.cashfree?.configured ? `✓ Ready (${gatewayInfo.cashfree.env || "Production"})` : "⚠️ Credentials not set in .env"}
                   </span>
                 </div>
-                <div className="mt-3 text-[11px] bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 rounded-xl p-2.5">
-                  <strong>Cashfree Whitelist Checklist:</strong> In merchant.cashfree.com &gt; Developers &gt; Whitelisting, ensure <code>com.dpsara.app</code> (App Package) and <code>https://backend.dpsara777.com</code> (Website) are added.
-                </div>
               </div>
 
+              {/* Option 3: Pay100 */}
               <div
                 onClick={() => setActiveGateway("pay100")}
                 className={cn(
@@ -631,6 +676,42 @@ export default function SettingsPage() {
                   </span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Deposit Limit & Contact Configuration */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                Minimum Deposit Amount (₹) [Min Bet Threshold]
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={minDepositAmount}
+                onChange={(e) => setMinDepositAmount(Math.max(1, Number(e.target.value) || 1))}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                placeholder="e.g. 10 or 300"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Players cannot deposit less than this amount in the mobile app.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                Admin WhatsApp Number (For Manual Payment)
+              </label>
+              <input
+                type="text"
+                value={manualWhatsApp}
+                onChange={(e) => setManualWhatsApp(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                placeholder="+91 95918 69306"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Mobile app will redirect payment requests to this WhatsApp number.
+              </p>
             </div>
           </div>
 

@@ -430,6 +430,8 @@ export async function getPaymentGatewaySettings() {
 
 export async function updatePaymentGatewaySettings(payload: {
   active_gateway?: string;
+  min_deposit_amount?: number;
+  manual_whatsapp_number?: string;
   pay100_client_id?: string;
   pay100_encrypted_key?: string;
   pay100_secret_key?: string;
