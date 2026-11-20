@@ -97,7 +97,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 5. Dynamic Market Jodi/Pana Charts from Live Backend API
   try {
-    const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://backend.dpsara777.com/api';
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://api.shravaniagro.store/api';
     const res = await fetch(`${apiBase}/mobile/homepage`, {
       next: { revalidate: 3600 },
     });
