@@ -105,6 +105,7 @@ export default function SettingsPage() {
 
   // Payment Gateway states (No credentials taken from Admin Panel - all in .env)
   const [activeGateway, setActiveGateway] = useState<"cashfree" | "pay100">("pay100");
+  const [gatewayInfo, setGatewayInfo] = useState<any>(null);
   const [gatewaySaving, setGatewaySaving] = useState(false);
   const [testRunning, setTestRunning] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -147,6 +148,7 @@ export default function SettingsPage() {
       // Load Payment Gateway Selection
       try {
         const gw = await getPaymentGatewaySettings();
+        setGatewayInfo(gw);
         if (gw.active_gateway) {
           setActiveGateway(gw.active_gateway === "pay100" ? "pay100" : "cashfree");
         }
@@ -589,6 +591,11 @@ export default function SettingsPage() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
                   Instant UPI intent launching PhonePe, Google Pay, and Paytm directly on the player&apos;s phone with auto-approval.
                 </p>
+                <div className="mt-3 flex items-center justify-between text-[11px]">
+                  <span className={gatewayInfo?.pay100?.configured ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-amber-500 font-medium"}>
+                    {gatewayInfo?.pay100?.configured ? `✓ Ready (${gatewayInfo.pay100.client_id ? "ID: " + gatewayInfo.pay100.client_id : "Configured"})` : "⚠️ Credentials not set in .env"}
+                  </span>
+                </div>
               </div>
 
               <div
@@ -615,6 +622,14 @@ export default function SettingsPage() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
                   Standard checkout flow supporting Cards, Netbanking, Wallets and Cashfree payment page.
                 </p>
+                <div className="mt-3 flex items-center justify-between text-[11px]">
+                  <span className={gatewayInfo?.cashfree?.configured ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-amber-500 font-medium"}>
+                    {gatewayInfo?.cashfree?.configured ? `✓ Ready (${gatewayInfo.cashfree.env || "Production"})` : "⚠️ Credentials not set in .env"}
+                  </span>
+                </div>
+                <div className="mt-3 text-[11px] bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 rounded-xl p-2.5">
+                  <strong>Whitelisting Note:</strong> Add both <code>com.dpsara.app</code> (App Package) and <code>https://backend.dpsara777.com</code> (Website) in Cashfree Dashboard.
+                </div>
               </div>
             </div>
           </div>
