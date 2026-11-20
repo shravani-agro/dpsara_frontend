@@ -592,8 +592,8 @@ export default function SettingsPage() {
                     {gatewayInfo?.cashfree?.configured ? `✓ Ready (${gatewayInfo.cashfree.env || "Production"})` : "⚠️ Credentials not set in .env"}
                   </span>
                 </div>
-                <div className="mt-3 text-[11px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-xl p-2.5">
-                  <strong>Approved Domain:</strong> <code>api.shravaniagro.store</code> is whitelisted &amp; approved in Cashfree.
+                <div className="mt-3 text-[11px] bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 rounded-xl p-2.5">
+                  <strong>Cashfree Whitelist Checklist:</strong> In merchant.cashfree.com &gt; Developers &gt; Whitelisting, ensure <code>com.dpsara.app</code> (App Package) and <code>https://backend.dpsara777.com</code> (Website) are added.
                 </div>
               </div>
 

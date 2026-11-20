@@ -184,7 +184,7 @@ export default function RootLayout({
         {/* Preconnect to Font & CDN domains for Core Web Vitals optimization */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://api.shravaniagro.store" />
+        <link rel="dns-prefetch" href="https://backend.dpsara777.com" />
 
         {/* Global Structured Data JSON-LD */}
         <script
