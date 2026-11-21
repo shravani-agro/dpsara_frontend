@@ -435,6 +435,9 @@ export async function updatePaymentGatewaySettings(payload: {
   bokapg_api_key?: string;
   bokapg_api_url?: string;
   bokapg_status_url?: string;
+  bulkpe_api_key?: string;
+  bulkpe_api_url?: string;
+  bulkpe_status_url?: string;
   pay100_client_id?: string;
   pay100_encrypted_key?: string;
   pay100_secret_key?: string;
@@ -450,6 +453,11 @@ export async function updatePaymentGatewaySettings(payload: {
 
 export async function testBokapgConnection() {
   const res = await client.post("/admin/payment-gateway/test-bokapg");
+  return res.data;
+}
+
+export async function testBulkpeConnection() {
+  const res = await client.post("/admin/payment-gateway/test-bulkpe");
   return res.data;
 }
 
