@@ -22,6 +22,7 @@ import {
   sendUserNotification,
   getPaymentGatewaySettings,
   updatePaymentGatewaySettings,
+  testBokapgConnection,
   testPay100Connection,
   distributeMassBonus,
   getDepositBonusSettings,
@@ -104,9 +105,10 @@ export default function SettingsPage() {
   const [userNotifSending, setUserNotifSending] = useState(false);
 
   // Payment Gateway states (Default strictly Cashfree or Manual)
-  const [activeGateway, setActiveGateway] = useState<"cashfree" | "pay100" | "manual">("manual");
+  const [activeGateway, setActiveGateway] = useState<"cashfree" | "bokapg" | "manual">("manual");
   const [minDepositAmount, setMinDepositAmount] = useState<number>(300);
   const [manualWhatsApp, setManualWhatsApp] = useState<string>("");
+  const [bokapgApiKey, setBokapgApiKey] = useState<string>("");
   const [gatewayInfo, setGatewayInfo] = useState<any>(null);
   const [gatewaySaving, setGatewaySaving] = useState(false);
   const [testRunning, setTestRunning] = useState(false);
@@ -152,7 +154,8 @@ export default function SettingsPage() {
         const gw = await getPaymentGatewaySettings();
         setGatewayInfo(gw);
         if (gw.active_gateway) {
-          setActiveGateway(gw.active_gateway as "cashfree" | "pay100" | "manual");
+          const mapped = gw.active_gateway === "pay100" ? "bokapg" : gw.active_gateway;
+          setActiveGateway(mapped as "cashfree" | "bokapg" | "manual");
         }
         if (gw.min_deposit_amount !== undefined) {
           setMinDepositAmount(Number(gw.min_deposit_amount) || 300);
@@ -453,6 +456,7 @@ export default function SettingsPage() {
         active_gateway: activeGateway,
         min_deposit_amount: minDepositAmount,
         manual_whatsapp_number: manualWhatsApp,
+        ...(bokapgApiKey ? { bokapg_api_key: bokapgApiKey } : {}),
       });
       setMsg(
         `Active payment gateway successfully switched to: ${
@@ -460,7 +464,7 @@ export default function SettingsPage() {
             ? "💬 Direct WhatsApp Admin Deposit (Manual)"
             : activeGateway === "cashfree"
             ? "💳 Cashfree PG"
-            : "⚡ Pay100 (UPI Intent)"
+            : "🌐 BokaPG (Web Checkout - PayFromUPI)"
         }!`
       );
       load();
@@ -468,6 +472,22 @@ export default function SettingsPage() {
       setError(err?.response?.data?.detail || "Failed to update payment gateway");
     } finally {
       setGatewaySaving(false);
+    }
+  }
+
+  async function handleTestBokapg() {
+    setTestRunning(true);
+    setTestResult(null);
+    try {
+      const res = await testBokapgConnection();
+      setTestResult(res);
+    } catch (err: any) {
+      setTestResult({
+        success: false,
+        message: err?.response?.data?.detail || "Failed to test BokaPG connection",
+      });
+    } finally {
+      setTestRunning(false);
     }
   }
 
@@ -569,7 +589,7 @@ export default function SettingsPage() {
       {/* 1. Deposit Payment Gateway Switcher */}
       <Card
         title="💳 Deposit Payment Gateway"
-        subtitle="Choose how players add funds: Direct WhatsApp Admin Support, Cashfree PG, or Pay100. Configure minimum deposit and WhatsApp contact."
+        subtitle="Choose how players add funds: Direct WhatsApp Admin Support, Cashfree PG, or BokaPG (PayFromUPI). Configure minimum deposit and WhatsApp contact."
       >
         <form onSubmit={submitGatewaySettings} className="space-y-6">
           <div className="space-y-2">
@@ -641,38 +661,38 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* Option 3: Pay100 */}
+              {/* Option 3: BokaPG (Web Checkout) */}
               <div
-                onClick={() => setActiveGateway("pay100")}
+                onClick={() => setActiveGateway("bokapg")}
                 className={cn(
                   "cursor-pointer rounded-2xl border-2 p-5 transition-all duration-200 relative overflow-hidden opacity-75",
-                  activeGateway === "pay100"
+                  activeGateway === "bokapg"
                     ? "border-brand-500 bg-brand-500/10 shadow-sm opacity-100"
                     : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 hover:border-slate-300 dark:hover:border-slate-700"
                 )}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">⚡</span>
+                    <span className="text-2xl">🌐</span>
                     <div>
                       <span className="font-bold text-slate-900 dark:text-slate-100 block">
-                        Pay100 (UPI Intent)
+                        BokaPG (Web Checkout - PayFromUPI)
                       </span>
                       <span className="text-[11px] text-slate-500 font-medium">
-                        Standby / Secondary
+                        Instant Web Checkout Gateway
                       </span>
                     </div>
                   </div>
-                  <Badge color={activeGateway === "pay100" ? "emerald" : "slate"}>
-                    {activeGateway === "pay100" ? "ACTIVE" : "STANDBY"}
+                  <Badge color={activeGateway === "bokapg" ? "emerald" : "slate"}>
+                    {activeGateway === "bokapg" ? "ACTIVE" : "STANDBY"}
                   </Badge>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
-                  Instant UPI intent launching PhonePe, Google Pay, and Paytm directly on the player&apos;s phone with auto-approval.
+                  Web-based checkout payment gateway powered by PayFromUPI. Generates dynamic checkout links with instant automated payment verification.
                 </p>
                 <div className="mt-3 flex items-center justify-between text-[11px]">
-                  <span className={gatewayInfo?.pay100?.configured ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-amber-500 font-medium"}>
-                    {gatewayInfo?.pay100?.configured ? `✓ Configured (${gatewayInfo.pay100.client_id ? "ID: " + gatewayInfo.pay100.client_id : "Ready"})` : "⚠️ Credentials not set in .env"}
+                  <span className={gatewayInfo?.bokapg?.configured ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-amber-500 font-medium"}>
+                    {gatewayInfo?.bokapg?.configured ? `✓ Configured (${gatewayInfo.bokapg.masked_api_key || "Ready"})` : "⚠️ API Key not configured"}
                   </span>
                 </div>
               </div>
@@ -713,18 +733,36 @@ export default function SettingsPage() {
                 Mobile app will redirect payment requests to this WhatsApp number.
               </p>
             </div>
+
+            {activeGateway === "bokapg" && (
+              <div className="sm:col-span-2 pt-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  BokaPG API Key (Bearer Token)
+                </label>
+                <input
+                  type="text"
+                  value={bokapgApiKey}
+                  onChange={(e) => setBokapgApiKey(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  placeholder={gatewayInfo?.bokapg?.masked_api_key ? `Current: ${gatewayInfo.bokapg.masked_api_key}` : "e.g. 60|HSRUrRh32fE6M3BDFnbzSQQMSLVtOf5lMnbHS9taaa89403f"}
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Bearer API token from payfromupi.com. Leave empty to keep currently active token.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Backend Security Notice & Test Connection */}
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">🔒</span>
+              <span className="text-2xl">🌐</span>
               <div>
                 <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  Backend Environment Security (.env)
+                  BokaPG Gateway Connectivity
                 </h4>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
-                  All sensitive Client IDs, Encrypted Keys, and Webhook Secrets for Pay100 and Cashfree are set strictly in the server <code className="font-mono text-slate-800 dark:text-slate-200">.env</code>. No credentials are required or exposed here.
+                  Verify connection and Bearer token authentication with BokaPG (payfromupi.com) API.
                 </p>
               </div>
             </div>
@@ -732,11 +770,11 @@ export default function SettingsPage() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={handleTestPay100}
+              onClick={handleTestBokapg}
               disabled={testRunning}
               className="shrink-0"
             >
-              {testRunning ? "Testing..." : "Test Pay100 Connection"}
+              {testRunning ? "Testing..." : "Test BokaPG Connection"}
             </Button>
           </div>
 

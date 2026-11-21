@@ -432,6 +432,9 @@ export async function updatePaymentGatewaySettings(payload: {
   active_gateway?: string;
   min_deposit_amount?: number;
   manual_whatsapp_number?: string;
+  bokapg_api_key?: string;
+  bokapg_api_url?: string;
+  bokapg_status_url?: string;
   pay100_client_id?: string;
   pay100_encrypted_key?: string;
   pay100_secret_key?: string;
@@ -442,6 +445,11 @@ export async function updatePaymentGatewaySettings(payload: {
   cashfree_env?: string;
 }) {
   const res = await client.put("/admin/payment-gateway", payload);
+  return res.data;
+}
+
+export async function testBokapgConnection() {
+  const res = await client.post("/admin/payment-gateway/test-bokapg");
   return res.data;
 }
 
