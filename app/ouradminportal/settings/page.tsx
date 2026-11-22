@@ -24,7 +24,6 @@ import {
   updatePaymentGatewaySettings,
   testBokapgConnection,
   testBulkpeConnection,
-  testPay100Connection,
   distributeMassBonus,
   getDepositBonusSettings,
   updateDepositBonusSettings,
@@ -106,7 +105,7 @@ export default function SettingsPage() {
   const [userNotifSending, setUserNotifSending] = useState(false);
 
   // Payment Gateway states (Default strictly Cashfree or Manual)
-  const [activeGateway, setActiveGateway] = useState<"cashfree" | "bokapg" | "pay100" | "bulkpe" | "manual">("manual");
+  const [activeGateway, setActiveGateway] = useState<"cashfree" | "bokapg" | "bulkpe" | "manual">("manual");
   const [minDepositAmount, setMinDepositAmount] = useState<number>(300);
   const [manualWhatsApp, setManualWhatsApp] = useState<string>("");
   const [bokapgApiKey, setBokapgApiKey] = useState<string>("");
@@ -156,7 +155,7 @@ export default function SettingsPage() {
         const gw = await getPaymentGatewaySettings();
         setGatewayInfo(gw);
         if (gw.active_gateway) {
-          setActiveGateway(gw.active_gateway as "cashfree" | "bokapg" | "pay100" | "bulkpe" | "manual");
+          setActiveGateway(gw.active_gateway as "cashfree" | "bokapg" | "bulkpe" | "manual");
         }
         if (gw.min_deposit_amount !== undefined) {
           setMinDepositAmount(Number(gw.min_deposit_amount) || 300);
@@ -466,8 +465,6 @@ export default function SettingsPage() {
             ? "💬 Direct WhatsApp Admin Deposit (Manual)"
             : activeGateway === "cashfree"
             ? "💳 Cashfree PG"
-            : activeGateway === "pay100"
-            ? "⚡ Pay100 (UPI Intent)"
             : activeGateway === "bokapg"
             ? "🌐 BokaPG (Web Checkout - PayFromUPI)"
             : "🚀 BulkPe (Payment Gateway)"
@@ -507,22 +504,6 @@ export default function SettingsPage() {
       setTestResult({
         success: false,
         message: err?.response?.data?.detail || "Failed to test BulkPe connection",
-      });
-    } finally {
-      setTestRunning(false);
-    }
-  }
-
-  async function handleTestPay100() {
-    setTestRunning(true);
-    setTestResult(null);
-    try {
-      const res = await testPay100Connection();
-      setTestResult(res);
-    } catch (err: any) {
-      setTestResult({
-        success: false,
-        message: err?.response?.data?.detail || "Failed to test Pay100 connection",
       });
     } finally {
       setTestRunning(false);
@@ -611,7 +592,7 @@ export default function SettingsPage() {
       {/* 1. Deposit Payment Gateway Switcher */}
       <Card
         title="💳 Deposit Payment Gateway"
-        subtitle="Choose how players add funds: Direct WhatsApp Admin Support, Cashfree PG, Pay100, BokaPG (PayFromUPI), or BulkPe. Configure minimum deposit and WhatsApp contact."
+        subtitle="Choose how players add funds: Direct WhatsApp Admin Support, Cashfree PG, BokaPG (PayFromUPI), or BulkPe. Configure minimum deposit and WhatsApp contact."
       >
         <form onSubmit={submitGatewaySettings} className="space-y-6">
           <div className="space-y-2">
@@ -750,42 +731,6 @@ export default function SettingsPage() {
                   </span>
                 </div>
               </div>
-
-              {/* Option 5: Pay100 */}
-              <div
-                onClick={() => setActiveGateway("pay100")}
-                className={cn(
-                  "cursor-pointer rounded-2xl border-2 p-5 transition-all duration-200 relative overflow-hidden opacity-75",
-                  activeGateway === "pay100"
-                    ? "border-brand-500 bg-brand-500/10 shadow-sm opacity-100"
-                    : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/50 hover:border-slate-300 dark:hover:border-slate-700"
-                )}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">⚡</span>
-                    <div>
-                      <span className="font-bold text-slate-900 dark:text-slate-100 block">
-                        Pay100 (UPI Intent)
-                      </span>
-                      <span className="text-[11px] text-slate-500 font-medium">
-                        Direct UPI Intent
-                      </span>
-                    </div>
-                  </div>
-                  <Badge color={activeGateway === "pay100" ? "emerald" : "slate"}>
-                    {activeGateway === "pay100" ? "ACTIVE" : "STANDBY"}
-                  </Badge>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
-                  Instant UPI intent launching PhonePe, Google Pay, and Paytm directly on the player&apos;s phone with auto-approval.
-                </p>
-                <div className="mt-3 flex items-center justify-between text-[11px]">
-                  <span className={gatewayInfo?.pay100?.configured ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-amber-500 font-medium"}>
-                    {gatewayInfo?.pay100?.configured ? `✓ Configured (${gatewayInfo.pay100.client_id ? "ID: " + gatewayInfo.pay100.client_id : "Ready"})` : "⚠️ Credentials not set in .env"}
-                  </span>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -894,16 +839,6 @@ export default function SettingsPage() {
                 className="shrink-0 text-xs"
               >
                 {testRunning ? "Testing..." : "Test BokaPG"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleTestPay100}
-                disabled={testRunning}
-                className="shrink-0 text-xs"
-              >
-                {testRunning ? "Testing..." : "Test Pay100"}
               </Button>
             </div>
           </div>
