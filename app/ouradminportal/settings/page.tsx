@@ -34,6 +34,8 @@ import {
   triggerInactiveNudge,
   getRealSpinProSettings,
   updateRealSpinProSettings,
+  getBettingLimitsSettings,
+  updateBettingLimitsSettings,
 } from "@/lib/admin";
 import { UserSelect } from "@/components/UserSelect";
 
@@ -46,6 +48,11 @@ export default function SettingsPage() {
   const [whatsapp, setWhatsapp] = useState("");
   const [callUs, setCallUs] = useState("");
   const [contactSaving, setContactSaving] = useState(false);
+
+  // Betting Limits states
+  const [minBetAmount, setMinBetAmount] = useState<string>("10");
+  const [maxBetAmount, setMaxBetAmount] = useState<string>("100000");
+  const [betLimitsSaving, setBetLimitsSaving] = useState(false);
 
   const [welcomeBonusEnabled, setWelcomeBonusEnabled] = useState(true);
   const [welcomeBonusAmount, setWelcomeBonusAmount] = useState("50");
@@ -140,6 +147,21 @@ export default function SettingsPage() {
         setSupportBotEnabled(botSetting.value !== "false" && botSetting.value !== "0");
       }
 
+      // Load Betting Limits
+      try {
+        const betLimits = await getBettingLimitsSettings();
+        if (betLimits) {
+          if (betLimits.min_bet_amount !== undefined) {
+            setMinBetAmount(String(betLimits.min_bet_amount));
+          }
+          if (betLimits.max_bet_amount !== undefined) {
+            setMaxBetAmount(String(betLimits.max_bet_amount));
+          }
+        }
+      } catch (err) {
+        console.warn("Could not load betting limits:", err);
+      }
+
       // Load RealSpinPro Settings
       try {
         const rsp = await getRealSpinProSettings();
@@ -215,6 +237,35 @@ export default function SettingsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function submitBettingLimits(e: React.FormEvent) {
+    e.preventDefault();
+    setBetLimitsSaving(true);
+    setError(null);
+    setMsg(null);
+    try {
+      const minVal = parseFloat(minBetAmount);
+      const maxVal = parseFloat(maxBetAmount);
+      if (isNaN(minVal) || minVal < 1) {
+        setError("Minimum bet amount must be at least ₹1.");
+        return;
+      }
+      if (isNaN(maxVal) || maxVal < minVal) {
+        setError("Maximum bet amount must be greater than or equal to minimum bet amount.");
+        return;
+      }
+      await updateBettingLimitsSettings({
+        min_bet_amount: minVal,
+        max_bet_amount: maxVal,
+      });
+      setMsg(`Betting limits saved successfully! (Min Bet: ₹${minVal}, Max Bet: ₹${maxVal})`);
+      load();
+    } catch (err: any) {
+      setError(parseApiError(err, "Failed to save betting limits"));
+    } finally {
+      setBetLimitsSaving(false);
+    }
+  }
 
   async function submitWelcomeBonus(e: React.FormEvent) {
     e.preventDefault();
@@ -588,6 +639,106 @@ export default function SettingsPage() {
           </button>
         </div>
       )}
+
+      {/* 0. Betting Limits Configuration (Min & Max Bet Amount) */}
+      <Card
+        title="🎲 Betting Limits Configuration (Min & Max Bet Amount)"
+        subtitle="Set the minimum and maximum bidding point amount allowed per bet across all games (Regular Matka, Starline, Jackpot, RealSpinPro). Changes take effect instantly across the mobile app and server."
+      >
+        <form onSubmit={submitBettingLimits} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Minimum Bet Amount */}
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850/70 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                  Minimum Bet Amount (₹)
+                </span>
+                <Badge color="emerald">Current Min: ₹{minBetAmount}</Badge>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                The minimum points/amount a player must bet on any single number.
+              </p>
+              <Input
+                type="number"
+                min="1"
+                step="1"
+                value={minBetAmount}
+                onChange={(e) => setMinBetAmount(e.target.value)}
+                placeholder="e.g. 10"
+                required
+              />
+              <div className="flex flex-wrap gap-2 pt-1">
+                {[1, 5, 10, 20, 50, 100].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setMinBetAmount(String(amt))}
+                    className={cn(
+                      "px-2.5 py-1 text-xs rounded-lg border font-medium transition-all",
+                      minBetAmount === String(amt)
+                        ? "bg-emerald-500 text-white border-emerald-500 shadow-sm"
+                        : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-emerald-400"
+                    )}
+                  >
+                    ₹{amt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Maximum Bet Amount */}
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850/70 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                  Maximum Bet Amount (₹)
+                </span>
+                <Badge color="blue">
+                  Current Max: ₹{Number(maxBetAmount).toLocaleString("en-IN")}
+                </Badge>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                The maximum points/amount allowed per bet or market.
+              </p>
+              <Input
+                type="number"
+                min="1"
+                step="1"
+                value={maxBetAmount}
+                onChange={(e) => setMaxBetAmount(e.target.value)}
+                placeholder="e.g. 100000"
+                required
+              />
+              <div className="flex flex-wrap gap-2 pt-1">
+                {[1000, 5000, 10000, 50000, 100000, 1000000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setMaxBetAmount(String(amt))}
+                    className={cn(
+                      "px-2.5 py-1 text-xs rounded-lg border font-medium transition-all",
+                      maxBetAmount === String(amt)
+                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                        : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-blue-400"
+                    )}
+                  >
+                    ₹{amt >= 100000 ? `${amt / 100000} Lakh` : `${amt >= 1000 ? `${amt / 1000}k` : amt}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={betLimitsSaving}
+              className="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold shadow-md"
+            >
+              {betLimitsSaving ? "Saving..." : "Save Betting Limits"}
+            </Button>
+          </div>
+        </form>
+      </Card>
 
       {/* 1. Deposit Payment Gateway Switcher */}
       <Card

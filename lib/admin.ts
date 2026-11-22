@@ -456,6 +456,24 @@ export async function testBulkpeConnection() {
   return res.data;
 }
 
+export interface BettingLimitsSettings {
+  min_bet_amount: number;
+  max_bet_amount: number;
+}
+
+export async function getBettingLimitsSettings(): Promise<BettingLimitsSettings> {
+  const res = await client.get("/admin/betting-limits");
+  return res.data;
+}
+
+export async function updateBettingLimitsSettings(payload: {
+  min_bet_amount?: number;
+  max_bet_amount?: number;
+}) {
+  const res = await client.put("/admin/betting-limits", payload);
+  return res.data;
+}
+
 /* ---------------- Admin: Revenue & Growth ---------------- */
 
 export async function getDepositBonusSettings() {
