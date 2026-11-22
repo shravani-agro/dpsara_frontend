@@ -113,7 +113,8 @@ export default function SettingsPage() {
 
   // Payment Gateway states (Default strictly Cashfree or Manual)
   const [activeGateway, setActiveGateway] = useState<"cashfree" | "bokapg" | "bulkpe" | "manual">("manual");
-  const [minDepositAmount, setMinDepositAmount] = useState<number>(300);
+  const [minDepositAmount, setMinDepositAmount] = useState<number>(100);
+  const [maxDepositAmount, setMaxDepositAmount] = useState<number>(1000);
   const [manualWhatsApp, setManualWhatsApp] = useState<string>("");
   const [bokapgApiKey, setBokapgApiKey] = useState<string>("");
   const [bulkpeApiKey, setBulkpeApiKey] = useState<string>("");
@@ -157,6 +158,12 @@ export default function SettingsPage() {
           if (betLimits.max_bet_amount !== undefined) {
             setMaxBetAmount(String(betLimits.max_bet_amount));
           }
+          if (betLimits.min_deposit_amount !== undefined) {
+            setMinDepositAmount(Number(betLimits.min_deposit_amount) || 100);
+          }
+          if (betLimits.max_deposit_amount !== undefined) {
+            setMaxDepositAmount(Number(betLimits.max_deposit_amount) || 1000);
+          }
         }
       } catch (err) {
         console.warn("Could not load betting limits:", err);
@@ -180,7 +187,10 @@ export default function SettingsPage() {
           setActiveGateway(gw.active_gateway as "cashfree" | "bokapg" | "bulkpe" | "manual");
         }
         if (gw.min_deposit_amount !== undefined) {
-          setMinDepositAmount(Number(gw.min_deposit_amount) || 300);
+          setMinDepositAmount(Number(gw.min_deposit_amount) || 100);
+        }
+        if (gw.max_deposit_amount !== undefined) {
+          setMaxDepositAmount(Number(gw.max_deposit_amount) || 1000);
         }
         if (gw.manual_whatsapp_number) {
           setManualWhatsApp(gw.manual_whatsapp_number);
@@ -246,6 +256,8 @@ export default function SettingsPage() {
     try {
       const minVal = parseFloat(minBetAmount);
       const maxVal = parseFloat(maxBetAmount);
+      const minDepVal = Number(minDepositAmount) || 100;
+      const maxDepVal = Number(maxDepositAmount) || 1000;
       if (isNaN(minVal) || minVal < 1) {
         setError("Minimum bet amount must be at least ₹1.");
         return;
@@ -254,14 +266,20 @@ export default function SettingsPage() {
         setError("Maximum bet amount must be greater than or equal to minimum bet amount.");
         return;
       }
+      if (maxDepVal < minDepVal) {
+        setError("Maximum deposit amount must be greater than or equal to minimum deposit amount.");
+        return;
+      }
       await updateBettingLimitsSettings({
         min_bet_amount: minVal,
         max_bet_amount: maxVal,
+        min_deposit_amount: minDepVal,
+        max_deposit_amount: maxDepVal,
       });
-      setMsg(`Betting limits saved successfully! (Min Bet: ₹${minVal}, Max Bet: ₹${maxVal})`);
+      setMsg(`Limits saved successfully! (Min Bet: ₹${minVal}, Max Bet: ₹${maxVal} | Min Deposit: ₹${minDepVal}, Max Deposit: ₹${maxDepVal})`);
       load();
     } catch (err: any) {
-      setError(parseApiError(err, "Failed to save betting limits"));
+      setError(parseApiError(err, "Failed to save limits"));
     } finally {
       setBetLimitsSaving(false);
     }
@@ -506,6 +524,7 @@ export default function SettingsPage() {
       await updatePaymentGatewaySettings({
         active_gateway: activeGateway,
         min_deposit_amount: minDepositAmount,
+        max_deposit_amount: maxDepositAmount,
         manual_whatsapp_number: manualWhatsApp,
         ...(bokapgApiKey ? { bokapg_api_key: bokapgApiKey } : {}),
         ...(bulkpeApiKey ? { bulkpe_api_key: bulkpeApiKey } : {}),
@@ -640,10 +659,10 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* 0. Betting Limits Configuration (Min & Max Bet Amount) */}
+      {/* 0. Betting & Deposit Limits Configuration */}
       <Card
-        title="🎲 Betting Limits Configuration (Min & Max Bet Amount)"
-        subtitle="Set the minimum and maximum bidding point amount allowed per bet across all games (Regular Matka, Starline, Jackpot, RealSpinPro). Changes take effect instantly across the mobile app and server."
+        title="🎲 Betting & Deposit Limits Configuration (Min & Max Limits)"
+        subtitle="Set the minimum and maximum bidding limits allowed per bet across all games, and configure minimum and maximum deposit limits for the mobile Add Cash screen. Changes take effect instantly across the mobile app and server."
       >
         <form onSubmit={submitBettingLimits} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -653,7 +672,7 @@ export default function SettingsPage() {
                 <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                   Minimum Bet Amount (₹)
                 </span>
-                <Badge color="emerald">Current Min: ₹{minBetAmount}</Badge>
+                <Badge color="emerald">Current Min Bet: ₹{minBetAmount}</Badge>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 The minimum points/amount a player must bet on any single number.
@@ -693,7 +712,7 @@ export default function SettingsPage() {
                   Maximum Bet Amount (₹)
                 </span>
                 <Badge color="blue">
-                  Current Max: ₹{Number(maxBetAmount).toLocaleString("en-IN")}
+                  Current Max Bet: ₹{Number(maxBetAmount).toLocaleString("en-IN")}
                 </Badge>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -726,6 +745,86 @@ export default function SettingsPage() {
                 ))}
               </div>
             </div>
+
+            {/* Minimum Deposit Amount */}
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850/70 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                  Minimum Deposit (Add Cash) (₹)
+                </span>
+                <Badge color="emerald">Current Min: ₹{minDepositAmount}</Badge>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Minimum funds a player can add. Below this, Add Cash button is disabled on mobile.
+              </p>
+              <Input
+                type="number"
+                min="1"
+                step="1"
+                value={String(minDepositAmount)}
+                onChange={(e) => setMinDepositAmount(Math.max(1, Number(e.target.value) || 1))}
+                placeholder="e.g. 100"
+                required
+              />
+              <div className="flex flex-wrap gap-2 pt-1">
+                {[100, 200, 300, 500].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setMinDepositAmount(amt)}
+                    className={cn(
+                      "px-2.5 py-1 text-xs rounded-lg border font-medium transition-all",
+                      minDepositAmount === amt
+                        ? "bg-emerald-500 text-white border-emerald-500 shadow-sm"
+                        : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-emerald-400"
+                    )}
+                  >
+                    ₹{amt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Maximum Deposit Amount */}
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850/70 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                  Maximum Deposit (Add Cash) (₹)
+                </span>
+                <Badge color="blue">
+                  Current Max: ₹{Number(maxDepositAmount).toLocaleString("en-IN")}
+                </Badge>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Maximum funds allowed per deposit transaction. Entering more will not activate Add Cash.
+              </p>
+              <Input
+                type="number"
+                min="1"
+                step="1"
+                value={String(maxDepositAmount)}
+                onChange={(e) => setMaxDepositAmount(Math.max(1, Number(e.target.value) || 1))}
+                placeholder="e.g. 1000"
+                required
+              />
+              <div className="flex flex-wrap gap-2 pt-1">
+                {[500, 1000, 2000, 5000, 10000, 50000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setMaxDepositAmount(amt)}
+                    className={cn(
+                      "px-2.5 py-1 text-xs rounded-lg border font-medium transition-all",
+                      maxDepositAmount === amt
+                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                        : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-blue-400"
+                    )}
+                  >
+                    ₹{amt >= 1000 ? `${amt / 1000}k` : amt}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end">
@@ -734,7 +833,7 @@ export default function SettingsPage() {
               disabled={betLimitsSaving}
               className="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold shadow-md"
             >
-              {betLimitsSaving ? "Saving..." : "Save Betting Limits"}
+              {betLimitsSaving ? "Saving..." : "Save Limits"}
             </Button>
           </div>
         </form>
@@ -886,10 +985,10 @@ export default function SettingsPage() {
           </div>
 
           {/* Deposit Limit & Contact Configuration */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                Minimum Deposit Amount (₹) [Min Bet Threshold]
+                Minimum Deposit Amount (₹)
               </label>
               <input
                 type="number"
@@ -897,10 +996,27 @@ export default function SettingsPage() {
                 value={minDepositAmount}
                 onChange={(e) => setMinDepositAmount(Math.max(1, Number(e.target.value) || 1))}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                placeholder="e.g. 10 or 300"
+                placeholder="e.g. 100"
               />
               <p className="text-[11px] text-slate-500 mt-1">
                 Players cannot deposit less than this amount in the mobile app.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                Maximum Deposit Amount (₹)
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={maxDepositAmount}
+                onChange={(e) => setMaxDepositAmount(Math.max(1, Number(e.target.value) || 1))}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                placeholder="e.g. 1000"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Players cannot deposit more than this amount. Higher amounts will disable Add Cash.
               </p>
             </div>
 

@@ -431,6 +431,7 @@ export async function getPaymentGatewaySettings() {
 export async function updatePaymentGatewaySettings(payload: {
   active_gateway?: string;
   min_deposit_amount?: number;
+  max_deposit_amount?: number;
   manual_whatsapp_number?: string;
   bokapg_api_key?: string;
   bokapg_api_url?: string;
@@ -459,6 +460,8 @@ export async function testBulkpeConnection() {
 export interface BettingLimitsSettings {
   min_bet_amount: number;
   max_bet_amount: number;
+  min_deposit_amount?: number;
+  max_deposit_amount?: number;
 }
 
 export async function getBettingLimitsSettings(): Promise<BettingLimitsSettings> {
@@ -469,6 +472,8 @@ export async function getBettingLimitsSettings(): Promise<BettingLimitsSettings>
 export async function updateBettingLimitsSettings(payload: {
   min_bet_amount?: number;
   max_bet_amount?: number;
+  min_deposit_amount?: number;
+  max_deposit_amount?: number;
 }) {
   const res = await client.put("/admin/betting-limits", payload);
   return res.data;
