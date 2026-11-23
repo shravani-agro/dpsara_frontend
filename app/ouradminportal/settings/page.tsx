@@ -1278,7 +1278,7 @@ export default function SettingsPage() {
             <div>
               <span className="font-bold text-slate-900 dark:text-slate-100 block">Welcome Bonus Status</span>
               <span className="text-xs text-slate-500">
-                If enabled, new users instantly receive free bonus upon signup and view the popup on opening the app.
+                If enabled, new users instantly receive free bonus credits in their wallet upon signup to play games (without any intrusive popups).
               </span>
             </div>
             <button
