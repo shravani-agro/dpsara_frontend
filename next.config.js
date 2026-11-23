@@ -15,7 +15,7 @@ const nextConfig = {
       },
       {
         source: '/api/:path*',
-        destination: 'https://backend.dpsara777.com/api/:path*',
+        destination: process.env.INTERNAL_API_URL || 'https://api.shravaniagro.store/api/:path*',
       },
     ];
   },
