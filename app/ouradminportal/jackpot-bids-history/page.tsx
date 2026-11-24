@@ -19,7 +19,7 @@ import {
   cancelJackpotBet,
   updateJackpotBidStatus,
 } from "@/lib/admin";
-import { fmtDate, fmtDateTime, fmtMoney } from "@/lib/format";
+import { fmtDate, fmtDateTime, fmtMoney, fmtDateTimeWithSeconds, fmtTimeWithSeconds } from "@/lib/format";
 import { parseApiError } from "@/lib/error-parser";
 import { DateRangeFilter } from "@/components/DateRangeFilter";
 import { UserCell } from "@/components/UserCell";
@@ -60,6 +60,7 @@ interface JackpotBidItem {
   session?: string;
   bid_date?: string;
   placed_at?: string;
+  settled_at?: string | null;
 }
 
 export default function JackpotBidsHistoryPage() {
@@ -503,9 +504,24 @@ export default function JackpotBidsHistoryPage() {
                         >
                           {b.status}
                         </Badge>
+                        {b.status === "won" && b.settled_at && (
+                          <div className="text-[10px] font-mono font-bold text-emerald-400 mt-0.5">
+                            {fmtTimeWithSeconds(b.settled_at)}
+                          </div>
+                        )}
                       </td>
-                      <td className="py-3 px-4 text-slate-400 text-xs whitespace-nowrap">
-                        {b.placed_at ? fmtDateTime(b.placed_at) : "—"}
+                      <td className="py-3 px-4 text-xs whitespace-nowrap">
+                        <div className="space-y-0.5">
+                          <div className="text-slate-400 font-mono">
+                            {b.placed_at ? fmtDateTimeWithSeconds(b.placed_at) : "—"}
+                          </div>
+                          {b.status === "won" && (
+                            <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                              <span>🎯 Won:</span>
+                              <span>{b.settled_at ? fmtDateTimeWithSeconds(b.settled_at) : "Settled"}</span>
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
@@ -596,7 +612,14 @@ export default function JackpotBidsHistoryPage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-1 text-xs text-slate-400">
-                  <span>{b.placed_at ? fmtDateTime(b.placed_at) : "—"}</span>
+                  <div className="space-y-0.5">
+                    <div>{b.placed_at ? fmtDateTimeWithSeconds(b.placed_at) : "—"}</div>
+                    {b.status === "won" && (
+                      <div className="text-[10px] font-mono font-bold text-emerald-400">
+                        🎯 Won: {b.settled_at ? fmtDateTimeWithSeconds(b.settled_at) : "Settled"}
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => {
@@ -663,10 +686,23 @@ export default function JackpotBidsHistoryPage() {
               </div>
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
                 <span className="text-xs text-slate-400 block">Placed At</span>
-                <span className="font-semibold text-white">
-                  {selectedBid.placed_at ? fmtDateTime(selectedBid.placed_at) : "—"}
+                <span className="font-semibold text-white font-mono text-xs">
+                  {selectedBid.placed_at ? fmtDateTimeWithSeconds(selectedBid.placed_at) : "—"}
                 </span>
               </div>
+              {selectedBid.status === "won" && (
+                <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-900/30 col-span-2 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs text-emerald-300 block font-bold">Player Won Timestamp</span>
+                    <span className="font-semibold text-emerald-200 font-mono text-xs">
+                      {selectedBid.settled_at ? fmtDateTimeWithSeconds(selectedBid.settled_at) : "Settled with result"}
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-600 text-white">
+                    WIN CREDITED
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="p-3 rounded-xl bg-purple-950/20 border border-purple-900/30 flex justify-between items-center">

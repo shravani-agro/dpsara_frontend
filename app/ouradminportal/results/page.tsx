@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { format } from "@/lib/format";
+import { format, fmtDateTimeWithSeconds, fmtTimeWithSeconds } from "@/lib/format";
 import {
   Card,
   Button,
@@ -505,14 +505,27 @@ export default function ResultsPage() {
 
           {/* Existing Result Notification Banner */}
           {existingResult && (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 flex flex-wrap items-center justify-between gap-2">
-              <div className="text-xs text-amber-900 dark:text-amber-200">
-                <span className="font-semibold text-amber-800 dark:text-amber-300">Existing Result Found: </span>
-                Open: <span className="font-mono font-bold text-slate-900 dark:text-white">{existingResult.open_result || "None"}</span> | 
-                Close: <span className="font-mono font-bold text-slate-900 dark:text-white">{existingResult.close_result || "None"}</span> | 
-                Combined: <span className="font-mono font-bold text-amber-800 dark:text-amber-300">{existingResult.total_result || "—"}</span>
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 flex flex-wrap items-center justify-between gap-3">
+              <div className="space-y-1 text-xs text-amber-900 dark:text-amber-200">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-amber-800 dark:text-amber-300">Existing Result Found:</span>
+                  <span>Open: <strong className="font-mono text-slate-900 dark:text-white">{existingResult.open_result || "None"}</strong></span>
+                  <span>|</span>
+                  <span>Close: <strong className="font-mono text-slate-900 dark:text-white">{existingResult.close_result || "None"}</strong></span>
+                  <span>|</span>
+                  <span>Combined: <strong className="font-mono text-amber-800 dark:text-amber-300">{existingResult.total_result || "—"}</strong></span>
+                </div>
+                {existingResult.declared_at && (
+                  <div className="flex items-center gap-1.5 text-[11px] text-amber-700 dark:text-amber-300 font-medium pt-0.5">
+                    <span>🕒 Uploaded/Fetched:</span>
+                    <span className="font-mono font-bold bg-amber-500/20 px-1.5 py-0.5 rounded text-amber-950 dark:text-amber-100 border border-amber-500/30">
+                      {fmtDateTimeWithSeconds(existingResult.declared_at)}
+                    </span>
+                    <span>({existingResult.source === "scraper" || !existingResult.declared_by ? "Auto-Scraped" : `Admin: ${existingResult.declared_by_name || "Manual"}`})</span>
+                  </div>
+                )}
               </div>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => applyExistingResult(existingResult)}>
+              <Button size="sm" variant="ghost" className="h-7 text-xs border border-amber-500/30" onClick={() => applyExistingResult(existingResult)}>
                 Reload into Fields
               </Button>
             </div>
@@ -824,7 +837,7 @@ export default function ResultsPage() {
           <EmptyState title="No results declared for the selected filters" />
         ) : (
           <div className="table-wrap">
-            <table className="w-full min-w-[760px] text-sm">
+            <table className="w-full min-w-[850px] text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                   <th className="py-3 px-3">Date</th>
@@ -832,6 +845,7 @@ export default function ResultsPage() {
                   <th className="px-3 text-center">Open Result</th>
                   <th className="px-3 text-center">Close Result</th>
                   <th className="px-3 text-center">Full Card Result</th>
+                  <th className="px-3 text-center">Fetched / Declared At</th>
                   <th className="px-3 text-center">Status</th>
                   <th className="px-3 text-right">Actions</th>
                 </tr>
@@ -878,6 +892,31 @@ export default function ResultsPage() {
                       {/* Full Result */}
                       <td className="px-3 text-center font-mono font-black text-amber-700 dark:text-amber-300 text-base">
                         {r.total_result || "—"}
+                      </td>
+
+                      {/* Fetched / Declared At Timestamp */}
+                      <td className="px-3 text-center whitespace-nowrap">
+                        {r.declared_at ? (
+                          <div className="flex flex-col items-center gap-1 py-1">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-900 text-amber-300 dark:bg-slate-950 dark:text-amber-300 border border-amber-500/30 shadow-xs">
+                              <span className="text-amber-400 text-xs">🕒</span>
+                              {fmtTimeWithSeconds(r.declared_at)}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              {r.source === "scraper" || !r.declared_by ? (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/25">
+                                  <span>🤖</span> Auto Scraped
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25">
+                                  <span>👤</span> {r.declared_by_name || "Admin"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 font-mono text-xs">—</span>
+                        )}
                       </td>
 
                       {/* Status */}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { format } from "@/lib/format";
+import { format, fmtDateTimeWithSeconds, fmtTimeWithSeconds } from "@/lib/format";
 import {
   Card,
   Button,
@@ -410,6 +410,7 @@ export default function StarlinePage() {
                         <th className="px-3 text-center">Pana</th>
                         <th className="px-3 text-center">Single Ank</th>
                         <th className="px-3 text-center">Result (Open Only)</th>
+                        <th className="px-3 text-center">Declared / Fetched At</th>
                         <th className="px-3 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -437,6 +438,29 @@ export default function StarlinePage() {
                               <span className="inline-block rounded-md bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 font-mono font-black text-emerald-700 dark:text-emerald-300 text-sm">
                                 {r.open_result || r.total_result || "—"}
                               </span>
+                            </td>
+                            <td className="px-3 text-center whitespace-nowrap">
+                              {r.declared_at ? (
+                                <div className="flex flex-col items-center gap-1 py-1">
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-900 text-amber-300 dark:bg-slate-950 dark:text-amber-300 border border-amber-500/30 shadow-xs">
+                                    <span className="text-amber-400 text-xs">🕒</span>
+                                    {fmtTimeWithSeconds(r.declared_at)}
+                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    {r.source === "scraper" || !r.declared_by ? (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/25">
+                                        <span>🤖</span> Auto Scraped
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25">
+                                        <span>👤</span> {r.declared_by_name || "Admin"}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-slate-400 font-mono text-xs">—</span>
+                              )}
                             </td>
                             <td className="px-3 text-right space-x-2 whitespace-nowrap">
                               <Button
@@ -575,12 +599,23 @@ export default function StarlinePage() {
 
                 {/* Existing Result Notice for the Chosen Slot & Date */}
                 {existingSlotResult && (
-                  <div className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 p-2.5 text-xs text-cyan-300 flex items-center justify-between">
-                    <span>
-                      ℹ️ Slot <strong>{sessionLabel}</strong> already has result:{" "}
-                      <strong className="font-mono">{existingSlotResult.open_result || existingSlotResult.total_result}</strong>
-                    </span>
-                    <Badge color="blue">Update Mode</Badge>
+                  <div className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 p-3 text-xs text-cyan-900 dark:text-cyan-200 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span>
+                        ℹ️ Slot <strong>{sessionLabel}</strong> already has result:{" "}
+                        <strong className="font-mono text-cyan-700 dark:text-cyan-300">{existingSlotResult.open_result || existingSlotResult.total_result}</strong>
+                      </span>
+                      <Badge color="blue">Update Mode</Badge>
+                    </div>
+                    {existingSlotResult.declared_at && (
+                      <div className="flex items-center gap-1.5 text-[11px] text-cyan-800 dark:text-cyan-300 font-medium">
+                        <span>🕒 Declared/Fetched:</span>
+                        <span className="font-mono font-bold bg-cyan-500/20 px-1.5 py-0.5 rounded border border-cyan-500/30">
+                          {fmtDateTimeWithSeconds(existingSlotResult.declared_at)}
+                        </span>
+                        <span>({existingSlotResult.source === "scraper" || !existingSlotResult.declared_by ? "Auto-Scraped" : `Admin: ${existingSlotResult.declared_by_name || "Manual"}`})</span>
+                      </div>
+                    )}
                   </div>
                 )}
 

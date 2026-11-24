@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Badge, cn } from "@/components/ui";
-import { fmtMoney, fmtNum, fmtDate, fmtDateTime, parseToDate } from "@/lib/format";
+import { fmtMoney, fmtNum, fmtDate, fmtDateTime, fmtDateTimeWithSeconds, fmtTimeWithSeconds, parseToDate } from "@/lib/format";
 import { DateRangeFilter, DatePreset, computeDatesForPreset } from "@/components/DateRangeFilter";
 
 interface BetItem {
@@ -16,6 +16,7 @@ interface BetItem {
   win_amount?: number;
   status: "won" | "lost" | "pending" | string;
   placed_at?: string;
+  settled_at?: string | null;
   created_at?: string;
 }
 
@@ -334,10 +335,18 @@ export function UserBetsManager({ bids, loading = false }: UserBetsManagerProps)
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">
+                    <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">
                       <span className="font-mono text-slate-400">#{b.id}</span>
                       <span>•</span>
-                      <span>{fmtDateTime(b.placed_at || b.created_at)}</span>
+                      <span>Placed: {fmtDateTimeWithSeconds(b.placed_at || b.created_at)}</span>
+                      {isWon && b.settled_at && (
+                        <>
+                          <span>•</span>
+                          <span className="inline-flex items-center gap-1 font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
+                            🎯 Won: {fmtTimeWithSeconds(b.settled_at)}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
 

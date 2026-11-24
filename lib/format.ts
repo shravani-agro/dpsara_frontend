@@ -48,20 +48,25 @@ export function parseToDate(iso: string | null | undefined): Date | null {
 
 /**
  * Format datetime strictly in Indian Standard Time (IST - Asia/Kolkata).
- * Example: "17 Oct 2026, 06:21 pm"
+ * Example: "17 Oct 2026, 06:21:45 PM" (or with includeSeconds=false: "17 Oct 2026, 06:21 PM")
  */
-export function fmtDateTime(iso: string | null | undefined): string {
+export function fmtDateTime(iso: string | null | undefined, includeSeconds: boolean = true): string {
   const d = parseToDate(iso);
   if (!d) return "—";
-  return d.toLocaleString("en-IN", {
+  const datePart = d.toLocaleDateString("en-IN", {
     timeZone: "Asia/Kolkata",
     day: "2-digit",
     month: "short",
     year: "numeric",
+  });
+  const timePart = d.toLocaleTimeString("en-IN", {
+    timeZone: "Asia/Kolkata",
     hour: "2-digit",
     minute: "2-digit",
+    ...(includeSeconds ? { second: "2-digit" as const } : {}),
     hour12: true,
-  });
+  }).toUpperCase();
+  return `${datePart}, ${timePart}`;
 }
 
 /**
@@ -81,23 +86,40 @@ export function fmtDate(iso: string | null | undefined): string {
 
 /**
  * Format time in Indian Standard Time (IST - Asia/Kolkata).
- * Example: "06:21 pm"
+ * Example: "06:21:45 PM" (or with includeSeconds=false: "06:21 PM")
  */
-export function fmtTime(iso: string | null | undefined): string {
+export function fmtTime(iso: string | null | undefined, includeSeconds: boolean = true): string {
   const d = parseToDate(iso);
   if (!d) return "—";
   return d.toLocaleTimeString("en-IN", {
     timeZone: "Asia/Kolkata",
     hour: "2-digit",
     minute: "2-digit",
+    ...(includeSeconds ? { second: "2-digit" as const } : {}),
     hour12: true,
-  });
+  }).toUpperCase();
+}
+
+/**
+ * Format time strictly with seconds and uppercase AM/PM in IST.
+ * Example: "03:45:12 PM"
+ */
+export function fmtTimeWithSeconds(iso: string | null | undefined): string {
+  return fmtTime(iso, true);
+}
+
+/**
+ * Format date and time strictly with seconds and uppercase AM/PM in IST.
+ * Example: "24 Nov 2026, 03:45:12 PM"
+ */
+export function fmtDateTimeWithSeconds(iso: string | null | undefined): string {
+  return fmtDateTime(iso, true);
 }
 
 /**
  * Custom IST format helper replacing date-fns format.
  * Formats dates strictly in Indian Standard Time (IST - Asia/Kolkata).
- * Supports standard format patterns: "yyyy-MM-dd", "dd/MM/yyyy", "dd/MM/yy", "hh:mm a", "HH:mm", etc.
+ * Supports standard format patterns: "yyyy-MM-dd", "dd/MM/yyyy", "dd/MM/yy", "hh:mm:ss a", "HH:mm:ss", etc.
  */
 export function format(dateInput: any, formatStr: string = "yyyy-MM-dd"): string {
   const d = parseToDate(dateInput) || (dateInput instanceof Date ? dateInput : new Date(dateInput));
@@ -136,13 +158,15 @@ export function format(dateInput: any, formatStr: string = "yyyy-MM-dd"): string
     "h": String(hours12),
     "mm": minutes,
     "ss": seconds,
+    "A": ampm,
+    "AA": ampm,
     "a": ampm,
     "aa": ampm,
     "aaa": ampm.toLowerCase(),
     "aaaa": ampm.toLowerCase(),
   };
 
-  return formatStr.replace(/yyyy|yy|MM|dd|HH|H|hh|h|mm|ss|aaaa|aaa|aa|a/g, (match) => {
+  return formatStr.replace(/yyyy|yy|MM|dd|HH|H|hh|h|mm|ss|AAAA|AAA|AA|A|aaaa|aaa|aa|a/g, (match) => {
     return tokens[match] !== undefined ? tokens[match] : match;
   });
 }

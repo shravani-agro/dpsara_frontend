@@ -15,7 +15,7 @@ import {
 import { toast } from "@/components/Toast";
 import { listBids, listMarkets, cancelBet, updateBidStatus } from "@/lib/admin";
 import type { Bid } from "@/lib/types";
-import { fmtDate, fmtDateTime, fmtMoney } from "@/lib/format";
+import { fmtDate, fmtDateTime, fmtMoney, fmtDateTimeWithSeconds, fmtTimeWithSeconds } from "@/lib/format";
 import { parseApiError } from "@/lib/error-parser";
 import { DateRangeFilter } from "@/components/DateRangeFilter";
 import { UserCell } from "@/components/UserCell";
@@ -297,7 +297,16 @@ export default function BidsPage() {
                       <td className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{fmtMoney(b.amount)}</td>
                       <td className="font-mono text-xs text-slate-600 dark:text-slate-300">{fmtMoney(b.potential_win)}</td>
                       <td>
-                        {b.status === "pending" && (b as any).is_jodi_sangam ? (
+                        {b.status === "won" ? (
+                          <div className="space-y-1">
+                            <Badge color="emerald" className="font-bold">WON 🎯</Badge>
+                            {b.settled_at && (
+                              <div className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400" title={`Settled at ${fmtDateTimeWithSeconds(b.settled_at)}`}>
+                                {fmtTimeWithSeconds(b.settled_at)}
+                              </div>
+                            )}
+                          </div>
+                        ) : b.status === "pending" && (b as any).is_jodi_sangam ? (
                           <span
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
                             title="Jodi bet remains PENDING until both Open and Close results are announced. It will not be marked won or lost before Close result."
@@ -308,8 +317,18 @@ export default function BidsPage() {
                           <Badge color={statusColor[b.status] ?? "slate"}>{b.status}</Badge>
                         )}
                       </td>
-                      <td className="text-xs text-slate-400 whitespace-nowrap">
-                        {fmtDateTime(b.placed_at || b.created_at)}
+                      <td className="text-xs whitespace-nowrap">
+                        <div className="space-y-1">
+                          <div className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+                            Placed: {fmtDateTimeWithSeconds(b.placed_at || b.created_at)}
+                          </div>
+                          {b.status === "won" && (
+                            <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 shadow-2xs">
+                              <span>🎯 Won:</span>
+                              <span>{b.settled_at ? fmtDateTimeWithSeconds(b.settled_at) : "Settled"}</span>
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="text-right">
                         <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
@@ -392,8 +411,14 @@ export default function BidsPage() {
                             {b.username || `User #${b.user_id}`}
                           </span>
                           <span>•</span>
-                          <span>{fmtDateTime(b.placed_at || b.created_at)}</span>
+                          <span>{fmtDateTimeWithSeconds(b.placed_at || b.created_at)}</span>
                         </div>
+                        {b.status === "won" && (
+                          <div className="mt-1 flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                            <span>🎯 Won:</span>
+                            <span>{b.settled_at ? fmtDateTimeWithSeconds(b.settled_at) : "Settled"}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Right: Digit, Stake & Status Badge (Clean: Won/Lost/Cancel kept inside) */}
@@ -483,6 +508,24 @@ export default function BidsPage() {
               </div>
             </div>
 
+            {/* Player Won Banner if Won */}
+            {selectedBid.status === "won" && (
+              <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🏆</span>
+                  <div>
+                    <div className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">Player Won Timestamp</div>
+                    <div className="text-xs font-mono font-bold text-emerald-950 dark:text-emerald-200">
+                      {selectedBid.settled_at ? fmtDateTimeWithSeconds(selectedBid.settled_at) : "Settled with result"}
+                    </div>
+                  </div>
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-600 text-white">
+                  WIN CREDITED
+                </span>
+              </div>
+            )}
+
             {/* User & Time info */}
             <div className="rounded-xl bg-slate-50 dark:bg-slate-850 p-3 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div>
@@ -492,9 +535,9 @@ export default function BidsPage() {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[10px] uppercase font-bold text-slate-400">Date & Time</div>
-                <div className="text-slate-600 dark:text-slate-300 mt-0.5">
-                  {fmtDateTime(selectedBid.placed_at || selectedBid.created_at)}
+                <div className="text-[10px] uppercase font-bold text-slate-400">Placed Date & Time</div>
+                <div className="text-slate-600 dark:text-slate-300 mt-0.5 font-mono text-[11px]">
+                  {fmtDateTimeWithSeconds(selectedBid.placed_at || selectedBid.created_at)}
                 </div>
               </div>
             </div>

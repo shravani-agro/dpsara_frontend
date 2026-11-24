@@ -56,7 +56,25 @@ export interface Bid {
   session?: string | null;
   bid_date?: string | null;
   placed_at?: string;
+  settled_at?: string | null;
   created_at?: string;
+}
+
+export interface AdminResult {
+  id: number;
+  market_id: number;
+  market_name: string;
+  market_type?: string;
+  market_status?: string;
+  session_label?: string | null;
+  open_result?: string | null;
+  close_result?: string | null;
+  total_result?: string | null;
+  result_date?: string | null;
+  declared_at?: string | null;
+  declared_by?: number | null;
+  declared_by_name?: string | null;
+  source?: "scraper" | "admin" | string;
 }
 
 export interface AdminActionLog {

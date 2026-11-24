@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { format } from "@/lib/format";
+import { format, fmtDateTimeWithSeconds, fmtTimeWithSeconds } from "@/lib/format";
 import {
   Card,
   Button,
@@ -655,6 +655,7 @@ export default function JackpotPage() {
                         <th className="py-2.5 px-3">Date</th>
                         <th className="px-3">Time Slot</th>
                         <th className="px-3 text-center">Jackpot Panna Number</th>
+                        <th className="px-3 text-center">Declared / Fetched At</th>
                         <th className="px-3 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -676,6 +677,29 @@ export default function JackpotPage() {
                               <span className="inline-block rounded-lg bg-amber-500/10 border border-amber-500/40 px-3.5 py-1 font-mono font-black text-amber-700 dark:text-amber-300 text-lg tracking-widest">
                                 ♠ {pannaVal} ♠
                               </span>
+                            </td>
+                            <td className="px-3 text-center whitespace-nowrap">
+                              {r.declared_at ? (
+                                <div className="flex flex-col items-center gap-1 py-1">
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-900 text-amber-300 dark:bg-slate-950 dark:text-amber-300 border border-amber-500/30 shadow-xs">
+                                    <span className="text-amber-400 text-xs">🕒</span>
+                                    {fmtTimeWithSeconds(r.declared_at)}
+                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    {r.source === "scraper" || !r.declared_by ? (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/25">
+                                        <span>🤖</span> Auto Scraped
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25">
+                                        <span>👤</span> {r.declared_by_name || "Admin"}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-slate-400 font-mono text-xs">—</span>
+                              )}
                             </td>
                             <td className="px-3 text-right space-x-2 whitespace-nowrap">
                               <Button

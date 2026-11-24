@@ -13,7 +13,7 @@ import {
 import { toast } from "@/components/Toast";
 import { listStarlineBids, listStarlineMarkets, cancelStarlineBet, updateStarlineBidStatus } from "@/lib/admin";
 import type { Bid } from "@/lib/types";
-import { fmtDate, fmtDateTime } from "@/lib/format";
+import { fmtDate, fmtDateTime, fmtDateTimeWithSeconds, fmtTimeWithSeconds } from "@/lib/format";
 import { parseApiError } from "@/lib/error-parser";
 
 const STATUSES = ["pending", "won", "lost", "cancelled"];
@@ -145,10 +145,28 @@ export default function StarlineBidsHistoryPage() {
                     <td>{Number(b.amount).toFixed(2)}</td>
                     <td>{Number(b.potential_win).toFixed(2)}</td>
                     <td>
-                      <Badge color={statusColor[b.status] ?? "slate"}>{b.status}</Badge>
+                      {b.status === "won" ? (
+                        <div className="space-y-1">
+                          <Badge color="emerald">WON 🎯</Badge>
+                          {b.settled_at && (
+                            <div className="text-[10px] font-mono font-bold text-emerald-600">
+                              {fmtTimeWithSeconds(b.settled_at)}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <Badge color={statusColor[b.status] ?? "slate"}>{b.status}</Badge>
+                      )}
                     </td>
-                    <td className="text-slate-400">
-                      {fmtDateTime(b.placed_at)}
+                    <td className="text-slate-400 whitespace-nowrap">
+                      <div className="space-y-0.5">
+                        <div className="font-mono text-xs">Placed: {fmtDateTimeWithSeconds(b.placed_at)}</div>
+                        {b.status === "won" && (
+                          <div className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200">
+                            🎯 Won: {b.settled_at ? fmtDateTimeWithSeconds(b.settled_at) : "Settled"}
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <div className="flex items-center gap-1.5">
